@@ -38,12 +38,21 @@
 ClassPathXmlApplicationContext构造函数137：
   参数：传入字符串或字符串数组
   解析字符串，数组成实际地址，放入 configLocations变量
-  调用父类AbstractApplicationContext.refresh()
-    调用prepareRefresh()方法：初始化时间参数，初始化，检查环境变量
-    调用obtainFreshBeanFactory()
-      调用子类AbstractRefreshableApplicationContext.refreshBeanFactory():
-        如果有beanFactory，beanFactory.destory()摧毁工厂（摧毁单例对象）;关闭工厂：beanFactory.close().beanFactroy引用为null
-        调用createBeanFactory创建DefaultListableBeanFactory工厂beanFactory
-        调用beanFactory.setSerializationId设置该工厂的序列化id,这样通过id可以实现序列化和反序列化对象
-        调用beanFactory.customizeBeanFactory设置自定义属性：是否允许覆盖bean；是否允许循环依赖。
-        调用子类AbstractXml
+  调用父类 AbstractApplicationContext.refresh()
+    调用 prepareRefresh()方法：初始化时间参数，初始化，检查环境变量
+    调用 obtainFreshBeanFactory() 获取初始化的beanFactory,初始化一个BeanDefineReader，使用这个reader去读xml文件，然后注册到工厂
+      调用子类 AbstractRefreshableApplicationContext.refreshBeanFactory():
+        如果有 beanFactory，beanFactory.destory()摧毁工厂（摧毁单例对象）;关闭工厂：beanFactory.close().beanFactroy引用为null
+        调用 createBeanFactory创建 DefaultListableBeanFactory 工厂beanFactory
+        调用 beanFactory.setSerializationId设置该工厂的序列化id,这样通过id可以实现序列化和反序列化对象
+        调用 beanFactory.customizeBeanFactory设置自定义属性：是否允许覆盖bean；是否允许循环依赖。
+        调用子类 AbstractXmlApplicationContext.loadBeanDefinitions(beanFactory)
+          beanDefinitionReader = new XmlBeanDefinitionReader(beanFactory) 这样beanDefinitionReader中设置this.registry = beanFactory
+          调用 beanDefinitionReader.setEnvironment setResourceLoader setEntityResolver设置bean读取器
+          调用 loadBeanDefinitions
+            调用 AbstractRefreshableConfigApplicationContext.getConfigLocations
+            调用 XmlBeanDefinitionReader.loadBeanDefinitions(configLocations)
+              最终调用DefaultBeanDefinitionDocumentReader.doRegisterBeanDefinitions 递归的处理xml中的bean和嵌套的bean
+              再最终调用DefaultListableBeanFactory.registerBeanDefinition(beanName, BeanDefinition)
+        this.beanFactory = beanFactory;
+  调用prepareBeanFactory进行beanFactory的一系列设置
