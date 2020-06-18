@@ -35,7 +35,7 @@
       2. 缩进表示进入该调用的方法。
       3. 如果调用函数没加调用者，默认是上一级缩进的类调用的
 
-ClassPathXmlApplicationContext构造函数137：
+ClassPathXmlApplicationContext 构造函数137：
   参数：传入字符串或字符串数组
   解析字符串，数组成实际地址，放入 configLocations变量
   调用父类 AbstractApplicationContext.refresh()
@@ -55,4 +55,16 @@ ClassPathXmlApplicationContext构造函数137：
               最终调用DefaultBeanDefinitionDocumentReader.doRegisterBeanDefinitions 递归的处理xml中的bean和嵌套的bean
               再最终调用DefaultListableBeanFactory.registerBeanDefinition(beanName, BeanDefinition)
         this.beanFactory = beanFactory;
-  调用prepareBeanFactory进行beanFactory的一系列设置
+    调用prepareBeanFactory进行beanFactory的一系列设置
+
+getBean 调用 AbstractBeanFactory .doGetBean()方法
+  transformedBeanName 解析名字和别名并返回骆驼形式名字
+  调用 DefaultSingletonBeanRegistry .getSingleton 获取单例模式bean对象
+    一个map记录beanName到对象映射，如果存在返回
+    从早期单例对象map中获取对象，如果存在返回。
+    否则从单例工厂中创建，然后放入早期单例对象map。然后从单例工厂中移除。
+  如果单例对象存在，调用 getObjectForBeanInstance 
+    判断是否是factoryBean，如果是的话，执行factoryBean接口的方法返回对象。如果不是，直接返回
+
+
+
