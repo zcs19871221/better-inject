@@ -52,8 +52,8 @@ ClassPathXmlApplicationContext 构造函数137：
           调用 loadBeanDefinitions
             调用 AbstractRefreshableConfigApplicationContext.getConfigLocations
             调用 XmlBeanDefinitionReader.loadBeanDefinitions(configLocations)
-              最终调用DefaultBeanDefinitionDocumentReader.doRegisterBeanDefinitions 递归的处理xml中的bean和嵌套的bean
-              再最终调用DefaultListableBeanFactory.registerBeanDefinition(beanName, BeanDefinition)
+              最终调用 DefaultBeanDefinitionDocumentReader.doRegisterBeanDefinitions 递归的处理xml中的bean和嵌套的bean
+              再最终调用 DefaultListableBeanFactory.registerBeanDefinition(beanName, BeanDefinition) 设置 beanDefinitionMap hashMap键值对，键是beanName 值是BeanDefinition
         this.beanFactory = beanFactory;
     调用prepareBeanFactory进行beanFactory的一系列设置
 
@@ -65,6 +65,9 @@ getBean 调用 AbstractBeanFactory .doGetBean()方法
     否则从单例工厂中创建，然后放入早期单例对象map。然后从单例工厂中移除。
   如果单例对象存在，调用 getObjectForBeanInstance 
     判断是否是factoryBean，如果是的话，执行factoryBean接口的方法返回对象。如果不是，直接返回
+  不存在对象，递归获取自己的和依赖的 BeanDefinition
+
+
 
 
 

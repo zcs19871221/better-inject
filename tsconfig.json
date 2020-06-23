@@ -13,5 +13,5 @@
     "strict": true,
     "baseUrl": "./"
   },
-  "exclude": ["**/*.test.ts", "dist"]
+  "exclude": ["**/*.test.ts", "dist", "spring"]
 }
