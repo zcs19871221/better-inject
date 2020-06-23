@@ -10,10 +10,11 @@ interface BeanDefinitionConfig {
   type?: keyof typeof InjectType;
 }
 type Property = string | number | boolean;
+export { BeanDefinitionConfig };
 export default class BeanDefinition {
   private id: string;
   private alias: string[];
-  private beanClass: object;
+  private beanClass: object | string;
   private properties: Property[];
   private type: keyof typeof InjectType;
 
