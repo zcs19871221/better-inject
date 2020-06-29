@@ -26,7 +26,6 @@ export default class BeanDefinition {
     type = 'prototype',
   }: BeanDefinitionConfig) {
     this.id = id;
-    this.id = id;
     if (typeof alias === 'string') {
       alias = [alias];
     }
