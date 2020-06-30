@@ -28,11 +28,9 @@ module.exports = {
   clearMocks: true,
   resetMocks: false,
   restoreMocks: false,
-  testMatch: [
-    '**/__tests__/**/*.[jt]s?(x)',
-    '<rootDir>/src/**/*.test.[jt]s?(x)',
-  ],
-  collectCoverageFrom: ['<rootDir>/src/**/*.[jt]s?(x)'],
+  testMatch: ['**/__tests__/**/*.[jt]s?(x)', '<rootDir>/**/*.test.[jt]s?(x)'],
+  collectCoverageFrom: ['<rootDir>/**/*.[jt]s?(x)'],
+  modulePathIgnorePatterns: ['<rootDir>/dist/'],
   coverageDirectory: '<rootDir>/test/coverage',
   coverageThreshold: {
     global: {

@@ -13,12 +13,12 @@
     "build": "npm test && node ./bin/clean.js && npm run compile"
   },
   "devDependencies": {
-    "@types/jest": "^25.2.1",
-    "@types/node": "^13.13.5",
-    "jest": "^25.5.4",
+    "@types/jest": "^26.0.3",
+    "@types/node": "^13.13.12",
+    "jest": "^26.1.0",
     "prettier": "^1.19.1",
-    "ts-jest": "^25.4.0",
-    "typescript": "^3.7.5"
+    "ts-jest": "^26.1.1",
+    "typescript": "^3.9.5"
   },
   "dependencies": {
     "reflect-metadata": "^0.1.13"

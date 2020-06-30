@@ -15,7 +15,7 @@ export default class BeanFactory {
     return null;
   }
 
-  static REF_PREFIX = 'REF_';
+  static REF_PREFIX = 'ID:';
   public registDefination(definition: BeanDefinition) {
     const id = definition.getId();
     const alias = definition.getAlias();
@@ -40,12 +40,12 @@ export default class BeanFactory {
     const isFactoryBean = Ctor instanceof FactoryBean;
     const isSingle = definition.getType() === 'single';
     try {
-      if (this.currentInCreation.has(idOrName)) {
-        throw new Error('检查循环引用错误');
+      if (this.currentInCreation.has(id)) {
+        throw new Error('循环引用:' + id);
       }
-      let bean = null;
+      this.currentInCreation.add(id);
       if (isSingle && this.singleBeanMap.has(id)) {
-        bean = this.singleBeanMap.get(id);
+        return <object>this.singleBeanMap.get(id);
       }
       const properties: any = [...definition.getProperties()];
       for (let index = 0, len = properties.length; index < len; index++) {
@@ -62,7 +62,7 @@ export default class BeanFactory {
           );
         }
       }
-      bean = new (<any>Ctor)(...properties);
+      let bean = new (<any>Ctor)(...properties);
       if (isFactoryBean) {
         bean = <FactoryBean>bean.getObject();
       }

@@ -3,21 +3,37 @@ import fs from 'fs';
 
 export default class LocateParser {
   private root: string;
-  private locates: string[];
-  constructor(filePaths: string | string[], root: string = __dirname) {
-    this.root = root;
+  private locates: string[] = [];
+  private hasParsed: boolean = false;
+  private filePaths: string[];
+  constructor(filePaths: string | string[], root?: string) {
+    this.root = root ? root : this.guessRoot();
     if (typeof filePaths === 'string') {
       filePaths = [filePaths];
     }
-    this.locates = this.parseLocate(filePaths);
+    this.filePaths = filePaths;
   }
 
-  private parseLocate(filePaths: string[]): string[] {
-    return filePaths.reduce((acc: string[], locate) => {
+  private guessRoot() {
+    let cur = process.cwd();
+    let prev;
+    do {
+      if (fs.existsSync(path.join(cur, 'package.json'))) {
+        return cur;
+      }
+      prev = cur;
+      cur = path.join(cur, '../');
+    } while (cur !== prev);
+    return process.cwd();
+  }
+
+  private parseLocate(): string[] {
+    return this.filePaths.reduce((acc: string[], locate) => {
       locate = path.normalize(locate);
       const dirs = locate.split(path.sep);
       if (dirs.length === 1) {
-        return [path.join(this.root, dirs[0])];
+        acc.push(path.join(this.root, dirs[0]));
+        return acc;
       }
       let base = this.getBase(<string>dirs.shift());
       let file = <string>dirs.pop();
@@ -35,25 +51,25 @@ export default class LocateParser {
         });
         target = tmp;
       }
-      const res = [];
+      const res: string[] = [];
       target.forEach(dir => {
         if (file.includes('*')) {
-          this.getFiles(dir).forEach(file => {
-            if (file.match(new RegExp(file.replace(/\*/g, '.*')))) {
-              res.push(path.join(dir, file));
+          this.getFiles(dir).forEach(fileLocate => {
+            if (fileLocate.match(new RegExp(file.replace(/\*/g, '.*')))) {
+              res.push(fileLocate);
             }
           });
         } else {
           res.push(path.join(dir, file));
         }
       });
-      acc.push(...target.filter(file => fs.existsSync(file)));
+      acc.push(...res.filter(file => fs.existsSync(file)));
       return acc;
     }, []);
   }
 
   private getBase(firstSeprateDir: string): string {
-    if (/^(\/|[a-z])/.test(firstSeprateDir)) {
+    if (/^(\/|[a-z]:)/i.test(firstSeprateDir)) {
       return firstSeprateDir;
     }
     return path.join(this.root, firstSeprateDir);
@@ -74,6 +90,10 @@ export default class LocateParser {
   }
 
   getLocates() {
+    if (!this.hasParsed) {
+      this.hasParsed = true;
+      this.locates = this.parseLocate();
+    }
     return this.locates;
   }
 
