@@ -1,5 +1,5 @@
-// import context from './annotation';
-// import Service from '../test/service_r';
+import Context from './context';
 
-// console.log(<Service>context.getBean('service'));
-// // console.log(Service);
+const c = new Context({ scanFiles: 'test/*_r.ts' });
+
+c.getBean('service');

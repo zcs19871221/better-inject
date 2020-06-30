@@ -1,4 +1,4 @@
-import { Resource } from '../context/annotation';
+import { Resource } from '../context/context';
 
 @Resource()
 export default class Dao {

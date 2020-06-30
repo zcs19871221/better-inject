@@ -1,5 +1,5 @@
 import Dao from './dao_R';
-import { Resource } from '../context/annotation';
+import { Resource } from '../context/context';
 
 @Resource()
 class Service {
