@@ -66,8 +66,8 @@ export default class LocateParser {
     }, []);
   }
 
-  setFilePaths(filePaths: string[] | string) {
-    this.filePaths = typeof filePaths === 'string' ? [filePaths] : filePaths;
+  addPaths(filePaths: string[] | string) {
+    this.filePaths = this.filePaths.concat(filePaths);
   }
 
   private getBase(firstSeprateDir: string): string {
