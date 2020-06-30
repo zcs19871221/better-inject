@@ -2,27 +2,31 @@ enum InjectType {
   'prototype',
   'single',
 }
+interface ConstructParam {
+  index: number;
+  isBean: boolean;
+  value: any;
+}
 interface BeanDefinitionConfig {
   id: string;
   alias?: string | string[];
   beanClass: object;
-  properties?: Property[] | Property;
+  constructParams?: ConstructParam[];
   type?: keyof typeof InjectType;
 }
-type Property = string | number | boolean;
-export { BeanDefinitionConfig };
+export { BeanDefinitionConfig, ConstructParam };
 export default class BeanDefinition {
   private id: string;
   private alias: string[];
   private beanClass: object | string;
-  private properties: Property[];
+  private constructParams: ConstructParam[];
   private type: keyof typeof InjectType;
 
   constructor({
     id,
     alias = [],
     beanClass,
-    properties = [],
+    constructParams = [],
     type = 'prototype',
   }: BeanDefinitionConfig) {
     this.id = id;
@@ -30,10 +34,7 @@ export default class BeanDefinition {
       alias = [alias];
     }
     this.alias = alias;
-    if (!Array.isArray(properties)) {
-      properties = [properties];
-    }
-    this.properties = properties;
+    this.constructParams = constructParams;
     this.beanClass = beanClass;
     this.type = type;
   }
@@ -42,8 +43,8 @@ export default class BeanDefinition {
     return this.beanClass;
   }
 
-  getProperties() {
-    return this.properties;
+  getParams() {
+    return this.constructParams;
   }
 
   getType() {

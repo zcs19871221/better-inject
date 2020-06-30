@@ -47,22 +47,9 @@ export default class BeanFactory {
       if (isSingle && this.singleBeanMap.has(id)) {
         return <object>this.singleBeanMap.get(id);
       }
-      const properties: any = [...definition.getProperties()];
-      for (let index = 0, len = properties.length; index < len; index++) {
-        if (args[index] !== undefined) {
-          properties[index] = args[index];
-          continue;
-        }
-        if (
-          typeof properties[index] === 'string' &&
-          properties[index].startsWith(BeanFactory.REF_PREFIX)
-        ) {
-          properties[index] = this.getBean(
-            properties[index].slice(BeanFactory.REF_PREFIX.length),
-          );
-        }
-      }
-      let bean = new (<any>Ctor)(...properties);
+      let bean = new (<any>Ctor)(
+        ...this.injectConstructParams(definition, args),
+      );
       if (isFactoryBean) {
         bean = <FactoryBean>bean.getObject();
       }
@@ -73,5 +60,24 @@ export default class BeanFactory {
     } finally {
       this.currentInCreation.delete(id);
     }
+  }
+
+  private injectConstructParams(
+    definition: BeanDefinition,
+    args: any[],
+  ): any[] {
+    const params = [...args];
+    definition
+      .getParams()
+      .forEach(({ isBean, value: valueOrbeanId, index }) => {
+        if (params[index] !== undefined) {
+          return;
+        }
+        if (isBean) {
+          valueOrbeanId = this.getBean(valueOrbeanId);
+        }
+        params[index] = valueOrbeanId;
+      });
+    return params;
   }
 }

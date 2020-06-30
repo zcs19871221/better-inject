@@ -12,7 +12,13 @@ it('regist', () => {
       id: 'dao',
       alias: ['Dao', 'do', 'ao'],
       beanClass: Dao,
-      properties: 'oracle',
+      constructParams: [
+        {
+          index: 0,
+          value: 'oracle',
+          isBean: false,
+        },
+      ],
       type: 'single',
     }),
   );
@@ -22,7 +28,13 @@ it('regist', () => {
       new BeanDefinition({
         id: 'dao',
         beanClass: Dao,
-        properties: 'oracle',
+        constructParams: [
+          {
+            index: 0,
+            value: 'oracle',
+            isBean: false,
+          },
+        ],
         type: 'single',
       }),
     );
@@ -33,7 +45,13 @@ it('regist', () => {
         id: 'ffff',
         alias: ['Dao'],
         beanClass: Dao,
-        properties: 'oracle',
+        constructParams: [
+          {
+            index: 0,
+            value: 'oracle',
+            isBean: false,
+          },
+        ],
         type: 'single',
       }),
     );
@@ -46,7 +64,13 @@ it('inner single', () => {
     new BeanDefinition({
       id: 'dao',
       beanClass: Dao,
-      properties: 'oracle',
+      constructParams: [
+        {
+          index: 0,
+          value: 'oracle',
+          isBean: false,
+        },
+      ],
       type: 'single',
     }),
   );
@@ -54,7 +78,13 @@ it('inner single', () => {
     new BeanDefinition({
       id: 'service',
       beanClass: Service,
-      properties: 'ID:dao',
+      constructParams: [
+        {
+          index: 0,
+          value: 'dao',
+          isBean: true,
+        },
+      ],
     }),
   );
   const service = <Service>f.getBean('service');
@@ -74,14 +104,26 @@ it('all prototype', () => {
     new BeanDefinition({
       id: 'dao',
       beanClass: Dao,
-      properties: 'oracle',
+      constructParams: [
+        {
+          index: 0,
+          value: 'oracle',
+          isBean: false,
+        },
+      ],
     }),
   );
   f.registDefination(
     new BeanDefinition({
       id: 'service',
       beanClass: Service,
-      properties: 'ID:dao',
+      constructParams: [
+        {
+          index: 0,
+          value: 'dao',
+          isBean: true,
+        },
+      ],
     }),
   );
   const service = <Service>f.getBean('service');
@@ -101,14 +143,26 @@ it('circule depend', () => {
     new BeanDefinition({
       id: 'a',
       beanClass: A,
-      properties: 'ID:b',
+      constructParams: [
+        {
+          index: 0,
+          value: 'b',
+          isBean: true,
+        },
+      ],
     }),
   );
   f.registDefination(
     new BeanDefinition({
       id: 'b',
       beanClass: B,
-      properties: 'ID:a',
+      constructParams: [
+        {
+          index: 0,
+          value: 'a',
+          isBean: true,
+        },
+      ],
     }),
   );
 

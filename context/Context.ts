@@ -9,9 +9,7 @@ export default class ConfigContext {
   private locateParser: LocateParser;
   constructor(filePaths: string | string[] = [], root?: string) {
     this.locateParser = new LocateParser(filePaths, root);
-    this.locateParser.getLocates().forEach(locate => {
-      this.regist(require(locate).default);
-    });
+    this.registFiles(filePaths);
   }
 
   regist(config: BeanDefinitionConfig | BeanDefinitionConfig[]) {
@@ -20,6 +18,13 @@ export default class ConfigContext {
     }
     (<any>config).forEach((cf: BeanDefinitionConfig) => {
       this.beanFactory.registDefination(new BeanDefinition(cf));
+    });
+  }
+
+  registFiles(filePaths: string | string[]) {
+    this.locateParser.setFilePaths(filePaths);
+    this.locateParser.getLocates().forEach(locate => {
+      this.regist(require(locate).default);
     });
   }
 

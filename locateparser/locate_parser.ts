@@ -3,8 +3,6 @@ import fs from 'fs';
 
 export default class LocateParser {
   private root: string;
-  private locates: string[] = [];
-  private hasParsed: boolean = false;
   private filePaths: string[];
   constructor(filePaths: string | string[], root?: string) {
     this.root = root ? root : this.guessRoot();
@@ -27,7 +25,7 @@ export default class LocateParser {
     return process.cwd();
   }
 
-  private parseLocate(): string[] {
+  getLocates(): string[] {
     return this.filePaths.reduce((acc: string[], locate) => {
       locate = path.normalize(locate);
       const dirs = locate.split(path.sep);
@@ -68,6 +66,10 @@ export default class LocateParser {
     }, []);
   }
 
+  setFilePaths(filePaths: string[] | string) {
+    this.filePaths = typeof filePaths === 'string' ? [filePaths] : filePaths;
+  }
+
   private getBase(firstSeprateDir: string): string {
     if (/^(\/|[a-z]:)/i.test(firstSeprateDir)) {
       return firstSeprateDir;
@@ -87,14 +89,6 @@ export default class LocateParser {
       .readdirSync(dir)
       .map(file => path.join(dir, file))
       .filter(file => !fs.statSync(file).isDirectory());
-  }
-
-  getLocates() {
-    if (!this.hasParsed) {
-      this.hasParsed = true;
-      this.locates = this.parseLocate();
-    }
-    return this.locates;
   }
 
   getRoot() {
