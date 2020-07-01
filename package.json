@@ -17,7 +17,7 @@
   "scripts": {
     "analyze": "node --inspect=0.0.0.0:9229 dist/index.js",
     "compile": "tsc",
-    "test": "jest",
+    "test": "tsc && jest",
     "watch": "tsc --watch",
     "build": "npm test && node ./bin/clean.js && npm run compile",
     "preversion": "npm run build",
