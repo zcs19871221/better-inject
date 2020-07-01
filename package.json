@@ -1,7 +1,16 @@
 {
   "name": "better-inject",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "node typescript depend inject",
+  "keywords": [
+    "dependency",
+    "injection",
+    "service",
+    "container",
+    "inversion-of-control",
+    "node",
+    "typescript"
+  ],
   "main": "index.js",
   "author": "zcs",
   "license": "ISC",
@@ -10,7 +19,9 @@
     "compile": "tsc",
     "test": "jest",
     "watch": "tsc --watch",
-    "build": "npm test && node ./bin/clean.js && npm run compile"
+    "build": "npm test && node ./bin/clean.js && npm run compile",
+    "preversion": "npm run build",
+    "postversion": "node ./bin/copy.js && cd dist && npm publish"
   },
   "devDependencies": {
     "@types/jest": "^26.0.3",
