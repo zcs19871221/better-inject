@@ -7,7 +7,7 @@ export default class LocateParser {
   private buildDir: string;
   constructor(
     filePaths: string | string[],
-    root: string,
+    root: string = process.cwd(),
     buildDir: string = 'dist',
   ) {
     this.root = path.normalize(root);
