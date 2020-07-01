@@ -1,7 +1,7 @@
 {
-  "name": "better-service",
+  "name": "better-inject",
   "version": "1.0.0",
-  "description": "node typescript server",
+  "description": "node typescript depend inject",
   "main": "index.js",
   "author": "zcs",
   "license": "ISC",
@@ -15,6 +15,7 @@
   "devDependencies": {
     "@types/jest": "^26.0.3",
     "@types/node": "^13.13.12",
+    "better-fs": "^11.0.4",
     "jest": "^26.1.0",
     "prettier": "^1.19.1",
     "ts-jest": "^26.1.1",

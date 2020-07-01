@@ -4,6 +4,7 @@
     "module": "CommonJS",
     "moduleResolution": "Node",
     "outDir": "dist",
+    "sourceMap": true,
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "noUnusedLocals": true,
@@ -11,6 +12,7 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "strict": true,
+    "declaration": true,
     "baseUrl": "./"
   },
   "exclude": ["**/*.test.ts", "dist", "spring"]

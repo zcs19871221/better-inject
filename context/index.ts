@@ -1,34 +1,32 @@
 import 'reflect-metadata';
-import BeanFactory from '../factory/bean_factory';
+import BeanFactory from '../factory';
 import BeanDefinition, {
   BeanDefinitionConfig,
   ConstructParam,
-} from '../definition/bean_definition';
-import LocateParser from '../locateparser/locate_parser';
+} from '../definition';
+import LocateParser from '../locateparser';
 
 class Context {
   private beanFactory: BeanFactory = new BeanFactory();
   private configParser: LocateParser;
   private scanParser: LocateParser;
 
-  constructor(
-    {
-      configFiles = [],
-      root,
-      scanFiles = [],
-    }: {
-      configFiles?: string | string[];
-      root?: string;
-      scanFiles?: string | string[];
-    } = { configFiles: [], scanFiles: [] },
-  ) {
+  constructor({
+    configFiles = [],
+    root,
+    scanFiles = [],
+  }: {
+    configFiles?: string | string[];
+    root: string;
+    scanFiles?: string | string[];
+  }) {
     this.configParser = new LocateParser(configFiles, root);
     this.scanParser = new LocateParser(scanFiles, root);
     this.configParser.getLocates().forEach(locate => {
-      this.regist(Context.require(locate));
+      this.regist(this.configParser.require(locate));
     });
     this.scanParser.getLocates().forEach(locate => {
-      const target = Context.require(locate);
+      const target = this.scanParser.require(locate);
       const definition = Reflect.getMetadata(Context.metaKey, target);
       if (definition) {
         this.regist(definition);
@@ -36,12 +34,6 @@ class Context {
     });
   }
 
-  private static require(locate: string) {
-    const target = require(locate);
-    if (target && target.default) {
-      return target.default;
-    }
-  }
   private static isClass(v: any): boolean {
     if (typeof v !== 'function') {
       return false;
@@ -57,6 +49,9 @@ class Context {
 
   static Resource(type: 'single' | 'prototype' = 'prototype'): ClassDecorator {
     return ctr => {
+      if (Reflect.getMetadata(Context.metaKey, ctr)) {
+        return;
+      }
       const originParams = Reflect.getMetadata('design:paramtypes', ctr);
       const constructParams: ConstructParam[] = [];
       originParams.forEach((classOrOther: any, index: number) => {
@@ -79,6 +74,10 @@ class Context {
         ctr,
       );
     };
+  }
+
+  static valid(config: BeanDefinitionConfig | BeanDefinitionConfig[]) {
+    return config;
   }
 
   regist(config: BeanDefinitionConfig | BeanDefinitionConfig[]) {

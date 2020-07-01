@@ -1,31 +1,95 @@
-# node typescript server
+# 基于 typescript 的模仿 spring 依赖注入
 
-## 文件命名规范
+# 特性
 
-不允许大写,全小写,用\_代替
-因为 windows 不区分大小写,linux 区分,有意外错误
+1. 支持注解
+2. 支持配置文件
+3. 循环依赖检测
+4. 扫描文件支持\*占位符
+5. 支持 factoryBean 特性
+6. 目前只支持构造函数注入
 
-## 中间件命名规范
+# 安装
 
-一个中间件一个文件
+`npm install better-inject`
 
-中间件必须有函数名且必须和文件名一致。这样可以通过 内置路由 `/trace/list` `/trace/check` 快速定位。
+# 使用
 
-## 命令
+    // 主文件
+    import Context from 'better-inject'
 
-### npm test
+    const root = '绝对路径地址'
+    const context = new Context({
+      // 注解目标文件扫描
+      scanFiles: [
+        'service.ts',
+        'dao.ts',
+      ],
+      // 配置文件扫描
+      configFiles: 'config.ts',
+      root,
+    });
+    console.log(context.get('service))
 
-执行单元测试
 
-### npm run compile
+    // service.ts
+    import { Resource } from 'better-inject';
+    import Dao from './dao';
 
-typescript 编译
+    @Resource()
+    class Service {
+      private dao: Dao;
+      constructor(dao: Dao) {
+        this.dao = dao;
+      }
 
-### npm run build
+      getDao() {
+        return this.dao;
+      }
+    }
+    export default Service;
 
-进行单元测试，清空 dist 目录后编译输出到 dist 目录。
+    // Dao.ts
+    import { Resource } from 'better-inject';
+    import Jdbc from './jdbc';
 
-### npm run analyze
+    @Resource('single')
+    export default class Dao {
+      private jdbc: Jdbc;
+      constructor(jdbc: Jdbc) {
+        this.jdbc = jdbc;
+      }
 
-以性能模式启动 server。配合 chrome 开发者工具进行 cpu 和内存分析。
-详情见[性能文档](./doc/性能分析)
+      getJdbc() {
+        return this.jdbc;
+      }
+    }
+
+    // Jdbc.ts
+    export default class Jdbc {
+      private name: string;
+      constructor(name: string) {
+        this.name = name;
+      }
+
+      getName() {
+        return this.name;
+      }
+    }
+
+    // config.ts
+    import Jdbc from './jdbc';
+    import Context from '../../context';
+    export default Context.valid([
+      {
+        id: 'jdbc',
+        alias: ['Jdbc', 'JDBC'],
+        beanClass: Jdbc,
+        constructParams: [
+          {
+            index: 0,
+            value: 'oracle',
+          },
+        ],
+      },
+    ]);

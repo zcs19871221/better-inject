@@ -1,4 +1,4 @@
-import BeanDefinition from '../definition/bean_definition';
+import BeanDefinition from '../definition';
 abstract class FactoryBean {
   abstract getObject(): object;
 }

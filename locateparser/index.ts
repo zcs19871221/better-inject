@@ -4,25 +4,36 @@ import fs from 'fs';
 export default class LocateParser {
   private root: string;
   private filePaths: string[];
-  constructor(filePaths: string | string[], root?: string) {
-    this.root = root ? root : this.guessRoot();
+  private buildDir: string;
+  constructor(
+    filePaths: string | string[],
+    root: string,
+    buildDir: string = 'dist',
+  ) {
+    this.root = path.normalize(root);
     if (typeof filePaths === 'string') {
       filePaths = [filePaths];
     }
     this.filePaths = filePaths;
+    this.buildDir = buildDir;
   }
 
-  private guessRoot() {
-    let cur = process.cwd();
-    let prev;
-    do {
-      if (fs.existsSync(path.join(cur, 'package.json'))) {
-        return cur;
-      }
-      prev = cur;
-      cur = path.join(cur, '../');
-    } while (cur !== prev);
-    return process.cwd();
+  private srcMapBuild(srcLocate: string): string {
+    srcLocate = path.normalize(srcLocate);
+    if (srcLocate.startsWith(this.root)) {
+      return srcLocate
+        .replace(
+          this.root,
+          path.join(`${this.root}`, path.sep, this.buildDir, path.sep),
+        )
+        .replace('.ts', '');
+    }
+    return srcLocate;
+  }
+
+  require(srcLoate: string) {
+    const target = require(this.srcMapBuild(srcLoate)).default;
+    return target;
   }
 
   getLocates(): string[] {
@@ -33,24 +44,12 @@ export default class LocateParser {
         acc.push(path.join(this.root, dirs[0]));
         return acc;
       }
-      let base = this.getBase(<string>dirs.shift());
-      let file = <string>dirs.pop();
-      let target = <string[]>[base];
-      for (const dir of dirs) {
-        const tmp: string[] = [];
-        target.forEach(locate => {
-          if (dir === '**') {
-            this.getDirs(locate).forEach(dir => {
-              tmp.push(dir);
-            });
-          } else {
-            tmp.push(path.join(locate, dir));
-          }
-        });
-        target = tmp;
-      }
+      const file = <string>dirs.pop();
       const res: string[] = [];
-      target.forEach(dir => {
+      const preDirs = this.parseDirs(dirs, <string[]>[
+        this.getBase(<string>dirs.shift()),
+      ]);
+      preDirs.forEach(dir => {
         if (file.includes('*')) {
           this.getFiles(dir).forEach(fileLocate => {
             if (fileLocate.match(new RegExp(file.replace(/\*/g, '.*')))) {
@@ -64,6 +63,23 @@ export default class LocateParser {
       acc.push(...res.filter(file => fs.existsSync(file)));
       return acc;
     }, []);
+  }
+
+  private parseDirs(dirs: string[], preDirs: string[]) {
+    for (const dir of dirs) {
+      const tmp: string[] = [];
+      preDirs.forEach(locate => {
+        if (dir === '**') {
+          this.getDirs(locate).forEach(dir => {
+            tmp.push(dir);
+          });
+        } else {
+          tmp.push(path.join(locate, dir));
+        }
+      });
+      preDirs = tmp;
+    }
+    return preDirs;
   }
 
   addPaths(filePaths: string[] | string) {

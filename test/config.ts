@@ -1,7 +1,8 @@
 import Dao from './dao';
 import Service from './service';
+import Context from '../context';
 
-export default [
+export default Context.valid([
   {
     id: 'dao',
     alias: ['Dao', 'do', 'ao'],
@@ -12,6 +13,7 @@ export default [
         value: 'db',
       },
     ],
+    type: 'single',
   },
   {
     id: 'service',
@@ -24,4 +26,4 @@ export default [
       },
     ],
   },
-];
+]);

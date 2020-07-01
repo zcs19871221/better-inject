@@ -4,7 +4,7 @@ enum InjectType {
 }
 interface ConstructParam {
   index: number;
-  isBean: boolean;
+  isBean?: boolean;
   value: any;
 }
 interface BeanDefinitionConfig {

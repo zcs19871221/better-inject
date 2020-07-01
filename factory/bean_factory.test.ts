@@ -1,9 +1,10 @@
-import BeanFactory from './bean_factory';
-import BeanDefinition from '../definition/bean_definition';
+import BeanFactory from '.';
+import BeanDefinition from '../definition';
 import Dao from '../test/dao';
 import Service from '../test/service';
 import A from '../test/A';
 import B from '../test/B';
+import FactoryBean, { Person } from '../test/factoryBean';
 
 it('regist', () => {
   const f = new BeanFactory();
@@ -167,4 +168,57 @@ it('circule depend', () => {
   );
 
   expect(() => f.getBean('a')).toThrow(new Error('循环引用:a'));
+});
+
+it('args', () => {
+  const f = new BeanFactory();
+  f.registDefination(
+    new BeanDefinition({
+      id: 'dao',
+      beanClass: Dao,
+      constructParams: [
+        {
+          index: 0,
+          value: 'oracle',
+          isBean: false,
+        },
+      ],
+    }),
+  );
+  expect((<Dao>f.getBean('dao', 'inputArgs')).getJdbc()).toBe('inputArgs');
+});
+
+it('factoryBean', () => {
+  const f = new BeanFactory();
+  f.registDefination(
+    new BeanDefinition({
+      id: 'factoryBean',
+      beanClass: FactoryBean,
+      constructParams: [
+        {
+          index: 0,
+          value: 'zcs',
+        },
+      ],
+    }),
+  );
+  f.registDefination(
+    new BeanDefinition({
+      id: 'factoryBeanSingle',
+      beanClass: FactoryBean,
+      constructParams: [
+        {
+          index: 0,
+          value: 'zcs',
+        },
+      ],
+      type: 'single',
+    }),
+  );
+  expect(<any>f.getBean('factoryBean')).toEqual(new Person('zcs'));
+  expect(<any>f.getBean('factoryBean', 'sln')).toEqual(new Person('sln'));
+
+  const bean = <any>f.getBean('factoryBeanSingle');
+  expect(bean).toEqual(new Person('zcs'));
+  expect(<any>f.getBean('factoryBeanSingle')).toBe(bean);
 });
