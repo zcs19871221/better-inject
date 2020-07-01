@@ -17,7 +17,7 @@ class Context {
     scanFiles = [],
   }: {
     configFiles?: string | string[];
-    root: string;
+    root?: string;
     scanFiles?: string | string[];
   }) {
     this.configParser = new LocateParser(configFiles, root);
@@ -54,15 +54,17 @@ class Context {
       }
       const originParams = Reflect.getMetadata('design:paramtypes', ctr);
       const constructParams: ConstructParam[] = [];
-      originParams.forEach((classOrOther: any, index: number) => {
-        if (Context.isClass(classOrOther)) {
-          constructParams.push({
-            isBean: true,
-            value: Context.classToId(classOrOther),
-            index,
-          });
-        }
-      });
+      if (Array.isArray(originParams)) {
+        originParams.forEach((classOrOther: any, index: number) => {
+          if (Context.isClass(classOrOther)) {
+            constructParams.push({
+              isBean: true,
+              value: Context.classToId(classOrOther),
+              index,
+            });
+          }
+        });
+      }
       Reflect.defineMetadata(
         Context.metaKey,
         {

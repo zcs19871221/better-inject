@@ -17,6 +17,7 @@
       "name": "ts",
       "program": "${file}",
       "preLaunchTask": "compile",
+      "cwd": "${workspaceFolder}",
       "outFiles": ["${workspaceFolder}/dist/**/*.js"]
     },
     {
