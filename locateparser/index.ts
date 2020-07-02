@@ -40,32 +40,40 @@ export default class LocateParser {
     return this.filePaths.reduce((acc: string[], locate) => {
       locate = path.normalize(locate);
       const dirs = locate.split(path.sep);
-      if (dirs.length === 1) {
-        acc.push(path.join(this.root, dirs[0]));
-        return acc;
-      }
       const file = <string>dirs.pop();
-      const res: string[] = [];
-      const preDirs = this.parseDirs(dirs, <string[]>[
-        this.getBase(<string>dirs.shift()),
-      ]);
-      preDirs.forEach(dir => {
-        if (file.includes('*')) {
-          this.getFiles(dir).forEach(fileLocate => {
-            if (fileLocate.match(new RegExp(file.replace(/\*/g, '.*')))) {
-              res.push(fileLocate);
-            }
-          });
-        } else {
-          res.push(path.join(dir, file));
-        }
-      });
-      acc.push(...res.filter(file => fs.existsSync(file)));
+      const preDirs = [];
+      if (dirs.length === 1) {
+        preDirs.push(this.root);
+      } else {
+        preDirs.push(
+          ...this.parseDirs(dirs, <string[]>[
+            this.getBase(<string>dirs.shift()),
+          ]),
+        );
+      }
+      const files = this.parseFile(preDirs, file);
+      acc.push(...files.filter(file => fs.existsSync(file)));
       return acc;
     }, []);
   }
 
-  private parseDirs(dirs: string[], preDirs: string[]) {
+  private parseFile(dirs: string[], file: string): string[] {
+    const res: string[] = [];
+    dirs.forEach(dir => {
+      if (file.includes('*')) {
+        this.getFiles(dir).forEach(fileLocate => {
+          if (fileLocate.match(new RegExp(file.replace(/\*/g, '.*')))) {
+            res.push(fileLocate);
+          }
+        });
+      } else {
+        res.push(path.join(dir, file));
+      }
+    });
+    return res;
+  }
+
+  private parseDirs(dirs: string[], preDirs: string[]): string[] {
     for (const dir of dirs) {
       const tmp: string[] = [];
       preDirs.forEach(locate => {

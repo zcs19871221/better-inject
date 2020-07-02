@@ -34,3 +34,11 @@ it('getLocate with ** and *', () => {
     path.join(process.cwd(), 'test/c/ccc'),
   ]);
 });
+
+it('only *', () => {
+  const parser = new LocateParser('*.json', path.join(__dirname, '../'));
+  expect(parser.getLocates()).toEqual([
+    path.join(process.cwd(), 'package.json'),
+    path.join(process.cwd(), 'package-lock.json'),
+  ]);
+});
