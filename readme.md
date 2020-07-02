@@ -2,7 +2,7 @@
 
 # 特性
 
-1. 支持注解 两个，一个自动的`@Resource` 和注入value的`@inject`
+1. 支持注解 两个，一个自动的`@Resource` 和注入 value 的`@inject`
 2. 支持配置文件
 3. 支持同时注解和配置文件
 4. 循环依赖检测
@@ -13,7 +13,7 @@
 
 # 流程原理
 
-实例化`Context`类获取文件地址，解析后找到配置文件或(和)注解文件。进行解析生成`BeanDefinition`。执行`context.getBean(id)`时候，根据id查找BeanDefinition并根据数据实例化返回
+实例化`Context`类获取文件地址，解析后找到配置文件或(和)注解文件。进行解析生成`BeanDefinition`。执行`context.getBean(id)`时候，根据 id 查找 BeanDefinition 并根据数据实例化返回
 
 # 安装
 
@@ -21,12 +21,17 @@
 
 # 使用
 
+    有一个service类，依赖dao类，依赖jdbc类。
+    下面的例子通过注解扫描到service和dao类。
+    通过配置文件定义jdbc类。
+    然后通过getBean获取到注入后的service实例。
+
     // 主文件
     import Context from 'better-inject'
 
     const root = '绝对路径地址'
     const context = new Context({
-      // 注解目标文件扫描 
+      // 注解目标文件扫描
       // 如果是相对路径，相对于root地址解析
       // 占位符包含** 和 *
       // **在目录中间代表目录下所有文件
@@ -34,14 +39,14 @@
       scanFiles: [
         'service.ts',
         'dao.ts',
-        // 这个含义是查找test目录下，第一层所有目录下的*.ts文件 
+        // 这个含义是查找test目录下，第一层所有目录下的*.ts文件
         'test/**/*.ts'
       ],
       // 配置文件扫描
       configFiles: 'config.ts',
       root,
     });
-    console.log(context.get('service))
+    console.log(context.get('service'))
 
 
     // service.ts
@@ -125,7 +130,7 @@
 
 1. context 的 root 默认是 process.cwd()
 
-# Resouce内部逻辑
-1. 把这个类标记成一个可通过容器获取的目标，把类名小写作为id。
-2. 然后会读取类中的构造函数参数，如果认为某个构造函数是类，就会自动把它认为是一个依赖注入项，把这个类的类名小写作为要注入的id。或者通过inject标签主动注入，inject的值默认认为是id。
+# Resouce 内部逻辑
 
+1. 把这个类标记成一个可通过容器获取的目标，把类名小写作为 id。
+2. 然后会读取类中的构造函数参数，如果认为某个构造函数是类，就会自动把它认为是一个依赖注入项，把这个类的类名小写作为要注入的 id。或者通过 inject 标签主动注入，inject 的值默认认为是 id。

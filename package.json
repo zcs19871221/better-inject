@@ -13,6 +13,10 @@
   ],
   "main": "index.js",
   "author": "zcs",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zcs19871221/better-inject"
+  },
   "license": "ISC",
   "scripts": {
     "analyze": "node --inspect=0.0.0.0:9229 dist/index.js",
