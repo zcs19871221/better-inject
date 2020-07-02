@@ -42,7 +42,7 @@ export default class LocateParser {
       const dirs = locate.split(path.sep);
       const file = <string>dirs.pop();
       const preDirs = [];
-      if (dirs.length === 1) {
+      if (dirs.length === 0) {
         preDirs.push(this.root);
       } else {
         preDirs.push(

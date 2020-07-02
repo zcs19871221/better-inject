@@ -37,8 +37,11 @@ it('getLocate with ** and *', () => {
 
 it('only *', () => {
   const parser = new LocateParser('*.json', path.join(__dirname, '../'));
-  expect(parser.getLocates()).toEqual([
-    path.join(process.cwd(), 'package.json'),
-    path.join(process.cwd(), 'package-lock.json'),
-  ]);
+  expect(parser.getLocates().sort()).toEqual(
+    [
+      path.join(process.cwd(), 'package.json'),
+      path.join(process.cwd(), 'package-lock.json'),
+      path.join(process.cwd(), 'tsconfig.json'),
+    ].sort(),
+  );
 });
