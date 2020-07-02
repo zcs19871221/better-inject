@@ -1,0 +1,3 @@
+locateParser：
+默认添加.ts
+scanFIles需要添加默认搜索root下全部文件
