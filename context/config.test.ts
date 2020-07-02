@@ -22,8 +22,16 @@ it('params interface', () => {
   const context = new Context({
     configFiles: 'test/ex/config.ts',
   });
-  console.log(process.cwd());
   expect((<Parser>context.getBean('parser')).parse()).toBe(
     'invoke reader:xml reader',
+  );
+});
+
+it('params interface use Inject', () => {
+  const context = new Context({
+    scanFiles: 'test/ex/*er.ts',
+  });
+  expect((<Parser>context.getBean('parser')).parse()).toBe(
+    'invoke reader:file Reader',
   );
 });

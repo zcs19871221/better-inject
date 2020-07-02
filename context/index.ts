@@ -23,11 +23,18 @@ class Context {
     this.configParser = new LocateParser(configFiles, root);
     this.scanParser = new LocateParser(scanFiles, root);
     this.configParser.getLocates().forEach(locate => {
-      this.regist(this.configParser.require(locate));
+      const target = this.configParser.require(locate);
+      if (!target) {
+        return;
+      }
+      this.regist(target);
     });
     this.scanParser.getLocates().forEach(locate => {
       const target = this.scanParser.require(locate);
-      const definition = Reflect.getMetadata(Context.metaKey, target);
+      if (!target) {
+        return;
+      }
+      const definition = Reflect.getMetadata(Context.metaBeanKey, target);
       if (definition) {
         this.regist(definition);
       }
@@ -45,18 +52,23 @@ class Context {
     return ctr.name.toLowerCase();
   }
 
-  private static metaKey = '_beanDefinition';
+  private static metaBeanKey = '_beanDefinition';
+  private static metaConstructParamKey = '_constructParams';
 
   static Resource(type: 'single' | 'prototype' = 'prototype'): ClassDecorator {
     return ctr => {
-      if (Reflect.getMetadata(Context.metaKey, ctr)) {
+      if (Reflect.getMetadata(Context.metaBeanKey, ctr)) {
         return;
       }
       const originParams = Reflect.getMetadata('design:paramtypes', ctr);
-      const constructParams: ConstructParam[] = [];
+      const constructParams: ConstructParam[] =
+        Reflect.getMetadata(Context.metaConstructParamKey, ctr) || [];
       if (Array.isArray(originParams)) {
         originParams.forEach((classOrOther: any, index: number) => {
-          if (Context.isClass(classOrOther)) {
+          if (
+            !constructParams.find(each => each.index === index) &&
+            Context.isClass(classOrOther)
+          ) {
             constructParams.push({
               isBean: true,
               value: Context.classToId(classOrOther),
@@ -66,7 +78,7 @@ class Context {
         });
       }
       Reflect.defineMetadata(
-        Context.metaKey,
+        Context.metaBeanKey,
         {
           id: Context.classToId(ctr),
           beanClass: ctr,
@@ -78,6 +90,24 @@ class Context {
     };
   }
 
+  static Inject(value: any = null, isBean: boolean = true) {
+    return (ctr: any, _name: string | undefined, index: number) => {
+      const constructParmas: ConstructParam[] =
+        Reflect.getMetadata(Context.metaConstructParamKey, ctr) || [];
+      if (!constructParmas.find(each => each.index !== index)) {
+        constructParmas.push({
+          index,
+          value,
+          isBean,
+        });
+      }
+      Reflect.defineMetadata(
+        Context.metaConstructParamKey,
+        constructParmas,
+        ctr,
+      );
+    };
+  }
   static valid(config: BeanDefinitionConfig | BeanDefinitionConfig[]) {
     return config;
   }
@@ -95,6 +125,6 @@ class Context {
     return this.beanFactory.getBean(idOrName, ...args);
   }
 }
-const Resource = Context.Resource;
-export { Resource };
+const { Resource, Inject } = Context;
+export { Resource, Inject };
 export default Context;

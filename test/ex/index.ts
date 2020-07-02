@@ -1,7 +1,6 @@
 import Context from '../../context';
 
 const context = new Context({
-  configFiles: 'test/ex/config.ts',
+  scanFiles: 'test/ex/*er.ts',
 });
-
 console.log((<any>context.getBean('parser')).parse());
