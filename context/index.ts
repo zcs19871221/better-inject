@@ -23,7 +23,9 @@ class Context {
     this.configParser = new LocateParser(configFiles, root);
     this.scanParser = new LocateParser(scanFiles, root);
     this.configParser.requireDefault().forEach(configModule => {
-      this.regist(configModule);
+      if (BeanDefinition.isValidConfig(configModule)) {
+        this.regist(configModule);
+      }
     });
     this.scanParser.requireDefault().forEach(classModule => {
       const definition = Reflect.getMetadata(Context.metaBeanKey, classModule);

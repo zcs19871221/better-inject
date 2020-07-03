@@ -39,6 +39,15 @@ export default class BeanDefinition {
     this.type = type;
   }
 
+  static isValidConfig(mayBeConfig: any) {
+    if (!Array.isArray(mayBeConfig)) {
+      mayBeConfig = [mayBeConfig];
+    }
+    return mayBeConfig.every(
+      (each: any) => typeof each === 'object' && each.id && each.beanClass,
+    );
+  }
+
   getBeanClass() {
     return this.beanClass;
   }
