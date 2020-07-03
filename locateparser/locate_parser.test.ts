@@ -36,12 +36,13 @@ it('getLocate with ** and *', () => {
 });
 
 it('only *', () => {
-  const parser = new LocateParser('*.json', path.join(__dirname, '../'));
+  const parser = new LocateParser('*.ts', path.join(__dirname, '../'));
   expect(parser.getLocates().sort()).toEqual(
-    [
-      path.join(process.cwd(), 'package.json'),
-      path.join(process.cwd(), 'package-lock.json'),
-      path.join(process.cwd(), 'tsconfig.json'),
-    ].sort(),
+    [path.join(process.cwd(), 'index.ts')].sort(),
   );
+});
+
+it('require json', () => {
+  const parser = new LocateParser('package.json', path.join(__dirname, '../'));
+  expect(parser.require()[0].name).toEqual('better-inject');
 });

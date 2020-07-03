@@ -20,20 +20,42 @@ export default class LocateParser {
 
   private srcMapBuild(srcLocate: string): string {
     srcLocate = path.normalize(srcLocate);
-    if (srcLocate.startsWith(this.root)) {
+    if (srcLocate.startsWith(this.root) && srcLocate.endsWith('.ts')) {
       return srcLocate
         .replace(
           this.root,
           path.join(`${this.root}`, path.sep, this.buildDir, path.sep),
         )
-        .replace('.ts', '');
+        .replace('.ts', '.js');
     }
     return srcLocate;
   }
 
-  require(srcLoate: string) {
-    const target = require(this.srcMapBuild(srcLoate)).default;
-    return target;
+  require(
+    srcLoates: string | string[] = this.getLocates(),
+    prop: string = '',
+  ): any[] {
+    if (typeof srcLoates === 'string') {
+      srcLoates = [srcLoates];
+    }
+    const res: any[] = [];
+    srcLoates.forEach(srcLoate => {
+      const compiledLocate = this.srcMapBuild(srcLoate);
+      try {
+        let target = require(compiledLocate);
+        if (prop && target[prop]) {
+          target = target[prop];
+        }
+        res.push(target);
+      } catch (error) {
+        console.error(`require ${srcLoate}对应地址${compiledLocate} 报错`);
+      }
+    });
+    return res;
+  }
+
+  requireDefault(srcLoates: string | string[] = this.getLocates()): any[] {
+    return this.require(srcLoates, 'default');
   }
 
   getLocates(): string[] {
@@ -62,7 +84,15 @@ export default class LocateParser {
     dirs.forEach(dir => {
       if (file.includes('*')) {
         this.getFiles(dir).forEach(fileLocate => {
-          if (fileLocate.match(new RegExp(file.replace(/\*/g, '.*')))) {
+          if (
+            fileLocate.match(
+              new RegExp(
+                file
+                  .replace(/[.+?^${}()|[\]\\]/gu, '\\$&')
+                  .replace(/\*/g, '.*'),
+              ),
+            )
+          ) {
             res.push(fileLocate);
           }
         });

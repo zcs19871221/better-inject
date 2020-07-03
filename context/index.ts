@@ -22,19 +22,11 @@ class Context {
   }) {
     this.configParser = new LocateParser(configFiles, root);
     this.scanParser = new LocateParser(scanFiles, root);
-    this.configParser.getLocates().forEach(locate => {
-      const target = this.configParser.require(locate);
-      if (!target) {
-        return;
-      }
-      this.regist(target);
+    this.configParser.requireDefault().forEach(configModule => {
+      this.regist(configModule);
     });
-    this.scanParser.getLocates().forEach(locate => {
-      const target = this.scanParser.require(locate);
-      if (!target) {
-        return;
-      }
-      const definition = Reflect.getMetadata(Context.metaBeanKey, target);
+    this.scanParser.requireDefault().forEach(classModule => {
+      const definition = Reflect.getMetadata(Context.metaBeanKey, classModule);
       if (definition) {
         this.regist(definition);
       }
