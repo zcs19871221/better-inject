@@ -1,8 +1,6 @@
 import BeanDefinition from '../definition';
-abstract class FactoryBean {
-  abstract getObject(): object;
-}
-export { FactoryBean };
+import FactoryBean from './factory_bean';
+
 export default class BeanFactory {
   private definitionMap: Map<string, BeanDefinition> = new Map();
   private singleBeanMap: Map<string, object> = new Map();
@@ -37,7 +35,7 @@ export default class BeanFactory {
     }
     const id = definition.getId();
     const Ctor = definition.getBeanClass();
-    const isFactoryBean = Ctor instanceof FactoryBean;
+    const isFactoryBean = definition.isFactoryBean();
     const isSingle = definition.getType() === 'single';
     try {
       if (this.currentInCreation.has(id)) {

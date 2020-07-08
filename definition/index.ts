@@ -1,3 +1,5 @@
+import FactoryBean from '../factory/factory_bean';
+
 enum InjectType {
   'prototype',
   'single',
@@ -7,10 +9,13 @@ interface ConstructParam {
   isBean?: boolean;
   value: any;
 }
+interface BeanClass {
+  prototype: object;
+}
 interface BeanDefinitionConfig {
   id: string;
   alias?: string | string[];
-  beanClass: object;
+  beanClass: BeanClass;
   constructParams?: ConstructParam[];
   type?: keyof typeof InjectType;
 }
@@ -18,7 +23,7 @@ export { BeanDefinitionConfig, ConstructParam };
 export default class BeanDefinition {
   private id: string;
   private alias: string[];
-  private beanClass: object | string;
+  private beanClass: BeanClass;
   private constructParams: ConstructParam[];
   private type: keyof typeof InjectType;
 
@@ -66,5 +71,9 @@ export default class BeanDefinition {
 
   getId() {
     return this.id;
+  }
+
+  isFactoryBean() {
+    return this.beanClass.prototype instanceof FactoryBean;
   }
 }
