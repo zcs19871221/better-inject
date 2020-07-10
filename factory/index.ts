@@ -1,4 +1,7 @@
-import BeanDefinition from '../definition';
+import BeanDefinition, {
+  ConstructParamEach,
+  ConstructParamProps,
+} from '../definition';
 import FactoryBean from './factory_bean';
 
 export default class BeanFactory {
@@ -60,22 +63,51 @@ export default class BeanFactory {
     }
   }
 
+  getRealValue(config: ConstructParamEach) {
+    const { isBean, value } = config;
+    if (isBean) {
+      return this.getBean(value);
+    }
+    return value;
+  }
+
   private injectConstructParams(
     definition: BeanDefinition,
     args: any[],
   ): any[] {
-    const params = [...args];
-    definition
-      .getParams()
-      .forEach(({ isBean, value: valueOrbeanId, index }) => {
-        if (params[index] !== undefined) {
-          return;
+    const params: any[] = [...args];
+    Object.entries(definition.getParams()).forEach(
+      ([key, eachConfig]: [
+        string,
+        ConstructParamProps | ConstructParamEach,
+      ]) => {
+        const index = Number(key);
+        if (Array.isArray(eachConfig)) {
+          const toInjectObject = eachConfig[0];
+          if (
+            params[index] !== undefined &&
+            typeof params[index] !== 'object'
+          ) {
+            throw new Error('注入是对象类型,getBean参数不是');
+          }
+          const prop = Object.keys(toInjectObject).reduce(
+            (acc: any, propName) => {
+              acc[propName] = this.getRealValue(toInjectObject[propName]);
+              return acc;
+            },
+            {},
+          );
+          params[index] = {
+            ...prop,
+            ...params[index],
+          };
+        } else {
+          if (params[index] === undefined) {
+            params[index] = this.getRealValue(eachConfig);
+          }
         }
-        if (isBean) {
-          valueOrbeanId = this.getBean(valueOrbeanId);
-        }
-        params[index] = valueOrbeanId;
-      });
+      },
+    );
     return params;
   }
 }

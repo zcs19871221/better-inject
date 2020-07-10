@@ -1,6 +1,7 @@
-import Context, { Resource, Inject } from './context';
+import Context, { Resource, Inject, Checker, InjectObj } from './context';
 import Definition from './definition';
-import Factory, { FactoryBean } from './factory';
+import Factory from './factory';
+import FactoryBean from './factory/factory_bean';
 import LocateParser from './locateparser';
 
 export {
@@ -11,5 +12,7 @@ export {
   FactoryBean,
   Resource,
   Inject,
+  InjectObj,
+  Checker,
 };
 export default Context;

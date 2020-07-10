@@ -1,4 +1,4 @@
-import { FactoryBean } from '../factory';
+import FactoryBean from '../factory/factory_bean';
 class Person {
   private name: string;
   constructor(name: string) {

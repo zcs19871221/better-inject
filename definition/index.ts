@@ -4,11 +4,20 @@ enum InjectType {
   'prototype',
   'single',
 }
-interface ConstructParam {
-  index: number;
+interface ConstructParamEach {
   isBean?: boolean;
   value: any;
 }
+type ConstructParamProps = [
+  {
+    [propName: string]: ConstructParamEach;
+  },
+];
+
+interface ConstructParams {
+  [index: number]: ConstructParamEach | ConstructParamProps;
+}
+
 interface BeanClass {
   prototype: object;
 }
@@ -16,22 +25,27 @@ interface BeanDefinitionConfig {
   id: string;
   alias?: string | string[];
   beanClass: BeanClass;
-  constructParams?: ConstructParam[];
+  constructParams?: ConstructParams;
   type?: keyof typeof InjectType;
 }
-export { BeanDefinitionConfig, ConstructParam };
+export {
+  BeanDefinitionConfig,
+  ConstructParams,
+  ConstructParamEach,
+  ConstructParamProps,
+};
 export default class BeanDefinition {
   private id: string;
   private alias: string[];
   private beanClass: BeanClass;
-  private constructParams: ConstructParam[];
+  private constructParams: ConstructParams;
   private type: keyof typeof InjectType;
 
   constructor({
     id,
     alias = [],
     beanClass,
-    constructParams = [],
+    constructParams = {},
     type = 'prototype',
   }: BeanDefinitionConfig) {
     this.id = id;

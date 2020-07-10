@@ -2,7 +2,8 @@ import 'reflect-metadata';
 import BeanFactory from '../factory';
 import BeanDefinition, {
   BeanDefinitionConfig,
-  ConstructParam,
+  ConstructParamEach,
+  ConstructParams,
 } from '../definition';
 import LocateParser from '../locateparser';
 
@@ -55,19 +56,15 @@ class Context {
         return;
       }
       const originParams = Reflect.getMetadata('design:paramtypes', ctr);
-      const constructParams: ConstructParam[] =
-        Reflect.getMetadata(Context.metaConstructParamKey, ctr) || [];
+      const constructParams: ConstructParams =
+        Reflect.getMetadata(Context.metaConstructParamKey, ctr) || {};
       if (Array.isArray(originParams)) {
         originParams.forEach((classOrOther: any, index: number) => {
-          if (
-            !constructParams.find(each => each.index === index) &&
-            Context.isClass(classOrOther)
-          ) {
-            constructParams.push({
+          if (!constructParams[index] && Context.isClass(classOrOther)) {
+            constructParams[index] = {
               isBean: true,
               value: Context.classToId(classOrOther),
-              index,
-            });
+            };
           }
         });
       }
@@ -86,14 +83,13 @@ class Context {
 
   static Inject(value: any = null, isBean: boolean = true) {
     return (ctr: any, _name: string | undefined, index: number) => {
-      const constructParmas: ConstructParam[] =
-        Reflect.getMetadata(Context.metaConstructParamKey, ctr) || [];
-      if (!constructParmas.find(each => each.index !== index)) {
-        constructParmas.push({
-          index,
+      const constructParmas: ConstructParams =
+        Reflect.getMetadata(Context.metaConstructParamKey, ctr) || {};
+      if (!constructParmas[index]) {
+        constructParmas[index] = {
           value,
           isBean,
-        });
+        };
       }
       Reflect.defineMetadata(
         Context.metaConstructParamKey,
@@ -102,7 +98,23 @@ class Context {
       );
     };
   }
-  static valid(config: BeanDefinitionConfig | BeanDefinitionConfig[]) {
+
+  static InjectObj(prop: { [propName: string]: ConstructParamEach }) {
+    return (ctr: any, _name: string | undefined, index: number) => {
+      const constructParmas: ConstructParams =
+        Reflect.getMetadata(Context.metaConstructParamKey, ctr) || {};
+      if (!constructParmas[index]) {
+        constructParmas[index] = [prop];
+      }
+      Reflect.defineMetadata(
+        Context.metaConstructParamKey,
+        constructParmas,
+        ctr,
+      );
+    };
+  }
+
+  static Checker(config: BeanDefinitionConfig | BeanDefinitionConfig[]) {
     return config;
   }
 
@@ -119,6 +131,6 @@ class Context {
     return this.beanFactory.getBean(idOrName, ...args);
   }
 }
-const { Resource, Inject } = Context;
-export { Resource, Inject };
+const { Resource, Inject, InjectObj, Checker } = Context;
+export { Resource, Inject, InjectObj, Checker };
 export default Context;

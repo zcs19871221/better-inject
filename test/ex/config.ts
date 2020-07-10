@@ -1,19 +1,18 @@
-import context from '../../context';
+import { Checker } from '../../context';
 import parser from './parser';
 import fileReader from './fileReader';
 import xmlReader from './xmlReader';
 
-export default context.valid([
+export default Checker([
   {
     id: 'parser',
     beanClass: parser,
-    constructParams: [
-      {
-        index: 0,
+    constructParams: {
+      0: {
         isBean: true,
         value: 'xmlReader',
       },
-    ],
+    },
   },
   {
     id: 'fileReader',

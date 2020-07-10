@@ -1,14 +1,13 @@
-import Jdbc from './jdbc';
 import { Checker } from '../../context';
+import Dao from './dao';
 
 export default Checker([
   {
-    id: 'jdbc',
-    alias: ['Jdbc', 'JDBC'],
-    beanClass: Jdbc,
+    id: 'dao',
+    beanClass: Dao,
     constructParams: {
       0: {
-        value: 'jdbc',
+        value: 'kingbase',
       },
     },
   },

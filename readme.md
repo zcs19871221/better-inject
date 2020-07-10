@@ -2,14 +2,15 @@
 
 # 特性
 
-1. 支持注解 两个，一个自动的`@Resource` 和注入 value 的`@inject`
+1. 支持注解 3个，自动扫描`@Resource` 注入构造函数参数`@inject` 注入对象类型的构造函数参数`@injectObj`
 2. 支持配置文件
 3. 支持同时注解和配置文件
 4. 循环依赖检测
-5. 扫描文件支持\*\*和\*占位符
-6. 支持 factoryBean 特性
-7. 支持接口类型注入
-8. 目前只支持构造函数注入
+5. 可扫描文件注解文件和配置文件，支持\*\*和\*占位符
+6. 获取实例时候可动态传参数覆盖注解或配置文件的参数
+7. 支持 factoryBean 特性
+8. 支持接口类型注入
+9. 目前只支持构造函数注入
 
 # 流程原理
 
@@ -100,9 +101,9 @@
 
     // config.ts 可以通过配置文件定义全部数据关系,
     import Jdbc from './jdbc';
-    import Context from '../../context';
-    // 可以不使用Context.valid,直接导出数组，但是这样就没有ts数据格式校验
-    export default Context.valid([
+    import {Checker} from '../../context';
+    // 可以不使用Checker,直接导出，但是这样就没有ts数据格式校验
+    export default Checker([
       {
         // id，对应getBean()的参数
         id: 'jdbc',
@@ -110,17 +111,32 @@
         alias: ['Jdbc', 'JDBC'],
         // 这个bean对应类
         beanClass: Jdbc,
-        // 构造函数参数
-        constructParams: [
-          {
+        // 构造函数参数直接值
+        constructParams: {
             // 位置
-            index: 0,
-            // 值
-            value: 'oracle',
-            // 表示把这个value看做id，用于注入
-            isBean: true,
-          },
-        ],
+            0: {
+              // 值
+              value: 'oracle',
+              // 表示把这个value看做id，用于注入
+              isBean: true,
+            }
+        },
+        // 构造函数参数使用对象merge
+        constructParams: {
+            // 位置 表示注入一个对象，包含jdbc和name
+            两个属性，会和getBean的参数进行merge，getBean参数优先级高
+            0: [{
+              jdbc: {
+                // 值
+                value: 'oracle',
+                // 表示把这个value看做id，用于注入
+                isBean: true,
+              },
+              name: {
+                value: 'zcs',
+              },
+            }]
+        },
         // 实例化类型 single 单例模式 prototype 原型模式 默认是prototype
         type: 'single'
       },

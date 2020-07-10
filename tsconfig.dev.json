@@ -2,8 +2,6 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "sourceMap": true,
-    "declaration": false,
-    "baseUrl": "./"
-  },
-  "exclude": ["**/*.test.ts", "dist", "spring"]
+    "declaration": false
+  }
 }
