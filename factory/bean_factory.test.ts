@@ -4,7 +4,7 @@ import Dao from '../test/dao';
 import Service from '../test/service';
 import A from '../test/A';
 import B from '../test/B';
-import FactoryBean, { Person } from '../test/factoryBean';
+import FactoryBean, { Person } from '../test/factory_bean';
 
 it('regist', () => {
   const f = new BeanFactory();

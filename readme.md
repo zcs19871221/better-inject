@@ -7,10 +7,12 @@
 3. 支持同时注解和配置文件
 4. 循环依赖检测
 5. 可扫描文件注解文件和配置文件，支持\*\*和\*占位符
-6. 获取实例时候可动态传参数覆盖注解或配置文件的参数
-7. 支持 factoryBean 特性
-8. 支持接口类型注入
-9. 目前只支持构造函数注入
+6. 支持继承父亲构造函数注入
+7. 支持工厂类，继承factoryBean类,默认获取getObject返回对象；可通过&id获取工厂对象自身
+8. 获取实例时候可动态传参数覆盖注解或配置文件的参数
+9. 支持 factoryBean 特性
+10. 支持接口类型注入
+11. 目前只支持构造函数注入
 
 # 流程原理
 
@@ -54,7 +56,7 @@
     import { Resource } from 'better-inject';
     import Dao from './dao';
 
-    @Resource(/** single 或 prototype 默认 prototype**/)
+    @Resource(/** 默认 type: prototype id: 类名 parent: 无**/)
     // 内部生成类似service: {dao: Dao}的定义数据
     class Service {
       private dao: Dao;
@@ -75,7 +77,7 @@
     import { Resource } from 'better-inject';
     import Jdbc from './jdbc';
 
-    @Resource('single')
+    @Resource({type: 'single'})
     export default class Dao {
       private jdbc: Jdbc;
       constructor(jdbc: Jdbc) {

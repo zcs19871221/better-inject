@@ -2,7 +2,6 @@ import BeanDefinition, {
   ConstructParamEach,
   ConstructParamProps,
 } from '../definition';
-import FactoryBean from './factory_bean';
 
 export default class BeanFactory {
   private definitionMap: Map<string, BeanDefinition> = new Map();
@@ -16,17 +15,21 @@ export default class BeanFactory {
     return null;
   }
 
-  static REF_PREFIX = 'ID:';
+  static FACTORY_BEANID_PREFIX = '&';
   public registDefination(definition: BeanDefinition) {
     const id = definition.getId();
     const alias = definition.getAlias();
     const definitionMap = this.definitionMap;
-    [id, ...alias].forEach((eachId: string) => {
+    const toRegist = [id, ...alias];
+    if (definition.isFactoryBean()) {
+      toRegist.push(`${BeanFactory.FACTORY_BEANID_PREFIX}${id}`);
+    }
+    toRegist.forEach((eachId: string) => {
       if (definitionMap.has(eachId)) {
         throw new Error('重复definitionid:' + eachId);
       }
     });
-    [id, ...alias].forEach((eachId: string) => {
+    toRegist.forEach((eachId: string) => {
       this.definitionMap.set(eachId, definition);
     });
   }
@@ -36,10 +39,13 @@ export default class BeanFactory {
     if (!definition) {
       throw new Error('不存在beanid:' + idOrName);
     }
-    const id = definition.getId();
     const Ctor = definition.getBeanClass();
     const isFactoryBean = definition.isFactoryBean();
     const isSingle = definition.getType() === 'single';
+    const id =
+      isFactoryBean && idOrName.startsWith(BeanFactory.FACTORY_BEANID_PREFIX)
+        ? idOrName
+        : definition.getId();
     try {
       if (this.currentInCreation.has(id)) {
         throw new Error('循环引用:' + id);
@@ -51,8 +57,8 @@ export default class BeanFactory {
       let bean = new (<any>Ctor)(
         ...this.injectConstructParams(definition, args),
       );
-      if (isFactoryBean) {
-        bean = <FactoryBean>bean.getObject();
+      if (isFactoryBean && !id.startsWith(BeanFactory.FACTORY_BEANID_PREFIX)) {
+        bean = bean.getObject();
       }
       if (isSingle) {
         this.singleBeanMap.set(id, bean);
@@ -76,7 +82,7 @@ export default class BeanFactory {
     args: any[],
   ): any[] {
     const params: any[] = [...args];
-    Object.entries(definition.getParams()).forEach(
+    Object.entries(definition.getMergedParmas(this.definitionMap)).forEach(
       ([key, eachConfig]: [
         string,
         ConstructParamProps | ConstructParamEach,

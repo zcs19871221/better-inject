@@ -27,6 +27,7 @@ interface BeanDefinitionConfig {
   beanClass: BeanClass;
   constructParams?: ConstructParams;
   type?: keyof typeof InjectType;
+  parent?: string;
 }
 export {
   BeanDefinitionConfig,
@@ -40,6 +41,9 @@ export default class BeanDefinition {
   private beanClass: BeanClass;
   private constructParams: ConstructParams;
   private type: keyof typeof InjectType;
+  private parent: string;
+  private mergedParams: ConstructParams = {};
+  private hasMergedParams: boolean = false;
 
   constructor({
     id,
@@ -47,6 +51,7 @@ export default class BeanDefinition {
     beanClass,
     constructParams = {},
     type = 'prototype',
+    parent = '',
   }: BeanDefinitionConfig) {
     this.id = id;
     if (typeof alias === 'string') {
@@ -56,6 +61,7 @@ export default class BeanDefinition {
     this.constructParams = constructParams;
     this.beanClass = beanClass;
     this.type = type;
+    this.parent = parent;
   }
 
   static isValidConfig(mayBeConfig: any) {
@@ -69,10 +75,6 @@ export default class BeanDefinition {
 
   getBeanClass() {
     return this.beanClass;
-  }
-
-  getParams() {
-    return this.constructParams;
   }
 
   getType() {
@@ -89,5 +91,46 @@ export default class BeanDefinition {
 
   isFactoryBean() {
     return this.beanClass.prototype instanceof FactoryBean;
+  }
+
+  getParentId() {
+    return this.parent;
+  }
+
+  getMergedParmas(beanMap: Map<string, BeanDefinition>): ConstructParams {
+    if (this.hasMergedParams) {
+      return this.mergedParams;
+    }
+    this.hasMergedParams = true;
+    this.mergedParams = {
+      ...this.constructParams,
+    };
+    if (!this.parent) {
+      return this.mergedParams;
+    }
+    const parent = beanMap.get(this.parent);
+    if (!parent) {
+      throw new Error(`${this.id}不存在id为${this.parent}的定义`);
+    }
+    const parentParam = parent.getMergedParmas(beanMap);
+    Object.keys(parentParam).forEach(key => {
+      const index = Number(key);
+      const parentConfig = parentParam[index];
+      const curConfig = this.mergedParams[index];
+      if (curConfig === undefined && parentConfig) {
+        this.mergedParams[index] = parentConfig;
+        return;
+      }
+      if (Array.isArray(curConfig) && Array.isArray(parentConfig)) {
+        const props: ConstructParamProps = [
+          {
+            ...parentConfig[0],
+            ...curConfig[0],
+          },
+        ];
+        this.mergedParams[index] = props;
+      }
+    });
+    return this.mergedParams;
   }
 }

@@ -7,6 +7,8 @@ import BeanDefinition, {
 } from '../definition';
 import LocateParser from '../locateparser';
 
+type ResouceOpt = Partial<Pick<BeanDefinitionConfig, 'id' | 'parent' | 'type'>>;
+
 class Context {
   private beanFactory: BeanFactory = new BeanFactory();
   private configParser: LocateParser;
@@ -50,7 +52,14 @@ class Context {
   private static metaBeanKey = '_beanDefinition';
   private static metaConstructParamKey = '_constructParams';
 
-  static Resource(type: 'single' | 'prototype' = 'prototype'): ClassDecorator {
+  static Resource(
+    opt: ResouceOpt = {
+      type: 'prototype',
+      parent: '',
+      id: '',
+    },
+  ): ClassDecorator {
+    const { id, type, parent } = opt;
     return ctr => {
       if (Reflect.getMetadata(Context.metaBeanKey, ctr)) {
         return;
@@ -63,7 +72,7 @@ class Context {
           if (!constructParams[index] && Context.isClass(classOrOther)) {
             constructParams[index] = {
               isBean: true,
-              value: Context.classToId(classOrOther),
+              value: id || Context.classToId(classOrOther),
             };
           }
         });
@@ -71,17 +80,18 @@ class Context {
       Reflect.defineMetadata(
         Context.metaBeanKey,
         {
-          id: Context.classToId(ctr),
+          id: id || Context.classToId(ctr),
           beanClass: ctr,
           constructParams,
           type,
+          parent,
         },
         ctr,
       );
     };
   }
 
-  static Inject(value: any = null, isBean: boolean = true) {
+  static Inject(value: any, isBean: boolean = true) {
     return (ctr: any, _name: string | undefined, index: number) => {
       const constructParmas: ConstructParams =
         Reflect.getMetadata(Context.metaConstructParamKey, ctr) || {};

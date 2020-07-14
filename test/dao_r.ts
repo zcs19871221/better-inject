@@ -1,6 +1,6 @@
 import { Resource } from '../context';
 
-@Resource('single')
+@Resource({ type: 'single' })
 export default class Dao {
   private jdbc: string;
   constructor(jdbc: string = 'SSR') {
