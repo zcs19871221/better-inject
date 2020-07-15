@@ -105,7 +105,13 @@ export default class BeanFactory {
           );
           params[index] = {
             ...prop,
-            ...params[index],
+            ...(params[index] &&
+              Object.keys(params[index]).reduce((acc: any, key) => {
+                if (params[index][key] !== undefined) {
+                  acc[key] = params[index][key];
+                }
+                return acc;
+              }, {})),
           };
         } else {
           if (params[index] === undefined) {
