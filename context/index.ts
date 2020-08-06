@@ -49,8 +49,8 @@ class Context {
     return ctr.name.toLowerCase();
   }
 
-  private static metaBeanKey = Symbol('inject beanDefinition');
-  private static metaConstructParamKey = Symbol('inject constructParams');
+  private static metaBeanKey = '__inject beanDefinition';
+  private static metaConstructParamKey = '__inject constructParams';
 
   static Resource(
     opt: ResouceOpt = {
