@@ -2,11 +2,29 @@ import BeanDefinition, {
   ConstructParamEach,
   ConstructParamProps,
 } from '../definition';
+import BeforeAdvisor from '../aop/before_advisor';
+import AfterAdvisor from '../aop/after_advisor';
+import AroundAdvisor from '../aop/around_advisor';
+import ErrorCatchAdvisor from '../aop/error_catch_advisor';
+import Advisor from '../aop/adivsor';
+import Invoker from '../aop/invoker';
 
+
+interface Aspect {
+  adviceId: string;
+  classMatcher: RegExp|string;
+  methodMatcher: RegExp|string;
+  joinPoint: ['before'|'around'|'errorCatch'|'after', string?][];
+}
+
+export {Aspect}
 export default class BeanFactory {
+  static FACTORY_BEANID_PREFIX = '&';
+
   private definitionMap: Map<string, BeanDefinition> = new Map();
   private singleBeanMap: Map<string, object> = new Map();
   private currentInCreation: Set<string> = new Set();
+  private advisors: Advisor[] = [];
 
   private getDefination(idOrName: string): BeanDefinition | null {
     if (this.definitionMap.has(idOrName)) {
@@ -15,8 +33,60 @@ export default class BeanFactory {
     return null;
   }
 
-  static FACTORY_BEANID_PREFIX = '&';
-  public registDefination(definition: BeanDefinition) {
+
+  getAdvisors() {
+    return this.advisors;
+  }
+
+  registAdvisor({ classMatcher,methodMatcher,adviceId, joinPoint }: Aspect) {
+    const advice = this.getBean(adviceId);
+    joinPoint.forEach(point => {
+      let [position, methodName] = point;
+      if (methodName === undefined) {
+        methodName = position;
+      }
+      let advisor:Advisor;
+      switch (position) {
+        case 'before':
+          advisor = new BeforeAdvisor({
+            classMatcher,
+            methodMatcher,
+            adviceMethod: methodName,
+            advice,
+          })
+          break;
+        case 'after':
+          advisor = new AfterAdvisor({
+            classMatcher,
+            methodMatcher,
+            adviceMethod: methodName,
+            advice,
+          })
+          break;
+        case 'around':
+          advisor = new AroundAdvisor({
+            classMatcher,
+            methodMatcher,
+            adviceMethod: methodName,
+            advice,
+          })
+          break;
+        case 'errorCatch':
+          advisor = new ErrorCatchAdvisor({
+            classMatcher,
+            methodMatcher,
+            adviceMethod: methodName,
+            advice,
+          })
+          break;
+        default:
+          throw new Error('错误连接点'+ position)
+      }
+      this.advisors.push(advisor);
+    });
+  }
+
+  registDefination(definition: BeanDefinition) {
     const id = definition.getId();
     const alias = definition.getAlias();
     const definitionMap = this.definitionMap;
@@ -57,9 +127,11 @@ export default class BeanFactory {
       let bean = new (<any>Ctor)(
         ...this.injectConstructParams(definition, args),
       );
+      bean = this.createAopProxyBean(bean, id)
       if (isFactoryBean && !id.startsWith(BeanFactory.FACTORY_BEANID_PREFIX)) {
         bean = bean.getObject();
       }
+
       if (isSingle) {
         this.singleBeanMap.set(id, bean);
       }
@@ -69,12 +141,27 @@ export default class BeanFactory {
     }
   }
 
-  getRealValue(config: ConstructParamEach) {
-    const { isBean, value } = config;
-    if (isBean) {
-      return this.getBean(value);
+  private createAopProxyBean(bean:any,beanId:string) {
+    const advisors = this.advisors.filter(advisor => advisor.matchClass(beanId))
+    if (advisors.length > 0) {
+      const proxy = new Proxy(bean, {
+        get: function proxyMethod (target, targetMethod) {
+          const origin = Reflect.get(target, targetMethod);
+          if (typeof origin === 'function' && typeof targetMethod !== 'symbol') {
+            const advisorChains = advisors.filter(advisor => advisor.matchMethod(String(targetMethod)));
+            if (advisorChains.length > 0) {
+              return function (...args:any[]) {
+                const invoker = new Invoker({target, targetMethod,proxy,args,advisorChains})
+                return invoker.invoke();
+              }
+            }
+          }
+          return origin;
+        }
+      })
+      return proxy;
     }
-    return value;
+    return bean;
   }
 
   private injectConstructParams(
@@ -122,4 +209,13 @@ export default class BeanFactory {
     );
     return params;
   }
+
+  private getRealValue(config: ConstructParamEach) {
+    const { isBean, value } = config;
+    if (isBean) {
+      return this.getBean(value);
+    }
+    return value;
+  }
+
 }

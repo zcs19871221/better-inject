@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import BeanFactory from '../factory';
+import BeanFactory, { Aspect} from '../factory';
 import BeanDefinition, {
   BeanDefinitionConfig,
   ConstructParamEach,
@@ -49,8 +49,8 @@ class Context {
     return ctr.name.toLowerCase();
   }
 
-  private static metaBeanKey = '_beanDefinition';
-  private static metaConstructParamKey = '_constructParams';
+  private static metaBeanKey = Symbol('inject beanDefinition');
+  private static metaConstructParamKey = Symbol('inject constructParams');
 
   static Resource(
     opt: ResouceOpt = {
@@ -122,6 +122,19 @@ class Context {
         ctr,
       );
     };
+  }
+
+  static AspectChecker(config:Aspect | Aspect[]) {
+    return config;
+  }
+
+  registAspect(config:Aspect | Aspect[]) {
+    if (!Array.isArray(config)) {
+      config = [config];
+    }
+    (<any>config).forEach((cf: Aspect) => {
+      this.beanFactory.registAdvisor(cf);
+    });
   }
 
   static Checker(config: BeanDefinitionConfig | BeanDefinitionConfig[]) {
