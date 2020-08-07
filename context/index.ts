@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import BeanFactory, { Aspect} from '../factory';
+import BeanFactory, { Aspect, isAspectConfig } from '../factory';
 import BeanDefinition, {
   BeanDefinitionConfig,
   ConstructParamEach,
@@ -13,18 +13,22 @@ class Context {
   private beanFactory: BeanFactory = new BeanFactory();
   private configParser: LocateParser;
   private scanParser: LocateParser;
+  private aspectParser: LocateParser;
 
   constructor({
     configFiles = [],
     root,
     scanFiles = [],
+    aspectFiles = [],
   }: {
     configFiles?: string | string[];
     root?: string;
     scanFiles?: string | string[];
+    aspectFiles?: string | string[];
   }) {
     this.configParser = new LocateParser(configFiles, root);
     this.scanParser = new LocateParser(scanFiles, root);
+    this.aspectParser = new LocateParser(aspectFiles, root);
     this.configParser.requireDefault().forEach(configModule => {
       if (BeanDefinition.isValidConfig(configModule)) {
         this.regist(configModule);
@@ -34,6 +38,11 @@ class Context {
       const definition = Reflect.getMetadata(Context.metaBeanKey, classModule);
       if (definition) {
         this.regist(definition);
+      }
+    });
+    this.aspectParser.requireDefault().forEach(configModule => {
+      if (isAspectConfig(configModule)) {
+        this.registAspect(configModule);
       }
     });
   }
@@ -124,11 +133,11 @@ class Context {
     };
   }
 
-  static AspectChecker(config:Aspect | Aspect[]) {
+  static AspectChecker(config: Aspect | Aspect[]) {
     return config;
   }
 
-  registAspect(config:Aspect | Aspect[]) {
+  registAspect(config: Aspect | Aspect[]) {
     if (!Array.isArray(config)) {
       config = [config];
     }
@@ -154,6 +163,6 @@ class Context {
     return this.beanFactory.getBean(idOrName, ...args);
   }
 }
-const { Resource, Inject, InjectObj, Checker } = Context;
-export { Resource, Inject, InjectObj, Checker };
+const { Resource, Inject, InjectObj, Checker, AspectChecker } = Context;
+export { Resource, Inject, InjectObj, Checker, AspectChecker };
 export default Context;

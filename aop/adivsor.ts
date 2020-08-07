@@ -1,8 +1,11 @@
 import Invoker from './Invoker';
 
+type Matcher = RegExp | string;
+
+export { Matcher };
 export default abstract class Advisor {
-  private classMatcher: RegExp|string;
-  private methodMatcher: RegExp|string;
+  private classMatcher: Matcher | Matcher[];
+  private methodMatcher: Matcher | Matcher[];
   private advice: any;
   private adviceMethod: string;
 
@@ -12,8 +15,8 @@ export default abstract class Advisor {
     advice,
     adviceMethod,
   }: {
-    classMatcher: RegExp|string;
-    methodMatcher: RegExp|string;
+    classMatcher: RegExp | string;
+    methodMatcher: RegExp | string;
     advice: any;
     adviceMethod: string;
   }) {
@@ -29,17 +32,23 @@ export default abstract class Advisor {
 
   abstract invoke(invoker: Invoker): any;
 
-  matchClass(beanId: string): boolean {
-    if (typeof this.classMatcher === 'string') {
-      return this.classMatcher === beanId;
+  private match(target: string, matcher: Matcher | Matcher[]) {
+    if (!Array.isArray(matcher)) {
+      matcher = [matcher];
     }
-    return this.classMatcher.test(beanId);
+    return matcher.every(eachMatcher => {
+      if (typeof eachMatcher === 'string') {
+        return eachMatcher === target;
+      }
+      return eachMatcher.test(target);
+    });
+  }
+
+  matchClass(beanId: string): boolean {
+    return this.match(beanId, this.classMatcher);
   }
 
   matchMethod(method: string): boolean {
-    if (typeof this.methodMatcher === 'string') {
-      return this.methodMatcher === method;
-    }
-    return this.methodMatcher.test(method);
+    return this.match(method, this.methodMatcher);
   }
 }

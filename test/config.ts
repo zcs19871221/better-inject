@@ -1,5 +1,6 @@
 import Dao from './dao';
 import Service from './service';
+import LogInfo from './logInfo';
 import { Checker } from '../context';
 
 export default Checker([
@@ -23,5 +24,10 @@ export default Checker([
         isBean: true,
       },
     },
+  },
+  {
+    id: 'logInfo',
+    beanClass: LogInfo,
+    type: 'single',
   },
 ]);

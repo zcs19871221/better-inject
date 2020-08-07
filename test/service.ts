@@ -9,4 +9,12 @@ export default class Service {
   getDao() {
     return this.dao;
   }
+
+  aopGet(name: string) {
+    return name.toUpperCase();
+  }
+
+  aopWithAnotherAop(name: string) {
+    return this.dao.aopGetJdbc(name);
+  }
 }

@@ -32,6 +32,10 @@ export default class Invoker {
     return this.proxy
   }
   
+  getArgs() {
+    return this.args;
+  }
+
   callOrigin() {
     return Reflect.get(this.target, this.targetMethod)(...this.args)
   }

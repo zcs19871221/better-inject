@@ -6,18 +6,35 @@ import BeforeAdvisor from '../aop/before_advisor';
 import AfterAdvisor from '../aop/after_advisor';
 import AroundAdvisor from '../aop/around_advisor';
 import ErrorCatchAdvisor from '../aop/error_catch_advisor';
-import Advisor from '../aop/adivsor';
+import Advisor, { Matcher } from '../aop/adivsor';
 import Invoker from '../aop/invoker';
 
-
+enum JoinPoint {
+  before,
+  around,
+  errorCatch,
+  after,
+}
 interface Aspect {
   adviceId: string;
-  classMatcher: RegExp|string;
-  methodMatcher: RegExp|string;
-  joinPoint: ['before'|'around'|'errorCatch'|'after', string?][];
+  classMatcher: Matcher | Matcher[];
+  methodMatcher: Matcher | Matcher[];
+  joinPoint: [keyof typeof JoinPoint, string?][];
 }
-
-export {Aspect}
+const isAspectConfig = (config: any) => {
+  if (!Array.isArray(config)) {
+    config = [config];
+  }
+  return config.every(
+    (each: any) =>
+      each &&
+      each.adviceId &&
+      each.classMatcher &&
+      each.methodMatcher &&
+      each.joinPoint,
+  );
+};
+export { Aspect, isAspectConfig };
 export default class BeanFactory {
   static FACTORY_BEANID_PREFIX = '&';
 
@@ -33,19 +50,18 @@ export default class BeanFactory {
     return null;
   }
 
-
   getAdvisors() {
     return this.advisors;
   }
 
-  registAdvisor({ classMatcher,methodMatcher,adviceId, joinPoint }: Aspect) {
+  registAdvisor({ classMatcher, methodMatcher, adviceId, joinPoint }: Aspect) {
     const advice = this.getBean(adviceId);
     joinPoint.forEach(point => {
       let [position, methodName] = point;
       if (methodName === undefined) {
         methodName = position;
       }
-      let advisor:Advisor;
+      let advisor: Advisor;
       switch (position) {
         case 'before':
           advisor = new BeforeAdvisor({
@@ -53,7 +69,7 @@ export default class BeanFactory {
             methodMatcher,
             adviceMethod: methodName,
             advice,
-          })
+          });
           break;
         case 'after':
           advisor = new AfterAdvisor({
@@ -61,7 +77,7 @@ export default class BeanFactory {
             methodMatcher,
             adviceMethod: methodName,
             advice,
-          })
+          });
           break;
         case 'around':
           advisor = new AroundAdvisor({
@@ -69,7 +85,7 @@ export default class BeanFactory {
             methodMatcher,
             adviceMethod: methodName,
             advice,
-          })
+          });
           break;
         case 'errorCatch':
           advisor = new ErrorCatchAdvisor({
@@ -77,10 +93,10 @@ export default class BeanFactory {
             methodMatcher,
             adviceMethod: methodName,
             advice,
-          })
+          });
           break;
         default:
-          throw new Error('错误连接点'+ position)
+          throw new Error('错误连接点' + position);
       }
       this.advisors.push(advisor);
     });
@@ -127,7 +143,7 @@ export default class BeanFactory {
       let bean = new (<any>Ctor)(
         ...this.injectConstructParams(definition, args),
       );
-      bean = this.createAopProxyBean(bean, id)
+      bean = this.createAopProxyBean(bean, id);
       if (isFactoryBean && !id.startsWith(BeanFactory.FACTORY_BEANID_PREFIX)) {
         bean = bean.getObject();
       }
@@ -141,24 +157,37 @@ export default class BeanFactory {
     }
   }
 
-  private createAopProxyBean(bean:any,beanId:string) {
-    const advisors = this.advisors.filter(advisor => advisor.matchClass(beanId))
+  private createAopProxyBean(bean: any, beanId: string) {
+    const advisors = this.advisors.filter(advisor =>
+      advisor.matchClass(beanId),
+    );
     if (advisors.length > 0) {
       const proxy = new Proxy(bean, {
-        get: function proxyMethod (target, targetMethod) {
+        get: function proxyMethod(target, targetMethod) {
           const origin = Reflect.get(target, targetMethod);
-          if (typeof origin === 'function' && typeof targetMethod !== 'symbol') {
-            const advisorChains = advisors.filter(advisor => advisor.matchMethod(String(targetMethod)));
+          if (
+            typeof origin === 'function' &&
+            typeof targetMethod !== 'symbol'
+          ) {
+            const advisorChains = advisors.filter(advisor =>
+              advisor.matchMethod(String(targetMethod)),
+            );
             if (advisorChains.length > 0) {
-              return function (...args:any[]) {
-                const invoker = new Invoker({target, targetMethod,proxy,args,advisorChains})
+              return function(...args: any[]) {
+                const invoker = new Invoker({
+                  target,
+                  targetMethod,
+                  proxy,
+                  args,
+                  advisorChains,
+                });
                 return invoker.invoke();
-              }
+              };
             }
           }
           return origin;
-        }
-      })
+        },
+      });
       return proxy;
     }
     return bean;
@@ -217,5 +246,4 @@ export default class BeanFactory {
     }
     return value;
   }
-
 }

@@ -12,4 +12,8 @@ export default class Dao {
   setJdbc(jdbc: string) {
     this.jdbc = jdbc;
   }
+
+  aopGetJdbc(name: string) {
+    return name + ':' + this.jdbc;
+  }
 }
