@@ -2,25 +2,10 @@ import BeanDefinition, {
   ConstructParamEach,
   ConstructParamProps,
 } from '../definition';
-import BeforeAdvisor from '../aop/before_advisor';
-import AfterAdvisor from '../aop/after_advisor';
-import AroundAdvisor from '../aop/around_advisor';
-import ErrorCatchAdvisor from '../aop/error_catch_advisor';
-import Advisor, { Matcher } from '../aop/adivsor';
 import Invoker from '../aop/invoker';
+import Aspect, { AspectOpt } from '../aop/aspect';
+import Advice from '../aop/advice';
 
-enum JoinPoint {
-  before,
-  around,
-  errorCatch,
-  after,
-}
-interface Aspect {
-  adviceId: string;
-  classMatcher: Matcher | Matcher[];
-  methodMatcher: Matcher | Matcher[];
-  joinPoint: [keyof typeof JoinPoint, string?][];
-}
 const isAspectConfig = (config: any) => {
   if (!Array.isArray(config)) {
     config = [config];
@@ -34,14 +19,15 @@ const isAspectConfig = (config: any) => {
       each.joinPoint,
   );
 };
-export { Aspect, isAspectConfig };
+type AspectConfig = Omit<AspectOpt, 'advice'> & { adviceId: string };
+export { AspectConfig, isAspectConfig };
 export default class BeanFactory {
-  static FACTORY_BEANID_PREFIX = '&';
+  private static FACTORY_BEANID_PREFIX = '&';
 
   private definitionMap: Map<string, BeanDefinition> = new Map();
   private singleBeanMap: Map<string, object> = new Map();
   private currentInCreation: Set<string> = new Set();
-  private advisors: Advisor[] = [];
+  private aspects: Aspect[] = [];
 
   private getDefination(idOrName: string): BeanDefinition | null {
     if (this.definitionMap.has(idOrName)) {
@@ -50,56 +36,23 @@ export default class BeanFactory {
     return null;
   }
 
-  getAdvisors() {
-    return this.advisors;
-  }
-
-  registAdvisor({ classMatcher, methodMatcher, adviceId, joinPoint }: Aspect) {
+  registAspect({
+    classMatcher,
+    methodMatcher,
+    adviceId,
+    joinPoint,
+    order,
+  }: Omit<AspectOpt, 'advice'> & { adviceId: string }) {
     const advice = this.getBean(adviceId);
-    joinPoint.forEach(point => {
-      let [position, methodName] = point;
-      if (methodName === undefined) {
-        methodName = position;
-      }
-      let advisor: Advisor;
-      switch (position) {
-        case 'before':
-          advisor = new BeforeAdvisor({
-            classMatcher,
-            methodMatcher,
-            adviceMethod: methodName,
-            advice,
-          });
-          break;
-        case 'after':
-          advisor = new AfterAdvisor({
-            classMatcher,
-            methodMatcher,
-            adviceMethod: methodName,
-            advice,
-          });
-          break;
-        case 'around':
-          advisor = new AroundAdvisor({
-            classMatcher,
-            methodMatcher,
-            adviceMethod: methodName,
-            advice,
-          });
-          break;
-        case 'errorCatch':
-          advisor = new ErrorCatchAdvisor({
-            classMatcher,
-            methodMatcher,
-            adviceMethod: methodName,
-            advice,
-          });
-          break;
-        default:
-          throw new Error('错误连接点' + position);
-      }
-      this.advisors.push(advisor);
-    });
+    this.aspects.push(
+      new Aspect({
+        classMatcher,
+        methodMatcher,
+        advice,
+        joinPoint,
+        order,
+      }),
+    );
   }
 
   registDefination(definition: BeanDefinition) {
@@ -158,10 +111,8 @@ export default class BeanFactory {
   }
 
   private createAopProxyBean(bean: any, beanId: string) {
-    const advisors = this.advisors.filter(advisor =>
-      advisor.matchClass(beanId),
-    );
-    if (advisors.length > 0) {
+    let aspects = this.aspects.filter(aspect => aspect.matchClass(beanId));
+    if (aspects.length > 0) {
       const proxy = new Proxy(bean, {
         get: function proxyMethod(target, targetMethod) {
           const origin = Reflect.get(target, targetMethod);
@@ -169,17 +120,22 @@ export default class BeanFactory {
             typeof origin === 'function' &&
             typeof targetMethod !== 'symbol'
           ) {
-            const advisorChains = advisors.filter(advisor =>
-              advisor.matchMethod(String(targetMethod)),
+            aspects = aspects.filter(aspect =>
+              aspect.matchMethod(<string>targetMethod),
             );
-            if (advisorChains.length > 0) {
+            if (aspects.length > 0) {
+              aspects.sort((a, b) => a.getOrder() - b.getOrder());
+              const adviceChains = aspects.reduce((acc: Advice[], aspect) => {
+                acc.push(...aspect.getAdvice());
+                return acc;
+              }, []);
               return function(...args: any[]) {
                 const invoker = new Invoker({
                   target,
                   targetMethod,
                   proxy,
                   args,
-                  advisorChains,
+                  adviceChains,
                 });
                 return invoker.invoke();
               };

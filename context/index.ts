@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import BeanFactory, { Aspect, isAspectConfig } from '../factory';
+import BeanFactory, { AspectConfig, isAspectConfig } from '../factory';
 import BeanDefinition, {
   BeanDefinitionConfig,
   ConstructParamEach,
@@ -133,16 +133,16 @@ class Context {
     };
   }
 
-  static AspectChecker(config: Aspect | Aspect[]) {
+  static AspectChecker(config: AspectConfig | AspectConfig[]) {
     return config;
   }
 
-  registAspect(config: Aspect | Aspect[]) {
+  registAspect(config: AspectConfig | AspectConfig[]) {
     if (!Array.isArray(config)) {
       config = [config];
     }
-    (<any>config).forEach((cf: Aspect) => {
-      this.beanFactory.registAdvisor(cf);
+    (<any>config).forEach((cf: AspectConfig) => {
+      this.beanFactory.registAspect(cf);
     });
   }
 

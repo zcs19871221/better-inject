@@ -11,6 +11,7 @@ export default class Service {
   }
 
   aopGet(name: string) {
+    console.log('real execute');
     return name.toUpperCase();
   }
 

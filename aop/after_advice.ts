@@ -1,7 +1,7 @@
-import Advisor from './adivsor';
-import Invoker from './Invoker';
+import Advice from './advice';
+import Invoker from './invoker';
 
-export default class AfterAdvisor extends Advisor {
+export default class AfterAdvisor extends Advice {
   invoke(invoker: Invoker) {
     try {
       return invoker.invoke();

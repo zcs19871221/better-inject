@@ -1,7 +1,7 @@
-import Advisor from './adivsor';
+import Advice from './advice';
 import Invoker from './Invoker';
 
-export default class ErrorCatchAdvisor extends Advisor {
+export default class ErrorCatchAdvisor extends Advice {
   invoke(invoker: Invoker) {
     try {
       return invoker.invoke();

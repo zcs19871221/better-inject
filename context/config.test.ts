@@ -2,7 +2,7 @@ import path from 'path';
 import Context from '.';
 import Dao from '../test/dao';
 import Service from '../test/service';
-import Loginfo from '../test/loginfo';
+// import Loginfo from '../test/loginfo';
 import Parser from '../test/ex/parser';
 
 it('context with config', () => {
@@ -37,18 +37,18 @@ it('params interface use Inject', () => {
   );
 });
 
-it('aop', () => {
-  const context = new Context({
-    configFiles: 'test/config.ts',
-    aspectFiles: 'test/aspect_config.ts',
-    root: path.join(__dirname, '../'),
-  });
-  const logInfo = <Loginfo>context.getBean('logInfo');
-  const service = <Service>context.getBean('service');
-  service.aopGet('good');
-  expect(logInfo.getLogger()).toEqual([
-    'before - args:good',
-    'around - result:GOOD',
-    'after',
-  ]);
-});
+// it('aop', () => {
+//   const context = new Context({
+//     configFiles: 'test/config.ts',
+//     aspectFiles: 'test/aspect_config.ts',
+//     root: path.join(__dirname, '../'),
+//   });
+//   const logInfo = <Loginfo>context.getBean('logInfo');
+//   const service = <Service>context.getBean('service');
+//   service.aopGet('good');
+//   expect(logInfo.getLogger()).toEqual([
+//     'before - args:good',
+//     'around - result:GOOD',
+//     'after',
+//   ]);
+// });

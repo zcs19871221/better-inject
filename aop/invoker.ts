@@ -1,11 +1,11 @@
-import Advisor from './adivsor';
+import Advice from './advice';
 
 export default class Invoker {
   private target: any;
   private targetMethod: any;
   private proxy: any;
   private args: any[];
-  private advisorChains: Advisor[];
+  private adviceChains: Advice[];
   private index: number = 0;
 
   constructor({
@@ -13,38 +13,38 @@ export default class Invoker {
     targetMethod,
     proxy,
     args,
-    advisorChains,
+    adviceChains,
   }: {
     target: any;
     targetMethod: any;
     proxy: any;
     args: any[];
-    advisorChains: Advisor[];
+    adviceChains: Advice[];
   }) {
     this.target = target;
     this.targetMethod = targetMethod;
     this.proxy = proxy;
     this.args = args;
-    this.advisorChains = advisorChains;
+    this.adviceChains = adviceChains;
   }
 
   getProxy() {
-    return this.proxy
+    return this.proxy;
   }
-  
+
   getArgs() {
     return this.args;
   }
 
   callOrigin() {
-    return Reflect.get(this.target, this.targetMethod)(...this.args)
+    return Reflect.get(this.target, this.targetMethod)(...this.args);
   }
 
   invoke(): any {
-    if (this.index === this.advisorChains.length - 1) {
+    if (this.index === this.adviceChains.length) {
       return this.callOrigin();
     }
-    const advisor = this.advisorChains[this.index++];
-    return advisor.invoke(this);
+    const advice = this.adviceChains[this.index++];
+    return advice.invoke(this);
   }
 }
