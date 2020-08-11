@@ -22,12 +22,13 @@ const alias = (function createAlias() {
   }
   return {};
 })();
-
+console.log(__dirname);
 module.exports = {
   automock: false,
   clearMocks: true,
   resetMocks: false,
   restoreMocks: false,
+  rootDir: __dirname,
   testMatch: ['**/__tests__/**/*.[jt]s?(x)', '<rootDir>/**/*.test.[jt]s?(x)'],
   collectCoverageFrom: ['<rootDir>/**/*.[jt]s?(x)'],
   modulePathIgnorePatterns: ['<rootDir>/dist/'],

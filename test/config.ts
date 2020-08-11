@@ -1,7 +1,7 @@
 import Dao from './dao';
 import Service from './service';
-import LogInfo from './logInfo';
-import LogInfo1 from './LogInfo1';
+import LogInfo from './loginfo';
+import LogInfo1 from './loginfo1';
 import { Checker } from '../context';
 
 export default Checker([

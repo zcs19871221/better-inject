@@ -58,7 +58,7 @@ class Context {
     }
   }
 
-  static delProxy(ref: any) {
+  static delProxy(_ref: any) {
     return Context.targetMapProxy.delete(ref);
   }
 

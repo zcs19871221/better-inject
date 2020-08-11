@@ -1,5 +1,5 @@
 import Advice from './advice';
-import Invoker from './Invoker';
+import Invoker from './invoker_implement';
 
 export default class AfterThrow extends Advice {
   invoke(invoker: Invoker) {

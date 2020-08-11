@@ -1,4 +1,4 @@
-import Invoker from './Invoker';
+import Invoker from './invoker';
 
 interface AdviceArgs {
   advice: any;

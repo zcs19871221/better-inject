@@ -2,7 +2,7 @@ import BeanDefinition, {
   ConstructParamEach,
   ConstructParamProps,
 } from '../definition';
-import Invoker from '../aop/invoker';
+import Invoker from '../aop/invoker_implement';
 import Aspect, { AspectOpt } from '../aop/aspect';
 import Advice from '../aop/advice';
 

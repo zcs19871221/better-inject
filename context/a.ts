@@ -1,7 +1,7 @@
 import Context from '.';
 import Service from '../test/service';
 import Loginfo from '../test/loginfo';
-
+console.log(process.cwd());
 const context = new Context({
   configFiles: 'test/config.ts',
   aspectFiles: 'test/aspect_config.ts',

@@ -1,4 +1,4 @@
-import Dao from './dao_R';
+import Dao from './dao_r';
 import { Resource } from '../context';
 
 @Resource()

@@ -1,6 +1,6 @@
 import Dao from './dao';
 import Context from '../context';
-console;
+console.log(process.cwd());
 export default class Service {
   private dao: Dao;
   private logger: any[] = [];

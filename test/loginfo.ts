@@ -1,4 +1,4 @@
-import Invoker from '../aop/Invoker';
+import Invoker from '../aop/invoker_implement';
 
 export default class LogInfo {
   private logger!: any[];
