@@ -18,6 +18,21 @@ export default class LocateParser {
     this.buildDir = buildDir;
   }
 
+  // ts解析的路径是小写的，node默认是大写的，
+  // 如果有两种方式引入相同文件，会初始化两次。
+  // 如果目标有静态属性，ts的静态属性实现方式是class.pro = xxx
+  // 会导致重新设置静态属性。因此要把大小写统一
+  // private normlizeRoot(root: string) {
+  //   const dir = process.argv[1];
+  //   root = path.normalize(root);
+  //   if (root[0] !== dir[0] && root[0].toLowerCase() === dir[0].toLowerCase()) {
+  //     const r = [...root];
+  //     r[0] = dir[0];
+  //     root = r.join('');
+  //   }
+  //   return root;
+  // }
+
   private srcMapBuild(srcLocate: string): string {
     srcLocate = path.normalize(srcLocate);
     if (srcLocate.startsWith(this.root) && srcLocate.endsWith('.ts')) {

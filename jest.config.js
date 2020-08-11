@@ -22,7 +22,7 @@ const alias = (function createAlias() {
   }
   return {};
 })();
-console.log(__dirname);
+
 module.exports = {
   automock: false,
   clearMocks: true,

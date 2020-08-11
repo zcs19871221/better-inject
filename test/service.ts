@@ -24,7 +24,7 @@ export default class Service {
   aopAnotherGet(name: string) {
     this.logger.push('invoke one method then invoke another - args:' + name);
     const proxy = Context.getProxy(this);
-    return proxy.aopGet(name + 'another').toUpperCase();
+    return proxy.aopGet(name + 'another').toLowerCase();
   }
 
   aopDoubleGet(name: string) {

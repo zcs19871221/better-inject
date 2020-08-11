@@ -13,3 +13,4 @@ const service = <Service>context.getBean('service');
 service.setLogger(logger);
 const result = service.aopAnotherGet('good');
 logger.push(`return value - ${result}`);
+console.log(logger);

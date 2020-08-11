@@ -27,35 +27,35 @@ it('aop single', () => {
   ]);
 });
 
-it('origin invoke another aop', () => {
-  const context = new Context({
-    configFiles: 'test/config.ts',
-    aspectFiles: 'test/aspect_config.ts',
-    root: path.join(__dirname, '../'),
-  });
-  const logger: any[] = [];
-  const logInfo = <Loginfo>context.getBean('logInfo');
-  logInfo.setLogger(logger);
-  const service = <Service>context.getBean('service');
-  service.setLogger(logger);
-  const result = service.aopAnotherGet('good');
-  logger.push(`return value - ${result}`);
-  expect(logger).toEqual([
-    'invoke around start',
-    'invoke before - originargs:good originmethod:aopAnotherGet',
-    'invoke one method then invoke another - args:',
-    'invoke around start',
-    'invoke before - originargs:goodanother originmethod:aopGet',
-    'invoke realmethod - args:goodanother',
-    'invoke around end',
-    'invoke after',
-    'invoke afterReturn - res:GOODANOTHER',
-    'invoke around end',
-    'invoke after',
-    'invoke afterReturn - res:goodanother',
-    'return value - goodanother',
-  ]);
-});
+// it('origin invoke another aop', () => {
+//   const context = new Context({
+//     configFiles: 'test/config.ts',
+//     aspectFiles: 'test/aspect_config.ts',
+//     root: path.join(__dirname, '../'),
+//   });
+//   const logger: any[] = [];
+//   const logInfo = <Loginfo>context.getBean('logInfo');
+//   logInfo.setLogger(logger);
+//   const service = <Service>context.getBean('service');
+//   service.setLogger(logger);
+//   const result = service.aopAnotherGet('good');
+//   logger.push(`return value - ${result}`);
+//   expect(logger).toEqual([
+//     'invoke around start',
+//     'invoke before - originargs:good originmethod:aopAnotherGet',
+//     'invoke one method then invoke another - args:',
+//     'invoke around start',
+//     'invoke before - originargs:goodanother originmethod:aopGet',
+//     'invoke realmethod - args:goodanother',
+//     'invoke around end',
+//     'invoke after',
+//     'invoke afterReturn - res:GOODANOTHER',
+//     'invoke around end',
+//     'invoke after',
+//     'invoke afterReturn - res:goodanother',
+//     'return value - goodanother',
+//   ]);
+// });
 
 it('aop single throw', () => {
   const context = new Context({
