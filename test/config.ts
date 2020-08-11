@@ -25,6 +25,7 @@ export default Checker([
         isBean: true,
       },
     },
+    exposeProxy: true,
   },
   {
     id: 'logInfo',

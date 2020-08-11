@@ -28,6 +28,7 @@ interface BeanDefinitionConfig {
   constructParams?: ConstructParams;
   type?: keyof typeof InjectType;
   parent?: string;
+  exposeProxy?: boolean;
 }
 export {
   BeanDefinitionConfig,
@@ -44,6 +45,7 @@ export default class BeanDefinition {
   private parent: string;
   private mergedParams: ConstructParams = {};
   private hasMergedParams: boolean = false;
+  private exposeProxy: boolean;
 
   constructor({
     id,
@@ -52,6 +54,7 @@ export default class BeanDefinition {
     constructParams = {},
     type = 'prototype',
     parent = '',
+    exposeProxy = false,
   }: BeanDefinitionConfig) {
     this.id = id;
     if (typeof alias === 'string') {
@@ -62,6 +65,7 @@ export default class BeanDefinition {
     this.beanClass = beanClass;
     this.type = type;
     this.parent = parent;
+    this.exposeProxy = exposeProxy;
   }
 
   static isValidConfig(mayBeConfig: any) {
@@ -75,6 +79,10 @@ export default class BeanDefinition {
 
   getBeanClass() {
     return this.beanClass;
+  }
+
+  getExposeProxy() {
+    return this.exposeProxy;
   }
 
   getType() {

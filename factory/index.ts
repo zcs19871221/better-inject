@@ -96,7 +96,7 @@ export default class BeanFactory {
       let bean = new (<any>Ctor)(
         ...this.injectConstructParams(definition, args),
       );
-      bean = this.createAopProxyBean(bean, id);
+      bean = this.createAopProxyBean(bean, id, definition.getExposeProxy());
       if (isFactoryBean && !id.startsWith(BeanFactory.FACTORY_BEANID_PREFIX)) {
         bean = bean.getObject();
       }
@@ -110,9 +110,11 @@ export default class BeanFactory {
     }
   }
 
-  private createAopProxyBean(bean: any, beanId: string) {
-    let aspects = this.aspects.filter(aspect => aspect.matchClass(beanId));
-    if (aspects.length > 0) {
+  private createAopProxyBean(bean: any, beanId: string, exposeProxy: boolean) {
+    let filteredAspects = this.aspects.filter(aspect =>
+      aspect.matchClass(beanId),
+    );
+    if (filteredAspects.length > 0) {
       const proxy = new Proxy(bean, {
         get: function proxyMethod(target, targetMethod) {
           const origin = Reflect.get(target, targetMethod);
@@ -120,11 +122,11 @@ export default class BeanFactory {
             typeof origin === 'function' &&
             typeof targetMethod !== 'symbol'
           ) {
-            aspects = aspects.filter(aspect =>
+            const aspects = filteredAspects.filter(aspect =>
               aspect.matchMethod(<string>targetMethod),
             );
             if (aspects.length > 0) {
-              aspects.sort((a, b) => a.getOrder() - b.getOrder());
+              aspects.sort((a, b) => b.getOrder() - a.getOrder());
               const adviceChains = aspects.reduce((acc: Advice[], aspect) => {
                 acc.push(...aspect.getAdvice());
                 return acc;
@@ -136,6 +138,7 @@ export default class BeanFactory {
                   proxy,
                   args,
                   adviceChains,
+                  exposeProxy,
                 });
                 return invoker.invoke();
               };

@@ -1,14 +1,15 @@
 import Context from '.';
 import Service from '../test/service';
-// import Loginfo from '../test/loginfo';
+import Loginfo from '../test/loginfo';
 
 const context = new Context({
   configFiles: 'test/config.ts',
   aspectFiles: 'test/aspect_config.ts',
 });
-// const logInfo = <Loginfo>context.getBean('logInfo');
+const logger: any[] = [];
+const logInfo = <Loginfo>context.getBean('logInfo');
+logInfo.setLogger(logger);
 const service = <Service>context.getBean('service');
-const result = service.aopGet('good');
-console.log(result);
-// console.log(logInfo.getLogger());
-// console.log(['before - args:good', 'around - result:GOOD', 'after']);
+service.setLogger(logger);
+const result = service.aopAnotherGet('good');
+logger.push(`return value - ${result}`);

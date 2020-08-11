@@ -1,40 +1,34 @@
 import Invoker from '../aop/Invoker';
 
 export default class LogInfo {
-  private logger: any[] = [];
+  private logger!: any[];
 
-  getLogger() {
-    return this.logger;
-  }
-
-  cleanLogger() {
-    this.logger = [];
+  setLogger(logger: any[]) {
+    this.logger = logger;
   }
 
   logArgs(invoker: Invoker) {
-    const msg = 'before - args:' + invoker.getArgs();
-    console.log(msg);
-    this.logger.push(msg);
+    this.logger.push(
+      `invoke before - originargs:${invoker.getArgs()} originmethod:${invoker.getTargetMethod()}`,
+    );
   }
 
   after() {
-    const msg = 'after';
-    console.log(msg);
-    this.logger.push(msg);
+    this.logger.push('invoke after');
+  }
+
+  logResult(_invoker: Invoker, res: any) {
+    this.logger.push('invoke afterReturn - res:' + res);
   }
 
   logError(_invoker: Invoker, error: Error) {
-    const msg = 'errorCatch - ' + error.message;
-    console.log(msg);
-    this.logger.push(msg);
+    this.logger.push(`invoke afterThrow - errorMsg:${error.message}`);
   }
 
   around(invoker: Invoker) {
-    const msg = 'around - start';
-    console.log(msg);
+    this.logger.push(`invoke around start`);
     const res = invoker.invoke();
-    console.log('around - end');
-    this.logger.push(msg);
+    this.logger.push(`invoke around end`);
     return res;
   }
 }

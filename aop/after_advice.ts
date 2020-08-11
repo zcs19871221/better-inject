@@ -1,7 +1,7 @@
 import Advice from './advice';
 import Invoker from './invoker';
 
-export default class AfterAdvisor extends Advice {
+export default class Afteradvice extends Advice {
   invoke(invoker: Invoker) {
     try {
       return invoker.invoke();

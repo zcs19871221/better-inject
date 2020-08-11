@@ -36,19 +36,3 @@ it('params interface use Inject', () => {
     'invoke reader:file Reader',
   );
 });
-
-// it('aop', () => {
-//   const context = new Context({
-//     configFiles: 'test/config.ts',
-//     aspectFiles: 'test/aspect_config.ts',
-//     root: path.join(__dirname, '../'),
-//   });
-//   const logInfo = <Loginfo>context.getBean('logInfo');
-//   const service = <Service>context.getBean('service');
-//   service.aopGet('good');
-//   expect(logInfo.getLogger()).toEqual([
-//     'before - args:good',
-//     'around - result:GOOD',
-//     'after',
-//   ]);
-// });

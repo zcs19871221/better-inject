@@ -8,7 +8,6 @@ import BeanDefinition, {
 import LocateParser from '../locateparser';
 
 type ResouceOpt = Partial<Pick<BeanDefinitionConfig, 'id' | 'parent' | 'type'>>;
-
 class Context {
   private beanFactory: BeanFactory = new BeanFactory();
   private configParser: LocateParser;
@@ -45,6 +44,22 @@ class Context {
         this.registAspect(configModule);
       }
     });
+  }
+
+  private static targetMapProxy: Map<any, any> = new Map();
+
+  static getProxy(ref: any) {
+    return Context.targetMapProxy.get(ref);
+  }
+
+  static setProxy(originRef: any, proxy: any) {
+    if (!Context.targetMapProxy.has(originRef)) {
+      Context.targetMapProxy.set(originRef, proxy);
+    }
+  }
+
+  static delProxy(ref: any) {
+    return Context.targetMapProxy.delete(ref);
   }
 
   private static isClass(v: any): boolean {

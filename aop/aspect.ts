@@ -1,10 +1,17 @@
-import BeforeAdvisor from './before_advisor';
-import AfterAdvisor from './after_advice';
-import AroundAdvisor from './around_advice';
-import ErrorCatchAdvisor from './error_catch_advisor';
-import Advice from './advice';
+import Advice, { AdviceCtr } from './advice';
+import BeforeAdvice from './before_advice';
+import AfterAdvice from './after_advice';
+import AroundAdvice from './around_advice';
+import AfterReturnAdvice from './after_return_advice';
+import AfterThrowAdvice from './after_throw_advice';
 
-const JOIN_POINT = ['after', 'errorCatch', 'around', 'before'] as const;
+const JOIN_POINT = [
+  'afterReturn',
+  'afterThrow',
+  'after',
+  'around',
+  'before',
+] as const;
 type Matcher = String | RegExp;
 interface AspectOpt {
   advice: any;
@@ -44,42 +51,36 @@ export default class Aspect {
       if (methodName === undefined) {
         methodName = position;
       }
+      let AdviceConstructor: AdviceCtr;
+      let method: typeof JOIN_POINT[number];
       switch (position) {
         case 'before':
-          advices.before = new BeforeAdvisor({
-            methodMatcher,
-            adviceMethod: methodName,
-            advice,
-            order,
-          });
+          AdviceConstructor = BeforeAdvice;
+          method = 'before';
           break;
         case 'after':
-          advices.after = new AfterAdvisor({
-            methodMatcher,
-            adviceMethod: methodName,
-            advice,
-            order,
-          });
+          AdviceConstructor = AfterAdvice;
+          method = 'after';
           break;
         case 'around':
-          advices.around = new AroundAdvisor({
-            methodMatcher,
-            adviceMethod: methodName,
-            advice,
-            order,
-          });
+          AdviceConstructor = AroundAdvice;
+          method = 'around';
           break;
-        case 'errorCatch':
-          advices.errorCatch = new ErrorCatchAdvisor({
-            methodMatcher,
-            adviceMethod: methodName,
-            advice,
-            order,
-          });
+        case 'afterThrow':
+          AdviceConstructor = AfterThrowAdvice;
+          method = 'afterThrow';
+          break;
+        case 'afterReturn':
+          AdviceConstructor = AfterReturnAdvice;
+          method = 'afterReturn';
           break;
         default:
           throw new Error('错误连接点' + position);
       }
+      advices[method] = new AdviceConstructor({
+        adviceMethod: methodName,
+        advice,
+      });
     });
     const adviceGroup: Advice[] = [];
     JOIN_POINT.forEach(value => {
@@ -105,7 +106,7 @@ export default class Aspect {
       if (typeof matcher === 'string') {
         return matcher === target;
       }
-      return matcher;
+      return (<RegExp>matcher).test(target);
     });
   }
 

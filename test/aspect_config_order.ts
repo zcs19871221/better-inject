@@ -11,6 +11,7 @@ export default AspectChecker([
       ['afterThrow', 'logError'],
       ['afterReturn', 'logResult'],
     ],
+    order: 0,
   },
   {
     adviceId: 'logInfo1',
@@ -23,5 +24,6 @@ export default AspectChecker([
       ['afterThrow', 'logError'],
       ['afterReturn', 'logResult'],
     ],
+    order: 1,
   },
 ]);
