@@ -3,24 +3,10 @@ import BeanDefinition, {
   ConstructParamProps,
 } from '../definition';
 import Invoker from '../aop/invoker_implement';
-import Aspect, { AspectOpt } from '../aop/aspect';
+import Aspect from '../aop/aspect';
+import { AOP, POINT_CUT, ASPECT } from '../aop';
 import Advice from '../aop/advice';
 
-const isAspectConfig = (config: any) => {
-  if (!Array.isArray(config)) {
-    config = [config];
-  }
-  return config.every(
-    (each: any) =>
-      each &&
-      each.adviceId &&
-      each.classMatcher &&
-      each.methodMatcher &&
-      each.joinPoint,
-  );
-};
-type AspectConfig = Omit<AspectOpt, 'advice'> & { adviceId: string };
-export { AspectConfig, isAspectConfig };
 export default class BeanFactory {
   private static FACTORY_BEANID_PREFIX = '&';
 
@@ -28,6 +14,8 @@ export default class BeanFactory {
   private singleBeanMap: Map<string, object> = new Map();
   private currentInCreation: Set<string> = new Set();
   private aspects: Aspect[] = [];
+  private pointCutMap: Map<string, Omit<POINT_CUT, 'type' | 'id'>> = new Map();
+  private tmpAspectConfig: ASPECT[] = [];
 
   private getDefination(idOrName: string): BeanDefinition | null {
     if (this.definitionMap.has(idOrName)) {
@@ -36,18 +24,54 @@ export default class BeanFactory {
     return null;
   }
 
-  registAspect({
-    classMatcher,
-    methodMatcher,
-    adviceId,
-    joinPoint,
-    order,
-  }: Omit<AspectOpt, 'advice'> & { adviceId: string }) {
+  registAop(obj: AOP) {
+    if (obj.type === 'pointcut') {
+      this.registPointCut({
+        id: obj.id,
+        classMatcher: obj.classMatcher,
+        methodMatcher: obj.methodMatcher,
+        type: obj.type,
+      });
+    } else {
+      this.tmpAspectConfig.push({
+        adviceId: obj.adviceId,
+        order: obj.order,
+        joinPoint: obj.joinPoint,
+        pointCutId: obj.pointCutId,
+        type: obj.type,
+      });
+    }
+  }
+
+  writeAspect() {
+    this.tmpAspectConfig.forEach(aspectConfig => {
+      this.registAspect(aspectConfig);
+    });
+    this.tmpAspectConfig = [];
+  }
+
+  private registPointCut({ id, classMatcher, methodMatcher }: POINT_CUT) {
+    if (!id || this.pointCutMap.has(id)) {
+      throw new Error('pointcut id ' + id + '重复');
+    }
+    this.pointCutMap.set(id, {
+      classMatcher,
+      methodMatcher,
+    });
+  }
+
+  private registAspect({ adviceId, order, joinPoint, pointCutId }: ASPECT) {
     const advice = this.getBean(adviceId);
+    if (!advice) {
+      throw new Error('adviceId' + adviceId + '不存在bean');
+    }
+    const pointCut = this.pointCutMap.get(pointCutId);
+    if (!pointCut) {
+      throw new Error('pointCutId' + pointCutId + '不存在实例');
+    }
     this.aspects.push(
       new Aspect({
-        classMatcher,
-        methodMatcher,
+        ...pointCut,
         advice,
         joinPoint,
         order,

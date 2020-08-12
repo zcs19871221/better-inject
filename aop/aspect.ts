@@ -20,7 +20,7 @@ interface AspectOpt {
   methodMatcher: Matcher | Matcher[];
   joinPoint: [typeof JOIN_POINT[number], string?][];
 }
-export { AspectOpt };
+export { AspectOpt, Matcher };
 export default class Aspect {
   private classMatcher: Matcher[];
   private methodMatcher: Matcher[];

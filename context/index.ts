@@ -1,5 +1,6 @@
 import 'reflect-metadata';
-import BeanFactory, { AspectConfig, isAspectConfig } from '../factory';
+import BeanFactory from '../factory';
+import { AOP, checkAop } from '../aop';
 import BeanDefinition, {
   BeanDefinitionConfig,
   ConstructParamEach,
@@ -12,22 +13,22 @@ class Context {
   private beanFactory: BeanFactory = new BeanFactory();
   private configParser: LocateParser;
   private scanParser: LocateParser;
-  private aspectParser: LocateParser;
+  private aopParser: LocateParser;
 
   constructor({
     configFiles = [],
     root,
     scanFiles = [],
-    aspectFiles = [],
+    aopConfigFiles = [],
   }: {
     configFiles?: string | string[];
     root?: string;
     scanFiles?: string | string[];
-    aspectFiles?: string | string[];
+    aopConfigFiles?: string | string[];
   }) {
     this.configParser = new LocateParser(configFiles, root);
     this.scanParser = new LocateParser(scanFiles, root);
-    this.aspectParser = new LocateParser(aspectFiles, root);
+    this.aopParser = new LocateParser(aopConfigFiles, root);
     this.configParser.requireDefault().forEach(configModule => {
       if (BeanDefinition.isValidConfig(configModule)) {
         this.regist(configModule);
@@ -39,11 +40,10 @@ class Context {
         this.regist(definition);
       }
     });
-    this.aspectParser.requireDefault().forEach(configModule => {
-      if (isAspectConfig(configModule)) {
-        this.registAspect(configModule);
-      }
+    this.aopParser.requireDefault().forEach(configModule => {
+      this.registAop(configModule);
     });
+    this.beanFactory.writeAspect();
   }
 
   private static targetMapProxy: Map<any, any> = new Map();
@@ -148,16 +148,17 @@ class Context {
     };
   }
 
-  static AspectChecker(config: AspectConfig | AspectConfig[]) {
+  static AopChecker(config: AOP | AOP[]) {
     return config;
   }
 
-  registAspect(config: AspectConfig | AspectConfig[]) {
+  registAop(config: AOP | AOP[]) {
     if (!Array.isArray(config)) {
       config = [config];
     }
-    (<any>config).forEach((cf: AspectConfig) => {
-      this.beanFactory.registAspect(cf);
+    (<any>config).forEach((cf: AOP) => {
+      checkAop(cf);
+      this.beanFactory.registAop(cf);
     });
   }
 
@@ -178,6 +179,6 @@ class Context {
     return this.beanFactory.getBean(idOrName, ...args);
   }
 }
-const { Resource, Inject, InjectObj, Checker, AspectChecker } = Context;
-export { Resource, Inject, InjectObj, Checker, AspectChecker };
+const { Resource, Inject, InjectObj, Checker, AopChecker } = Context;
+export { Resource, Inject, InjectObj, Checker, AopChecker };
 export default Context;

@@ -1,9 +1,9 @@
-import { AspectChecker } from '../context';
-export default AspectChecker([
+import { AopChecker } from '../context';
+export default AopChecker([
   {
+    type: 'aspect',
     adviceId: 'logInfo',
-    classMatcher: /^(dao|service)$/,
-    methodMatcher: /^aop/,
+    pointCutId: 'p1',
     joinPoint: [
       ['around'],
       ['before', 'logArgs'],
@@ -11,12 +11,11 @@ export default AspectChecker([
       ['afterThrow', 'logError'],
       ['afterReturn', 'logResult'],
     ],
-    order: 0,
   },
   {
+    type: 'aspect',
     adviceId: 'logInfo1',
-    classMatcher: ['dao', 'service'],
-    methodMatcher: /^aopDouble/,
+    pointCutId: 'p2',
     joinPoint: [
       ['around'],
       ['before', 'logArgs'],
@@ -24,6 +23,17 @@ export default AspectChecker([
       ['afterThrow', 'logError'],
       ['afterReturn', 'logResult'],
     ],
-    order: 1,
+  },
+  {
+    type: 'pointcut',
+    classMatcher: /^(dao|service)$/,
+    methodMatcher: /^aop/,
+    id: 'p1',
+  },
+  {
+    type: 'pointcut',
+    classMatcher: ['dao', 'service'],
+    methodMatcher: /^aopDouble/,
+    id: 'p2',
   },
 ]);

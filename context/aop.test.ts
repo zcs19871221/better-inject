@@ -6,7 +6,7 @@ import Loginfo from '../test/loginfo';
 it('aop single', () => {
   const context = new Context({
     configFiles: 'test/config.ts',
-    aspectFiles: 'test/aspect_config.ts',
+    aopConfigFiles: 'test/aop_config.ts',
     root: path.join(__dirname, '../'),
   });
   const logger: any[] = [];
@@ -30,7 +30,7 @@ it('aop single', () => {
 // it('origin invoke another aop', () => {
 //   const context = new Context({
 //     configFiles: 'test/config.ts',
-//     aspectFiles: 'test/aspect_config.ts',
+//     aspectFiles: 'test/aop_config.ts',
 //     root: path.join(__dirname, '../'),
 //   });
 //   const logger: any[] = [];
@@ -60,7 +60,7 @@ it('aop single', () => {
 it('aop single throw', () => {
   const context = new Context({
     configFiles: 'test/config.ts',
-    aspectFiles: 'test/aspect_config.ts',
+    aopConfigFiles: 'test/aop_config.ts',
     root: path.join(__dirname, '../'),
   });
   const logger: any[] = [];
@@ -81,7 +81,7 @@ it('aop single throw', () => {
 it('aop double', () => {
   const context = new Context({
     configFiles: 'test/config.ts',
-    aspectFiles: 'test/aspect_config.ts',
+    aopConfigFiles: 'test/aop_config.ts',
     root: path.join(__dirname, '../'),
   });
   const logger: any[] = [];
@@ -112,7 +112,7 @@ it('aop double', () => {
 it('aop double with order desc', () => {
   const context = new Context({
     configFiles: 'test/config.ts',
-    aspectFiles: 'test/aspect_config_order.ts',
+    aopConfigFiles: 'test/aop_config_order.ts',
     root: path.join(__dirname, '../'),
   });
   const logger: any[] = [];
@@ -143,7 +143,7 @@ it('aop double with order desc', () => {
 it('aop double throw', () => {
   const context = new Context({
     configFiles: 'test/config.ts',
-    aspectFiles: 'test/aspect_config.ts',
+    aopConfigFiles: 'test/aop_config.ts',
     root: path.join(__dirname, '../'),
   });
   const logger: any[] = [];
