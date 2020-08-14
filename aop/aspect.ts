@@ -1,120 +1,115 @@
-import Advice, { AdviceCtr } from './advice';
+import { AdviceCtr, Advice_Position } from './advice';
 import BeforeAdvice from './before_advice';
 import AfterAdvice from './after_advice';
 import AroundAdvice from './around_advice';
 import AfterReturnAdvice from './after_return_advice';
 import AfterThrowAdvice from './after_throw_advice';
+import BeanFactory from '../factory';
+import Advisor from './advisor';
 
-const JOIN_POINT = [
-  'afterReturn',
-  'afterThrow',
-  'after',
-  'around',
-  'before',
-] as const;
 type Matcher = String | RegExp;
-interface AspectOpt {
-  advice: any;
-  order?: number;
+interface POINT_CUT_MATCHER {
   classMatcher: Matcher | Matcher[];
   methodMatcher: Matcher | Matcher[];
-  joinPoint: [typeof JOIN_POINT[number], string?][];
 }
-export { AspectOpt, Matcher };
+interface POINT_CUT extends POINT_CUT_MATCHER {
+  id: string;
+  type: 'pointcut';
+}
+
+interface ASPECT_ARGS {
+  id: string;
+  adviceId: any;
+  pointCuts?: POINT_CUT[];
+  order?: number;
+  adviceConfigs: [
+    typeof Advice_Position[number],
+    string,
+    string | POINT_CUT_MATCHER,
+  ][];
+  type: 'aspect';
+  beanFactory: BeanFactory;
+}
+
+export { POINT_CUT_MATCHER, POINT_CUT, ASPECT_ARGS };
 export default class Aspect {
-  private classMatcher: Matcher[];
-  private methodMatcher: Matcher[];
+  private id: string;
+  private pointCuts: POINT_CUT[];
   private order: number;
-  private advices: Advice[] = [];
 
   constructor({
-    classMatcher,
-    methodMatcher,
-    advice,
-    joinPoint,
+    id,
+    adviceId,
+    pointCuts = [],
     order = 0,
-  }: AspectOpt) {
-    if (!Array.isArray(classMatcher)) {
-      classMatcher = [classMatcher];
-    }
-    if (!Array.isArray(methodMatcher)) {
-      methodMatcher = [methodMatcher];
-    }
-    this.classMatcher = classMatcher;
-    this.methodMatcher = methodMatcher;
+    adviceConfigs,
+    beanFactory,
+  }: ASPECT_ARGS) {
+    this.id = id;
+    this.pointCuts = pointCuts;
+    const adviceBean = beanFactory.getBean(adviceId);
     this.order = order;
-    const advices: {
-      [key in typeof JOIN_POINT[number]]?: Advice;
-    } = {};
-    joinPoint.forEach(point => {
-      let [position, methodName] = point;
-      if (methodName === undefined) {
-        methodName = position;
+    const insertAdvisor = (
+      adviceMethod: string,
+      AdviceConstructor: AdviceCtr,
+      pointCutMatcher: POINT_CUT_MATCHER,
+    ) => {
+      beanFactory.addAdvisor(
+        new Advisor({
+          advice: new AdviceConstructor({
+            adviceMethod,
+            advice: adviceBean,
+          }),
+          aspectId: id,
+          ...pointCutMatcher,
+        }),
+      );
+    };
+    adviceConfigs.forEach(([position, methodName, pointCutIdOrMatcher]) => {
+      let pointCutMatcher: POINT_CUT_MATCHER | undefined;
+      if (typeof pointCutIdOrMatcher == 'string') {
+        let pointCut = this.pointCuts.find(
+          each => each.id === pointCutIdOrMatcher,
+        );
+        if (!pointCut) {
+          pointCut = beanFactory.getPointCut(pointCutIdOrMatcher);
+        }
+        if (!pointCut) {
+          throw new Error(`pointCutId:${pointCutIdOrMatcher}不存在`);
+        }
+        pointCutMatcher = pointCut;
+      } else {
+        pointCutMatcher = pointCutIdOrMatcher;
       }
-      let AdviceConstructor: AdviceCtr;
-      let method: typeof JOIN_POINT[number];
+      let Ctr: AdviceCtr;
       switch (position) {
         case 'before':
-          AdviceConstructor = BeforeAdvice;
-          method = 'before';
+          Ctr = BeforeAdvice;
           break;
         case 'after':
-          AdviceConstructor = AfterAdvice;
-          method = 'after';
+          Ctr = AfterAdvice;
           break;
         case 'around':
-          AdviceConstructor = AroundAdvice;
-          method = 'around';
+          Ctr = AroundAdvice;
           break;
         case 'afterThrow':
-          AdviceConstructor = AfterThrowAdvice;
-          method = 'afterThrow';
+          Ctr = AfterThrowAdvice;
           break;
         case 'afterReturn':
-          AdviceConstructor = AfterReturnAdvice;
-          method = 'afterReturn';
+          Ctr = AfterReturnAdvice;
           break;
         default:
           throw new Error('错误连接点' + position);
       }
-      advices[method] = new AdviceConstructor({
-        adviceMethod: methodName,
-        advice,
-      });
+      insertAdvisor(methodName, Ctr, pointCutMatcher);
     });
-    const adviceGroup: Advice[] = [];
-    JOIN_POINT.forEach(value => {
-      if (advices[value] !== undefined) {
-        adviceGroup.push(<Advice>advices[value]);
-      }
-    });
-    if (adviceGroup.length > 0) {
-      this.advices = adviceGroup;
-    }
+  }
+
+  getId() {
+    return this.id;
   }
 
   getOrder() {
     return this.order;
-  }
-
-  getAdvice() {
-    return this.advices;
-  }
-
-  private match(target: string, matcherList: Matcher[]) {
-    return matcherList.some(matcher => {
-      if (typeof matcher === 'string') {
-        return matcher === target;
-      }
-      return (<RegExp>matcher).test(target);
-    });
-  }
-
-  matchClass(beanId: string): boolean {
-    return this.match(beanId, this.classMatcher);
-  }
-
-  matchMethod(method: string): boolean {
-    return this.match(method, this.methodMatcher);
   }
 }

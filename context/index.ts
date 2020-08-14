@@ -1,12 +1,13 @@
 import 'reflect-metadata';
 import BeanFactory from '../factory';
-import { AOP, checkAop } from '../aop';
+import { AOP, checkAop, POINT_CUT } from '../aop';
 import BeanDefinition, {
   BeanDefinitionConfig,
   ConstructParamEach,
   ConstructParams,
 } from '../definition';
 import LocateParser from '../locateparser';
+import { Matcher } from 'aop/aspect';
 
 type ResouceOpt = Partial<Pick<BeanDefinitionConfig, 'id' | 'parent' | 'type'>>;
 class Context {
@@ -75,6 +76,7 @@ class Context {
 
   private static metaBeanKey = '__inject beanDefinition';
   private static metaConstructParamKey = '__inject constructParams';
+  private static metaAspectKey = '__inject Aspect';
 
   static Resource(
     opt: ResouceOpt = {
@@ -84,6 +86,14 @@ class Context {
     },
   ): ClassDecorator {
     const { id, type, parent } = opt;
+    return Context.defineResource(id, type, parent);
+  }
+
+  private static defineResource(
+    id: string | undefined,
+    type: string | undefined,
+    parent: string | undefined,
+  ): ClassDecorator {
     return ctr => {
       if (Reflect.getMetadata(Context.metaBeanKey, ctr)) {
         return;
@@ -145,6 +155,59 @@ class Context {
         constructParmas,
         ctr,
       );
+    };
+  }
+
+  static Aspect(
+    id: string,
+    {
+      order = 0,
+      classMatcher = [],
+      methodMatcher = [],
+    }: {
+      order?: number;
+      classMatcher?: Matcher | Matcher[];
+      methodMatcher?: Matcher | Matcher[];
+    } = {},
+  ) {
+    return function(ctr: any) {
+      if (!id) {
+        id = Context.classToId(ctr);
+      }
+      Context.defineResource(id, 'single', '');
+      Reflect.defineMetadata(
+        Context.metaAspectKey,
+        {
+          adviceId: id,
+          order,
+          classMatcher,
+          methodMatcher,
+          type: 'aspect',
+        },
+        ctr,
+      );
+    };
+  }
+
+  static AnnotationRegist(method) {
+    return function(classMatcher, methodMatcher) {
+      return function(ctr: any, methodName: string) {
+        const aspect = Reflect.getMetadata(Context.metaAspectKey, ctr);
+        if (!aspect) {
+          throw new Error(`${method}注解必须先使用Aspect注解定义`);
+        }
+        const joinPoint: [typeof JOIN_POINT[number], string?][] =
+          aspect.joinPoint;
+        joinPoint.push([method, methodName]);
+        aspect.joinPoint = joinPoint;
+        if (classMatcher) {
+          aspect.classMatcher = classMatcher;
+        }
+        if (methodMatcher) {
+          aspect.methodMatcher = methodMatcher;
+        }
+        Reflect.defineMetadata(Context.metaAspectKey, aspect, ctr);
+      };
     };
   }
 

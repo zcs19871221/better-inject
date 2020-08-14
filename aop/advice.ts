@@ -7,7 +7,15 @@ interface AdviceArgs {
 interface AdviceCtr {
   new (input: AdviceArgs): Advice;
 }
-export { AdviceCtr };
+const Advice_Position = [
+  'afterReturn',
+  'afterThrow',
+  'after',
+  'around',
+  'before',
+] as const;
+
+export { AdviceCtr, Advice_Position };
 export default abstract class Advice {
   private aopObject: any;
   private adviceMethod: string;
@@ -22,4 +30,6 @@ export default abstract class Advice {
   }
 
   abstract invoke(invoker: Invoker): any;
+
+  abstract getPosition(): typeof Advice_Position[number];
 }

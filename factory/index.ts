@@ -3,9 +3,9 @@ import BeanDefinition, {
   ConstructParamProps,
 } from '../definition';
 import Invoker from '../aop/invoker_implement';
-import Aspect from '../aop/aspect';
-import { AOP, POINT_CUT, ASPECT } from '../aop';
+import Aspect, { POINT_CUT, ASPECT_ARGS } from '../aop/aspect';
 import Advice from '../aop/advice';
+import Advisor from '../aop/advisor';
 
 export default class BeanFactory {
   private static FACTORY_BEANID_PREFIX = '&';
@@ -13,15 +13,35 @@ export default class BeanFactory {
   private definitionMap: Map<string, BeanDefinition> = new Map();
   private singleBeanMap: Map<string, object> = new Map();
   private currentInCreation: Set<string> = new Set();
-  private aspects: Aspect[] = [];
-  private pointCutMap: Map<string, Omit<POINT_CUT, 'type' | 'id'>> = new Map();
-  private tmpAspectConfig: ASPECT[] = [];
+  private aspectMap: Map<string, Aspect> = new Map();
+  private advisors: Advisor[] = [];
+  private pointCutMap: Map<string, POINT_CUT> = new Map();
+  private tmpAspectConfig: ASPECT_ARGS[] = [];
 
   private getDefination(idOrName: string): BeanDefinition | null {
     if (this.definitionMap.has(idOrName)) {
       return <BeanDefinition>this.definitionMap.get(idOrName);
     }
     return null;
+  }
+
+  addAspect(id: string, aspect: Aspect) {
+    if (this.aspectMap.has(id)) {
+      throw new Error('aspectId' + id + '重复');
+    }
+    this.aspectMap.set(id, aspect);
+  }
+
+  getAspect(id: string) {
+    return this.aspectMap.get(id);
+  }
+
+  addAdvisor(advisor: Advisor) {
+    this.advisors.push(advisor);
+  }
+
+  getAdvisors() {
+    return this.advisors;
   }
 
   registAop(obj: AOP) {
@@ -33,13 +53,7 @@ export default class BeanFactory {
         type: obj.type,
       });
     } else {
-      this.tmpAspectConfig.push({
-        adviceId: obj.adviceId,
-        order: obj.order,
-        joinPoint: obj.joinPoint,
-        pointCutId: obj.pointCutId,
-        type: obj.type,
-      });
+      this.tmpAspectConfig.push(obj);
     }
   }
 
@@ -50,17 +64,23 @@ export default class BeanFactory {
     this.tmpAspectConfig = [];
   }
 
-  private registPointCut({ id, classMatcher, methodMatcher }: POINT_CUT) {
+  registPointCut({ id, classMatcher, methodMatcher }: POINT_CUT) {
     if (!id || this.pointCutMap.has(id)) {
       throw new Error('pointcut id ' + id + '重复');
     }
     this.pointCutMap.set(id, {
+      id,
       classMatcher,
       methodMatcher,
     });
   }
 
-  private registAspect({ adviceId, order, joinPoint, pointCutId }: ASPECT) {
+  getPointCut(id: string) {
+    return this.pointCutMap.get(id);
+  }
+
+  private registAspect(aspect: ASPECT) {
+    new Aspect({ ...aspect, beanFactory: this });
     const advice = this.getBean(adviceId);
     if (!advice) {
       throw new Error('adviceId' + adviceId + '不存在bean');
