@@ -52,7 +52,7 @@ export default class BeanFactory {
   }
 
   writeAspect() {
-    this.tmpAspectConfig.forEach(aspectConfig => {
+    this.tmpAspectConfig.forEach((aspectConfig) => {
       this.registAspect(aspectConfig);
     });
     this.tmpAspectConfig = [];
@@ -94,11 +94,11 @@ export default class BeanFactory {
   ) {
     const adviceBean = this.getBean(adviceId);
     adviceConfigs.forEach(([position, methodName, pointCutIdOrMatcher]) => {
-      let pointCutMatcher: POINT_CUT_MATCHER | undefined;
+      let pointCutMatcher: POINT_CUT_MATCHER;
       if (typeof pointCutIdOrMatcher == 'string') {
         let pointCut = aspect
           .getPointCuts()
-          .find(each => each.id === pointCutIdOrMatcher);
+          .find((each) => each.id === pointCutIdOrMatcher);
         if (!pointCut) {
           pointCut = this.getPointCut(pointCutIdOrMatcher);
         }
@@ -198,7 +198,9 @@ export default class BeanFactory {
   }
 
   private createAopProxyBean(bean: any, beanId: string, exposeProxy: boolean) {
-    let advisors = this.advisors.filter(advisor => advisor.matchClass(beanId));
+    let advisors = this.advisors.filter((advisor) =>
+      advisor.matchClass(beanId),
+    );
     if (advisors.length > 0) {
       const proxy = new Proxy(bean, {
         get: function proxyMethod(target, targetMethod) {
@@ -207,12 +209,12 @@ export default class BeanFactory {
             typeof origin === 'function' &&
             typeof targetMethod !== 'symbol'
           ) {
-            const matchedAdvisors = advisors.filter(aspect =>
+            const matchedAdvisors = advisors.filter((aspect) =>
               aspect.matchMethod(<string>targetMethod),
             );
             if (matchedAdvisors.length > 0) {
               const adviceChains = BeanFactory.groupSort(matchedAdvisors);
-              return function(...args: any[]) {
+              return function (...args: any[]) {
                 const invoker = new Invoker({
                   target,
                   targetMethod,
@@ -237,7 +239,7 @@ export default class BeanFactory {
     const res: {
       [pos in typeof Advice_Position[number]]?: Advice[];
     }[] = [];
-    advisors.forEach(each => {
+    advisors.forEach((each) => {
       const order = each.getOrder();
       const pos = each.getAdvicePosition();
       res[order] = res[order] || {};
@@ -245,7 +247,7 @@ export default class BeanFactory {
       res[order][pos]?.push(each.getAdvice());
     });
     return res.reduce((acc: Advice[], cur) => {
-      Advice_Position.forEach(postion => {
+      Advice_Position.forEach((postion) => {
         const advices = cur[postion];
         if (advices !== undefined) {
           acc.push(...advices);

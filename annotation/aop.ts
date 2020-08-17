@@ -1,61 +1,58 @@
-import { JOIN_POINT, Matcher, ASPECT } from '../aop';
 import { classToId } from './class_utils';
-import { defineResource } from './inject';
+import { ASPECT_CONFIG } from '../factory';
+import { Advice_Position } from '../aop/advice';
+import { POINT_CUT_MATCHER, MatcherGroup } from '../aop/point_cut';
 
 const metaAspectKey = '__inject Aspect';
 
-const Aspect = (
-  id: string,
-  {
-    order = 0,
-    classMatcher = [],
-    methodMatcher = [],
-  }: {
-    order?: number;
-    classMatcher?: Matcher | Matcher[];
-    methodMatcher?: Matcher | Matcher[];
-  } = {},
-) => {
-  return function(ctr: any) {
-    if (!id) {
-      id = classToId(ctr);
-    }
-    defineResource(id, 'single', '');
-    const aspect: ASPECT = {
-      adviceId: id,
+const Aspect = (order: number = 0) => {
+  return function (ctr: any) {
+    const id = classToId(ctr);
+    const aspectConfig: ASPECT_CONFIG = {
+      id,
       order,
-      joinPoint: [],
-      pointCut: { classMatcher, methodMatcher },
-      type: 'aspect',
+      adviceConfigs: [],
+      adviceId: '',
+      pointCuts: [],
     };
-    Reflect.defineMetadata(metaAspectKey, aspect, ctr);
+    Reflect.defineMetadata(metaAspectKey, aspectConfig, ctr);
   };
 };
 
-const adviceAnnotationFactory = (method: typeof JOIN_POINT[number]) => {
-  (config?: {
-    classMatcher: Matcher[] | Matcher[];
-    methodMatcher: Matcher[] | Matcher[];
-  }) => {
+const adviceAnnotationFactory = (method: typeof Advice_Position[number]) => {
+  (pointCut: string | POINT_CUT_MATCHER) => {
     (ctr: any, methodName: string) => {
-      const aspect = <ASPECT>Reflect.getMetadata(metaAspectKey, ctr);
-      if (!aspect) {
+      const aspect_config = <ASPECT_CONFIG>(
+        Reflect.getMetadata(metaAspectKey, ctr)
+      );
+      if (!aspect_config) {
         throw new Error(`${method}注解必须先使用Aspect注解定义`);
       }
-      aspect.joinPoint.push([method, methodName]);
-      if (config) {
-        aspect.pointCut = {
-          classMatcher: config.classMatcher,
-          methodMatcher: config.methodMatcher,
-        };
-      }
-      Reflect.defineMetadata(metaAspectKey, aspect, ctr);
+      aspect_config.adviceConfigs.push([method, methodName, pointCut]);
+      Reflect.defineMetadata(metaAspectKey, aspect_config, ctr);
     };
   };
 };
+
+const PointCut = (classMatcher: MatcherGroup, methodMatcher: MatcherGroup) => (
+  ctr: any,
+  methodName: string,
+) => {
+  const aspect_config = <ASPECT_CONFIG>Reflect.getMetadata(metaAspectKey, ctr);
+  if (!aspect_config) {
+    throw new Error('必须使用Aspect注解定义类才能使用PointCut注解');
+  }
+  aspect_config.pointCuts?.push({
+    id: methodName,
+    classMatcher,
+    methodMatcher,
+  });
+  Reflect.defineMetadata(metaAspectKey, aspect_config, ctr);
+};
+
 const Before = adviceAnnotationFactory('before');
 const AfterReturn = adviceAnnotationFactory('afterReturn');
 const After = adviceAnnotationFactory('after');
 const AfterThrow = adviceAnnotationFactory('afterThrow');
 const Around = adviceAnnotationFactory('around');
-export { Aspect, Before, After, AfterReturn, AfterThrow, Around };
+export { Aspect, Before, After, AfterReturn, AfterThrow, Around, PointCut };
