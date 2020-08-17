@@ -1,4 +1,4 @@
-import Advice from './advice';
+import Advice, { Advice_Position } from './advice';
 import Invoker from './invoker_implement';
 
 export default class AfterThrow extends Advice {
@@ -9,5 +9,9 @@ export default class AfterThrow extends Advice {
       this.invokeAdvice(invoker, error);
       throw error;
     }
+  }
+
+  getPosition(): typeof Advice_Position[number] {
+    return 'afterThrow';
   }
 }

@@ -1,35 +1,35 @@
 import 'reflect-metadata';
-import BeanFactory from '../factory';
-import { AOP, checkAop, POINT_CUT } from '../aop';
+import BeanFactory, { POINT_CUT, ASPECT_CONFIG } from '../factory';
 import BeanDefinition, {
   BeanDefinitionConfig,
   ConstructParamEach,
   ConstructParams,
 } from '../definition';
 import LocateParser from '../locateparser';
-import { Matcher } from 'aop/aspect';
 
+type FILE_CONFIG =
+  | BeanDefinitionConfig
+  | ({
+      type: 'pointcut';
+    } & POINT_CUT)
+  | ({ type: 'aspect' } & ASPECT_CONFIG);
 type ResouceOpt = Partial<Pick<BeanDefinitionConfig, 'id' | 'parent' | 'type'>>;
 class Context {
   private beanFactory: BeanFactory = new BeanFactory();
   private configParser: LocateParser;
   private scanParser: LocateParser;
-  private aopParser: LocateParser;
 
   constructor({
     configFiles = [],
     root,
     scanFiles = [],
-    aopConfigFiles = [],
   }: {
     configFiles?: string | string[];
     root?: string;
     scanFiles?: string | string[];
-    aopConfigFiles?: string | string[];
   }) {
     this.configParser = new LocateParser(configFiles, root);
     this.scanParser = new LocateParser(scanFiles, root);
-    this.aopParser = new LocateParser(aopConfigFiles, root);
     this.configParser.requireDefault().forEach(configModule => {
       if (BeanDefinition.isValidConfig(configModule)) {
         this.regist(configModule);
@@ -40,9 +40,6 @@ class Context {
       if (definition) {
         this.regist(definition);
       }
-    });
-    this.aopParser.requireDefault().forEach(configModule => {
-      this.registAop(configModule);
     });
     this.beanFactory.writeAspect();
   }
@@ -211,30 +208,22 @@ class Context {
     };
   }
 
-  static AopChecker(config: AOP | AOP[]) {
+  static Checker(config: FILE_CONFIG | FILE_CONFIG[]) {
     return config;
   }
 
-  registAop(config: AOP | AOP[]) {
+  regist(config: FILE_CONFIG | FILE_CONFIG[]) {
     if (!Array.isArray(config)) {
       config = [config];
     }
-    (<any>config).forEach((cf: AOP) => {
-      checkAop(cf);
-      this.beanFactory.registAop(cf);
-    });
-  }
-
-  static Checker(config: BeanDefinitionConfig | BeanDefinitionConfig[]) {
-    return config;
-  }
-
-  regist(config: BeanDefinitionConfig | BeanDefinitionConfig[]) {
-    if (!Array.isArray(config)) {
-      config = [config];
-    }
-    (<any>config).forEach((cf: BeanDefinitionConfig) => {
-      this.beanFactory.registDefination(new BeanDefinition(cf));
+    (<any>config).forEach((cf: FILE_CONFIG) => {
+      if (cf.type === 'pointcut') {
+        this.beanFactory.registPointCut(cf);
+      } else if (cf.type === 'aspect') {
+        this.beanFactory.registAspect(cf);
+      } else if (cf.type === 'prototype' || cf.type === 'single') {
+        this.beanFactory.registDefination(new BeanDefinition(cf));
+      }
     });
   }
 
@@ -242,6 +231,6 @@ class Context {
     return this.beanFactory.getBean(idOrName, ...args);
   }
 }
-const { Resource, Inject, InjectObj, Checker, AopChecker } = Context;
-export { Resource, Inject, InjectObj, Checker, AopChecker };
+const { Resource, Inject, InjectObj, Checker } = Context;
+export { Resource, Inject, InjectObj, Checker };
 export default Context;

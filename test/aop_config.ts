@@ -1,5 +1,5 @@
-import { AopChecker } from '../context';
-export default AopChecker([
+import { Checker } from '../context';
+export default Checker([
   {
     type: 'aspect',
     adviceId: 'logInfo',
