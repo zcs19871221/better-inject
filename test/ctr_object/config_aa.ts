@@ -1,4 +1,4 @@
-import { Checker } from '../../context';
+import { Checker } from '../..';
 import Dao from './dao';
 
 export default Checker([

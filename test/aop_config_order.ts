@@ -1,5 +1,5 @@
-import { AopChecker } from '../context';
-export default AopChecker([
+import { Checker } from '..';
+export default Checker([
   {
     type: 'pointcut',
     classMatcher: /^(dao|service)$/,
@@ -13,29 +13,29 @@ export default AopChecker([
     id: 'p2',
   },
   {
+    id: 'orderAspect1',
     type: 'aspect',
     adviceId: 'logInfo',
-    pointCutId: 'p1',
-    joinPoint: [
-      ['around'],
-      ['before', 'logArgs'],
-      ['after'],
-      ['afterThrow', 'logError'],
-      ['afterReturn', 'logResult'],
-    ],
-    order: 0,
-  },
-  {
-    adviceId: 'logInfo1',
-    type: 'aspect',
-    pointCutId: 'p2',
-    joinPoint: [
-      ['around'],
-      ['before', 'logArgs'],
-      ['after'],
-      ['afterThrow', 'logError'],
-      ['afterReturn', 'logResult'],
+    adviceConfigs: [
+      ['around', 'around', 'p1'],
+      ['before', 'logArgs', 'p1'],
+      ['after', 'after', 'p1'],
+      ['afterThrow', 'logError', 'p1'],
+      ['afterReturn', 'logResult', 'p1'],
     ],
     order: 1,
+  },
+  {
+    id: 'orderAspect2',
+    adviceId: 'logInfo1',
+    type: 'aspect',
+    adviceConfigs: [
+      ['around', 'around', 'p2'],
+      ['before', 'logArgs', 'p2'],
+      ['after', 'after', 'p2'],
+      ['afterThrow', 'logError', 'p2'],
+      ['afterReturn', 'logResult', 'p2'],
+    ],
+    order: 0,
   },
 ]);

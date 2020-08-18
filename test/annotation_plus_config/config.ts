@@ -1,5 +1,5 @@
 import Jdbc from './jdbc';
-import { Checker } from '../../context';
+import { Checker } from '../..';
 
 export default Checker([
   {

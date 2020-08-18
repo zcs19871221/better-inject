@@ -1,18 +1,10 @@
-import Context, { Resource, Inject, Checker, InjectObj } from './context';
+import Context from './context';
+
 import Definition from './definition';
 import Factory from './factory';
 import FactoryBean from './factory/factory_bean';
 import LocateParser from './locateparser';
-
-export {
-  Context,
-  Definition,
-  Factory,
-  LocateParser,
-  FactoryBean,
-  Resource,
-  Inject,
-  InjectObj,
-  Checker,
-};
+const Checker = Context.Checker;
+export { Context, Definition, Factory, LocateParser, FactoryBean, Checker };
+export * from './annotation';
 export default Context;

@@ -105,6 +105,37 @@ export default class BeanDefinition {
     return this.parent;
   }
 
+  validRelativeBeanId(beanMap: Map<string, BeanDefinition>) {
+    if (this.parent && !beanMap.has(this.parent)) {
+      throw new Error();
+    }
+    const check = (config: ConstructParamEach) => {
+      if (config.isBean && !beanMap.has(config.value)) {
+        throw new Error(`bean:${this.id} 的注入id:${config.value}没有定义`);
+      }
+    };
+    Object.keys(this.constructParams).forEach(key => {
+      const index = Number(key);
+      const paramOrProps = this.constructParams[index];
+      if (Array.isArray(paramOrProps)) {
+        const props = paramOrProps[0];
+        Object.values(props).forEach(check);
+      } else {
+        check(paramOrProps);
+      }
+    });
+  }
+
+  mergeAutoInjectConstructParams(index: number, beanId: string): any {
+    if (this.constructParams && this.constructParams[index]) {
+      return;
+    }
+    this.constructParams[index] = {
+      isBean: true,
+      value: beanId,
+    };
+  }
+
   getMergedParmas(beanMap: Map<string, BeanDefinition>): ConstructParams {
     if (this.hasMergedParams) {
       return this.mergedParams;

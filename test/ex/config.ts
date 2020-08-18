@@ -1,4 +1,4 @@
-import { Checker } from '../../context';
+import { Checker } from '../..';
 import parser from './parser';
 import fileReader from './fileReader';
 import xmlReader from './xmlReader';

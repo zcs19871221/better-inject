@@ -1,4 +1,4 @@
-import { Resource } from '../../context';
+import { Resource } from '../../';
 import Jdbc from './jdbc';
 
 @Resource({ type: 'single' })

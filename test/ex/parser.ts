@@ -1,5 +1,5 @@
 import Reader from './reader';
-import { Resource, Inject } from '../../context';
+import { Resource, Inject } from '../..';
 
 @Resource()
 export default class Parser {

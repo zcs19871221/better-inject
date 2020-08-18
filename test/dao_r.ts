@@ -1,4 +1,4 @@
-import { Resource } from '../context';
+import { Resource } from '../';
 
 @Resource({ type: 'single' })
 export default class Dao {

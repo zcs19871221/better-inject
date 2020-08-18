@@ -12,6 +12,7 @@ import AfterAdvice from '../aop/after_advice';
 import AroundAdvice from '../aop/around_advice';
 import AfterReturnAdvice from '../aop/after_return_advice';
 import AfterThrowAdvice from '../aop/after_throw_advice';
+import { AutoInjectConstruct } from '../annotation/inject';
 
 interface ASPECT_CONFIG extends ASPECT_ARGS {
   adviceId: any;
@@ -32,115 +33,7 @@ export default class BeanFactory {
   private pointCutMap: Map<string, POINT_CUT> = new Map();
   private advisors: Advisor[] = [];
   private tmpAspectConfig: ASPECT_CONFIG[] = [];
-
-  private getDefination(idOrName: string): BeanDefinition | null {
-    if (this.definitionMap.has(idOrName)) {
-      return <BeanDefinition>this.definitionMap.get(idOrName);
-    }
-    return null;
-  }
-
-  addAspect(id: string, aspect: Aspect) {
-    if (this.aspectMap.has(id)) {
-      throw new Error('aspectId' + id + '重复');
-    }
-    this.aspectMap.set(id, aspect);
-  }
-
-  getAspect(id: string) {
-    return this.aspectMap.get(id);
-  }
-
-  writeAspect() {
-    this.tmpAspectConfig.forEach((aspectConfig) => {
-      this.registAspect(aspectConfig);
-    });
-    this.tmpAspectConfig = [];
-  }
-
-  registPointCut(pointCut: POINT_CUT) {
-    const id = pointCut.id;
-    if (!id || this.pointCutMap.has(id)) {
-      throw new Error('pointcut id ' + id + '重复');
-    }
-    this.pointCutMap.set(id, pointCut);
-  }
-
-  getPointCut(id: string) {
-    return this.pointCutMap.get(id);
-  }
-
-  registAspect(aspectConfig: ASPECT_CONFIG) {
-    if (this.aspectMap.has(aspectConfig.id)) {
-      throw new Error('重复aspectId' + aspectConfig.id);
-    }
-    const aspect = new Aspect({
-      id: aspectConfig.id,
-      pointCuts: aspectConfig.pointCuts,
-      order: aspectConfig.order,
-    });
-    this.aspectMap.set(aspectConfig.id, aspect);
-    this.registAdvisor(
-      aspectConfig.adviceId,
-      aspectConfig.adviceConfigs,
-      aspect,
-    );
-  }
-
-  private registAdvisor(
-    adviceId: string,
-    adviceConfigs: ASPECT_CONFIG['adviceConfigs'],
-    aspect: Aspect,
-  ) {
-    const adviceBean = this.getBean(adviceId);
-    adviceConfigs.forEach(([position, methodName, pointCutIdOrMatcher]) => {
-      let pointCutMatcher: POINT_CUT_MATCHER;
-      if (typeof pointCutIdOrMatcher == 'string') {
-        let pointCut = aspect
-          .getPointCuts()
-          .find((each) => each.id === pointCutIdOrMatcher);
-        if (!pointCut) {
-          pointCut = this.getPointCut(pointCutIdOrMatcher);
-        }
-        if (!pointCut) {
-          throw new Error(`pointCutId:${pointCutIdOrMatcher}不存在`);
-        }
-        pointCutMatcher = pointCut;
-      } else {
-        pointCutMatcher = pointCutIdOrMatcher;
-      }
-      let Ctr: AdviceCtr;
-      switch (position) {
-        case 'before':
-          Ctr = BeforeAdvice;
-          break;
-        case 'after':
-          Ctr = AfterAdvice;
-          break;
-        case 'around':
-          Ctr = AroundAdvice;
-          break;
-        case 'afterThrow':
-          Ctr = AfterThrowAdvice;
-          break;
-        case 'afterReturn':
-          Ctr = AfterReturnAdvice;
-          break;
-        default:
-          throw new Error('错误连接点' + position);
-      }
-      this.advisors.push(
-        new Advisor({
-          advice: new Ctr({
-            adviceMethod: methodName,
-            advice: adviceBean,
-          }),
-          aspect,
-          ...pointCutMatcher,
-        }),
-      );
-    });
-  }
+  private tempBeanAutoConstruct: AutoInjectConstruct[] = [];
 
   registDefination(definition: BeanDefinition) {
     const id = definition.getId();
@@ -197,10 +90,154 @@ export default class BeanFactory {
     }
   }
 
+  addAuoInject(config: AutoInjectConstruct) {
+    this.tempBeanAutoConstruct.push(config);
+  }
+
+  registPointCut(pointCut: POINT_CUT) {
+    const id = pointCut.id;
+    if (!id || this.pointCutMap.has(id)) {
+      throw new Error('pointcut id ' + id + '重复');
+    }
+    this.pointCutMap.set(id, pointCut);
+  }
+
+  registAspect(aspectConfig: ASPECT_CONFIG) {
+    this.tmpAspectConfig.push(aspectConfig);
+  }
+
+  doRegistBean() {
+    this.mergeAutoInject();
+    this.checkBean();
+  }
+
+  doRegistAspect() {
+    this.tmpAspectConfig.forEach(aspectConfig => {
+      if (this.aspectMap.has(aspectConfig.id)) {
+        throw new Error('重复aspectId' + aspectConfig.id);
+      }
+      const aspect = new Aspect({
+        id: aspectConfig.id,
+        pointCuts: aspectConfig.pointCuts,
+        order: aspectConfig.order,
+      });
+      this.aspectMap.set(aspectConfig.id, aspect);
+      this.registAdvisor(
+        aspectConfig.adviceId,
+        aspectConfig.adviceConfigs,
+        aspect,
+      );
+    });
+    this.tmpAspectConfig = [];
+  }
+
+  private getDefination(idOrName: string): BeanDefinition | null {
+    if (this.definitionMap.has(idOrName)) {
+      return <BeanDefinition>this.definitionMap.get(idOrName);
+    }
+    return null;
+  }
+
+  private checkBean() {
+    for (const def of this.definitionMap.values()) {
+      def.validRelativeBeanId(this.definitionMap);
+    }
+  }
+
+  private mergeAutoInject() {
+    this.tempBeanAutoConstruct.forEach(autoConfig => {
+      for (const [beanId, configs] of Object.entries(autoConfig)) {
+        const bean = this.definitionMap.get(beanId);
+        if (!bean) {
+          throw new Error(`beanId:${beanId}不存在`);
+        }
+        configs.forEach(config => {
+          const { index, value: idOrClass, type } = config;
+          if (type === 'byName') {
+            if (!this.definitionMap.has(idOrClass)) {
+              throw new Error(
+                `beanId:${beanId}使用Resouce使用auto的byName没有找到beanId:${idOrClass}`,
+              );
+            }
+            bean.mergeAutoInjectConstructParams(index, idOrClass);
+          } else if (type === 'byType') {
+            const targetBean = [...this.definitionMap.values()].find(
+              (def: BeanDefinition) => def.getBeanClass() === idOrClass,
+            );
+            if (!targetBean) {
+              throw new Error(
+                `beanId:${beanId}Resouce使用auto的byType没有找到类`,
+              );
+            }
+            bean.mergeAutoInjectConstructParams(index, targetBean.getId());
+          }
+        });
+      }
+    });
+    this.tempBeanAutoConstruct = [];
+  }
+
+  private registAdvisor(
+    adviceId: string,
+    adviceConfigs: ASPECT_CONFIG['adviceConfigs'],
+    aspect: Aspect,
+  ) {
+    const adviceBean = this.getBean(adviceId);
+    adviceConfigs.forEach(([position, methodName, pointCutIdOrMatcher]) => {
+      let pointCutMatcher: POINT_CUT_MATCHER;
+      if (typeof pointCutIdOrMatcher == 'string') {
+        let pointCut = aspect
+          .getPointCuts()
+          .find(each => each.id === pointCutIdOrMatcher);
+        if (!pointCut) {
+          pointCut = this.getPointCut(pointCutIdOrMatcher);
+        }
+        if (!pointCut) {
+          throw new Error(`pointCutId:${pointCutIdOrMatcher}不存在`);
+        }
+        pointCutMatcher = pointCut;
+      } else {
+        pointCutMatcher = pointCutIdOrMatcher;
+      }
+      let Ctr: AdviceCtr;
+      switch (position) {
+        case 'before':
+          Ctr = BeforeAdvice;
+          break;
+        case 'after':
+          Ctr = AfterAdvice;
+          break;
+        case 'around':
+          Ctr = AroundAdvice;
+          break;
+        case 'afterThrow':
+          Ctr = AfterThrowAdvice;
+          break;
+        case 'afterReturn':
+          Ctr = AfterReturnAdvice;
+          break;
+        default:
+          throw new Error('错误连接点' + position);
+      }
+      this.advisors.push(
+        new Advisor({
+          advice: new Ctr({
+            adviceMethod: methodName,
+            advice: adviceBean,
+          }),
+          aspect,
+          ...pointCutMatcher,
+        }),
+      );
+    });
+  }
+
+  private getPointCut(id: string) {
+    return this.pointCutMap.get(id);
+  }
+
   private createAopProxyBean(bean: any, beanId: string, exposeProxy: boolean) {
-    let advisors = this.advisors.filter((advisor) =>
-      advisor.matchClass(beanId),
-    );
+    let advisors = this.advisors.filter(advisor => advisor.matchClass(beanId));
     if (advisors.length > 0) {
       const proxy = new Proxy(bean, {
         get: function proxyMethod(target, targetMethod) {
@@ -209,12 +246,12 @@ export default class BeanFactory {
             typeof origin === 'function' &&
             typeof targetMethod !== 'symbol'
           ) {
-            const matchedAdvisors = advisors.filter((aspect) =>
+            const matchedAdvisors = advisors.filter(aspect =>
               aspect.matchMethod(<string>targetMethod),
             );
             if (matchedAdvisors.length > 0) {
               const adviceChains = BeanFactory.groupSort(matchedAdvisors);
-              return function (...args: any[]) {
+              return function(...args: any[]) {
                 const invoker = new Invoker({
                   target,
                   targetMethod,
@@ -239,7 +276,7 @@ export default class BeanFactory {
     const res: {
       [pos in typeof Advice_Position[number]]?: Advice[];
     }[] = [];
-    advisors.forEach((each) => {
+    advisors.forEach(each => {
       const order = each.getOrder();
       const pos = each.getAdvicePosition();
       res[order] = res[order] || {};
@@ -247,7 +284,7 @@ export default class BeanFactory {
       res[order][pos]?.push(each.getAdvice());
     });
     return res.reduce((acc: Advice[], cur) => {
-      Advice_Position.forEach((postion) => {
+      Advice_Position.forEach(postion => {
         const advices = cur[postion];
         if (advices !== undefined) {
           acc.push(...advices);

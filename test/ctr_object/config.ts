@@ -1,4 +1,4 @@
-import { Checker } from '../../context';
+import { Checker } from '../..';
 import Service from './service';
 import Dao from './dao';
 

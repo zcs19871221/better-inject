@@ -2,6 +2,8 @@ import 'reflect-metadata';
 import BeanFactory, { POINT_CUT, ASPECT_CONFIG } from '../factory';
 import BeanDefinition, { BeanDefinitionConfig } from '../definition';
 import LocateParser from '../locateparser';
+import { helper as aopHelper } from '../annotation/aop';
+import { helper as injectHelper } from '../annotation/inject';
 
 type FILE_CONFIG =
   | BeanDefinitionConfig
@@ -25,21 +27,40 @@ class Context {
   }) {
     this.configParser = new LocateParser(configFiles, root);
     this.scanParser = new LocateParser(scanFiles, root);
-    this.configParser.requireDefault().forEach((configModule) => {
-      if (BeanDefinition.isValidConfig(configModule)) {
-        this.regist(configModule);
+    this.configParser.requireDefault().forEach(configModule => {
+      this.regist(configModule);
+    });
+    this.scanParser.requireDefault().forEach(classModule => {
+      const injectMetaData = injectHelper.get(classModule);
+      if (injectMetaData) {
+        this.beanFactory.registDefination(new BeanDefinition(injectMetaData));
+        this.beanFactory.addAuoInject(injectMetaData.autoInjectConstuct);
+      }
+      const aopMetaData = aopHelper.get(classModule);
+      if (aopMetaData) {
+        this.upgradeLocalPointCut(aopMetaData);
+        this.beanFactory.registAspect(aopMetaData);
       }
     });
-    this.scanParser.requireDefault().forEach((classModule) => {
-      const definition = Reflect.getMetadata(Context.metaBeanKey, classModule);
-      if (definition) {
-        this.regist(definition);
-      }
-    });
-    this.beanFactory.writeAspect();
+    this.beanFactory.doRegistBean();
+    this.beanFactory.doRegistAspect();
   }
 
   private static targetMapProxy: Map<any, any> = new Map();
+
+  private upgradeLocalPointCut(aopMetaData: ASPECT_CONFIG) {
+    if (
+      aopMetaData.adviceConfigs.length === 0 &&
+      aopMetaData.pointCuts &&
+      aopMetaData.pointCuts.length > 0
+    ) {
+      const pointCuts = aopMetaData.pointCuts;
+      pointCuts.forEach(pointCut => {
+        this.beanFactory.registPointCut(pointCut);
+      });
+      delete aopMetaData.pointCuts;
+    }
+  }
 
   static getProxy(ref: any) {
     return Context.targetMapProxy.get(ref);
@@ -68,7 +89,7 @@ class Context {
         this.beanFactory.registPointCut(cf);
       } else if (cf.type === 'aspect') {
         this.beanFactory.registAspect(cf);
-      } else if (cf.type === 'prototype' || cf.type === 'single') {
+      } else if (cf.type === 'prototype' || cf.type === 'single' || !cf.type) {
         this.beanFactory.registDefination(new BeanDefinition(cf));
       }
     });
@@ -78,6 +99,4 @@ class Context {
     return this.beanFactory.getBean(idOrName, ...args);
   }
 }
-const { Checker } = Context;
-export { Checker };
 export default Context;

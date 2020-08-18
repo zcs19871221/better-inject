@@ -1,5 +1,5 @@
 import Reader from './reader';
-import { Resource } from '../../context';
+import { Resource } from '../../';
 
 @Resource()
 export default class FileReader implements Reader {

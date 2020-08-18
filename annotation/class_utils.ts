@@ -5,7 +5,7 @@ const isClass = (v: any): boolean => {
   return /^\s*class\s+/.test(v.toString());
 };
 
-const classToId = (ctr: any) => {
+const classToId = (ctr: any): string => {
   if (ctr && ctr.name && typeof ctr.name === 'string') {
     return ctr.name.toLowerCase();
   }
