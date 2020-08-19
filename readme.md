@@ -28,6 +28,7 @@
    a2: around2 before2 after2 afterReturn2
 
 如果 a1 和 a2 优先级相同，执行顺序为 around1-start around2-start before1 before2 原生方法 around2-end around1-end after2 after1 afterReturn2 afterReturn1
+但是具体是 around1-start 先还是 around2-start 先不一定。如果一个是配置文件，一个是注解的，那么配置文件先，否则不一定
 
 如果 a1 优先级 0 a2 优先级 1，则为 around1 before1 around2 before2 原生方法 around2-end after2 afterReturn2 around1-end after1 afterReturn1
 
