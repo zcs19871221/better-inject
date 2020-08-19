@@ -15,7 +15,7 @@ import AfterThrowAdvice from '../aop/after_throw_advice';
 import { AutoInjectConstruct } from '../annotation/inject';
 
 interface ASPECT_CONFIG extends ASPECT_ARGS {
-  adviceId: any;
+  adviceId?: any;
   adviceConfigs: [
     typeof Advice_Position[number],
     string,
@@ -123,7 +123,7 @@ export default class BeanFactory {
       });
       this.aspectMap.set(aspectConfig.id, aspect);
       this.registAdvisor(
-        aspectConfig.adviceId,
+        aspectConfig.adviceId || aspectConfig.id,
         aspectConfig.adviceConfigs,
         aspect,
       );

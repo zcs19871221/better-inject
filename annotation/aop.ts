@@ -8,11 +8,12 @@ const aspectMetaKey = Symbol('__inject Aspect');
 const helper = new MetaHelper<ASPECT_CONFIG>(aspectMetaKey);
 
 const initAspectConfig = (ctr: any): ASPECT_CONFIG => {
+  const id = classToId(ctr);
   return {
-    id: classToId(ctr),
+    id,
     order: 0,
     adviceConfigs: [],
-    adviceId: '',
+    adviceId: id,
     pointCuts: [],
   };
 };
@@ -24,20 +25,20 @@ const Aspect = (order: number = 0) => {
   };
 };
 
-const adviceAnnotationFactory = (method: typeof Advice_Position[number]) => {
-  (pointCut: string | POINT_CUT_MATCHER) => {
-    (ctr: any, methodName: string) => {
-      const aspectConfig = helper.get(ctr) || initAspectConfig(ctr);
-      aspectConfig.adviceConfigs.push([method, methodName, pointCut]);
-      helper.set(ctr, aspectConfig);
-    };
-  };
+const adviceAnnotationFactory = (method: typeof Advice_Position[number]) => (
+  pointCut: string | POINT_CUT_MATCHER,
+) => (ctr: any, methodName: string) => {
+  ctr = ctr.constructor;
+  const aspectConfig = helper.get(ctr) || initAspectConfig(ctr);
+  aspectConfig.adviceConfigs.push([method, methodName, pointCut]);
+  helper.set(ctr, aspectConfig);
 };
 
 const PointCut = (classMatcher: MatcherGroup, methodMatcher: MatcherGroup) => (
   ctr: any,
   methodName: string,
 ) => {
+  ctr = ctr.constructor;
   const aspectConfig = helper.get(ctr) || initAspectConfig(ctr);
   aspectConfig.pointCuts?.push({
     id: methodName,

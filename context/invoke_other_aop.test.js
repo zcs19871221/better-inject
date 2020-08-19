@@ -3,7 +3,7 @@ const Context = require('../dist/context').default;
 
 it('origin invoke another aop', () => {
   const context = new Context({
-    configFiles: ['test/config.ts', 'test/aop_config.ts'],
+    configFiles: ['test/aop_config.ts'],
     root: path.join(__dirname, '../'),
   });
   const logger = [];

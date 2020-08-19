@@ -15,6 +15,7 @@ class Context {
   private beanFactory: BeanFactory = new BeanFactory();
   private configParser: LocateParser;
   private scanParser: LocateParser;
+  private debug: Boolean;
 
   constructor({
     configFiles = [],
@@ -29,6 +30,7 @@ class Context {
     debug?: boolean;
     buildDir?: string;
   }) {
+    this.debug = debug;
     this.configParser = new LocateParser(configFiles, root, buildDir, debug);
     this.scanParser = new LocateParser(scanFiles, root, buildDir, debug);
     this.configParser.requireDefault().forEach(configModule => {
@@ -40,9 +42,9 @@ class Context {
         this.beanFactory.registDefination(new BeanDefinition(injectMetaData));
         this.beanFactory.addAuoInject(injectMetaData.autoInjectConstuct);
       }
-      const aopMetaData = aopHelper.get(classModule);
+      let aopMetaData = aopHelper.get(classModule);
       if (aopMetaData) {
-        this.upgradeLocalPointCut(aopMetaData);
+        aopMetaData = this.upgradeLocalPointCut(aopMetaData);
         this.beanFactory.registAspect(aopMetaData);
       }
       if (debug) {
@@ -55,7 +57,10 @@ class Context {
 
   private static targetMapProxy: Map<any, any> = new Map();
 
-  private upgradeLocalPointCut(aopMetaData: ASPECT_CONFIG) {
+  private upgradeLocalPointCut(aopMetaData: ASPECT_CONFIG): ASPECT_CONFIG {
+    if (this.debug) {
+      console.debug(aopMetaData);
+    }
     if (
       aopMetaData.adviceConfigs.length === 0 &&
       aopMetaData.pointCuts &&
@@ -65,8 +70,12 @@ class Context {
       pointCuts.forEach(pointCut => {
         this.beanFactory.registPointCut(pointCut);
       });
+      aopMetaData = {
+        ...aopMetaData,
+      };
       delete aopMetaData.pointCuts;
     }
+    return aopMetaData;
   }
 
   static getProxy(ref: any) {
