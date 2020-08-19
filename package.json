@@ -4,6 +4,10 @@
   "description": "node typescript depend inject",
   "keywords": [
     "dependency",
+    "ioc",
+    "aop",
+    "Aspect Oriented Programming",
+    "spring",
     "injection",
     "service",
     "container",
