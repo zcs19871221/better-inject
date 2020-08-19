@@ -1,6 +1,6 @@
-# 基于 typescript 的模仿 spring 依赖注入
+# 基于 typescript 的模仿 spring 依赖注入和面向切面
 
-# 特性
+# 依赖注入
 
 1. 支持注解 3个，自动扫描`@Resource` 注入构造函数参数`@inject` 注入对象类型的构造函数参数`@injectObj`
 2. 支持配置文件
@@ -14,9 +14,13 @@
 10. 支持接口类型注入
 11. 目前只支持构造函数注入
 
-# 流程原理
-
-实例化`Context`类获取文件地址，解析后找到配置文件或(和)注解文件。进行解析生成`BeanDefinition`。执行`context.getBean(id)`时候，根据 id 查找 BeanDefinition 并根据数据实例化返回
+# 面向切面
+1. 提供注解 `Aspect Before After Around AfterReturn AfterThrow PointCut`
+2. 提供配置文件,使用`Checker`校验
+3. Aspect的类必须同时使用Resource标记为bean
+4. 配置文件的adviceId如果省略，默认为aspectId
+5. Before After Around的对应方法，只有一个Invoker类型的参数. AfterThrow和AfterReturn有第二个参数，分别是返回值和抛出的错误。
+6. 注解模式的全局切点：如果一个类标记了PointCut,但是没有标记Advice，会把这些PointCut作为全局切点
 
 # 安装
 

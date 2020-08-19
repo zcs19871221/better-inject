@@ -1,9 +1,0 @@
-1.locateParser不使用import方式加载模块，使用文本解析，
-防止出现副作用。比如启动脚本
-
-// 2. locate parse 增加exclude
-
-3. 注解参数增加命名id，比如不想用类名可以用id
-
-
-
