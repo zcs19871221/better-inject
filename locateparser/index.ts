@@ -41,7 +41,8 @@ export default class LocateParser {
           this.root,
           path.join(`${this.root}`, path.sep, this.buildDir, path.sep),
         )
-        .replace('.ts', '.js');
+        .replace('.ts', '.js')
+        .replace(/([\/])+/, '$1');
     }
     return srcLocate;
   }
@@ -63,7 +64,10 @@ export default class LocateParser {
         }
         res.push(target);
       } catch (error) {
-        console.error(`require ${srcLoate}对应地址${compiledLocate} 报错`);
+        console.error(
+          `require ${srcLoate}对应地址${compiledLocate} 报错`,
+          error,
+        );
       }
     });
     return res;
