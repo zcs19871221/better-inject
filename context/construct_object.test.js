@@ -1,13 +1,12 @@
-import path from 'path';
-import Context from '.';
-import Service from '../test/ctr_object/service';
+const path = require('path');
+const Context = require('../dist').default;
 
 it('construct object with config', () => {
   const context = new Context({
     configFiles: 'test/ctr_object/config.ts',
     root: path.join(__dirname, '../'),
   });
-  const service = <Service>context.getBean('service', {
+  const service = context.getBean('service', {
     id: 'dynamicId',
   });
   expect(service.getAll()).toBe(`oracle 50 dynamicId`);
@@ -18,7 +17,7 @@ it('construct object with annotation', () => {
     scanFiles: 'test/ctr_object/*_a.ts',
     root: path.join(__dirname, '../'),
   });
-  const service = <Service>context.getBean('service', {
+  const service = context.getBean('service', {
     speed: 80,
   });
   expect(service.getAll()).toBe(`mysql 80 annotaionId`);
@@ -30,7 +29,7 @@ it('construct object with annotation and config', () => {
     configFiles: 'test/ctr_object/config_aa.ts',
     root: path.join(__dirname, '../'),
   });
-  const service = <Service>context.getBean('service', {
+  const service = context.getBean('service', {
     speed: 30,
     id: 'overwriteId',
   });

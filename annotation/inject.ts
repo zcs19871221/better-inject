@@ -17,28 +17,32 @@ interface BeanMeta extends Omit<BeanDefinitionConfig, 'constructParams'> {
   constructParams: ConstructParams;
 }
 
-const beanMetaKey = '__inject beanDefinition';
+const beanMetaKey = Symbol('__inject beanDefinition');
 const helper = new MetaHelper<BeanMeta>(beanMetaKey);
+const initBeanMeta = (ctr: any): BeanMeta => {
+  return {
+    type: 'prototype',
+    id: classToId(ctr),
+    beanClass: ctr,
+    autoInjectConstuct: {},
+    constructParams: {},
+  };
+};
 const Resource = ({
   type = 'prototype',
-  parent,
+  parent = '',
   exposeProxy = false,
   auto = 'byName',
 }: Pick<BeanDefinitionConfig, 'type' | 'parent' | 'exposeProxy'> & {
   auto?: 'byName' | 'byType' | 'no';
 } = {}): ClassDecorator => {
   return ctr => {
-    if (helper.get(ctr)) {
-      return;
-    }
-    const beanMeta: BeanMeta = {
+    let beanMeta: BeanMeta = helper.get(ctr) || initBeanMeta(ctr);
+    beanMeta = {
+      ...beanMeta,
       type,
       parent,
-      id: classToId(ctr),
-      beanClass: ctr,
       exposeProxy,
-      constructParams: {},
-      autoInjectConstuct: {},
     };
     if (auto !== 'no') {
       const originParams = Reflect.getMetadata('design:paramtypes', ctr);
@@ -50,6 +54,9 @@ const Resource = ({
           }
           autoInjectConstuct[beanMeta.id] =
             autoInjectConstuct[beanMeta.id] || [];
+          if (auto === 'byName') {
+            classOrOther = classToId(classOrOther);
+          }
           autoInjectConstuct[beanMeta.id].push({
             type: auto,
             value: classOrOther,
@@ -64,10 +71,7 @@ const Resource = ({
 
 const Inject = (value: any, isBean: boolean = true) => {
   return (ctr: any, _name: string | undefined, index: number) => {
-    const beanMeta = helper.get(ctr);
-    if (!beanMeta) {
-      throw new Error('使用Inject注解前需先用Resource注解');
-    }
+    const beanMeta: BeanMeta = helper.get(ctr) || initBeanMeta(ctr);
     beanMeta.constructParams[index] = {
       value,
       isBean,
@@ -78,10 +82,7 @@ const Inject = (value: any, isBean: boolean = true) => {
 
 const InjectObj = (prop: { [propName: string]: ConstructParamEach }) => {
   return (ctr: any, _name: string | undefined, index: number) => {
-    const beanMeta = helper.get(ctr);
-    if (!beanMeta) {
-      throw new Error('使用InjectObj注解前需先用Resource注解');
-    }
+    const beanMeta: BeanMeta = helper.get(ctr) || initBeanMeta(ctr);
     beanMeta.constructParams[index] = [prop];
     helper.set(ctr, beanMeta);
   };

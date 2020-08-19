@@ -20,13 +20,17 @@ class Context {
     configFiles = [],
     root,
     scanFiles = [],
+    debug = false,
+    buildDir = 'dist',
   }: {
     configFiles?: string | string[];
     root?: string;
     scanFiles?: string | string[];
+    debug?: boolean;
+    buildDir?: string;
   }) {
-    this.configParser = new LocateParser(configFiles, root);
-    this.scanParser = new LocateParser(scanFiles, root);
+    this.configParser = new LocateParser(configFiles, root, buildDir, debug);
+    this.scanParser = new LocateParser(scanFiles, root, buildDir, debug);
     this.configParser.requireDefault().forEach(configModule => {
       this.regist(configModule);
     });
@@ -40,6 +44,9 @@ class Context {
       if (aopMetaData) {
         this.upgradeLocalPointCut(aopMetaData);
         this.beanFactory.registAspect(aopMetaData);
+      }
+      if (debug) {
+        console.debug(classModule, injectMetaData, aopMetaData);
       }
     });
     this.beanFactory.doRegistBean();

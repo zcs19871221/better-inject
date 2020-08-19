@@ -1,7 +1,7 @@
 export default class MetaHelper<MetaDataType> {
-  private metaKey: string;
+  private metaKey: Symbol;
 
-  constructor(metaKey: string) {
+  constructor(metaKey: Symbol) {
     this.metaKey = metaKey;
   }
 

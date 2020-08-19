@@ -1,8 +1,8 @@
-import path from 'path';
-import Context from '.';
-import Dao from '../test/annotation_plus_config/dao';
-import Service from '../test/annotation_plus_config/service';
-import Jdbc from '../test/annotation_plus_config/jdbc';
+const path = require('path');
+const Context = require('../dist').default;
+const Dao = require('../dist/test/annotation_plus_config/dao').default;
+const Service = require('../dist/test/annotation_plus_config/service').default;
+const Jdbc = require('../dist/test/annotation_plus_config/jdbc').default;
 
 it('annotation and config context', () => {
   expect(() => {
@@ -26,7 +26,8 @@ it('annotation and config context', () => {
   expect(context.getBean('JDBC') instanceof Jdbc);
 
   expect(
-    (<Service>context.getBean('service'))
+    context
+      .getBean('service')
       .getDao()
       .getJdbc()
       .getName(),

@@ -30,12 +30,12 @@
     "postversion": "node ./bin/copy.js && cd dist && npm publish"
   },
   "devDependencies": {
-    "@types/jest": "^26.0.3",
-    "@types/node": "^13.13.12",
+    "@types/jest": "^26.0.10",
+    "@types/node": "^13.13.15",
     "better-fs": "^11.0.4",
-    "jest": "^26.3.0",
+    "jest": "^26.4.0",
     "prettier": "^1.19.1",
-    "ts-jest": "^26.1.4",
+    "ts-jest": "^26.2.0",
     "typescript": "^3.9.7"
   },
   "dependencies": {
