@@ -28,7 +28,7 @@ export default Checker([
       ['afterThrow', 'logError', 'p1'],
       ['afterReturn', 'logResult', 'p1'],
     ],
-    order: 1,
+    order: 0,
   },
   {
     id: 'orderAspect2',
@@ -41,7 +41,7 @@ export default Checker([
       ['afterThrow', 'logError', 'p2'],
       ['afterReturn', 'logResult', 'p2'],
     ],
-    order: 0,
+    order: -1,
   },
   {
     id: 'dao',

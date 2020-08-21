@@ -1,6 +1,6 @@
 import { classToId } from './class_utils';
 import { ASPECT_CONFIG } from '../factory';
-import { Advice_Position } from '../aop/advice';
+import { ADVICE_POSITION } from '../aop/advice';
 import { POINT_CUT_MATCHER, MatcherGroup } from '../aop/point_cut';
 import MetaHelper from './metaHelper';
 
@@ -25,7 +25,7 @@ const Aspect = (order: number = 0) => {
   };
 };
 
-const adviceAnnotationFactory = (method: typeof Advice_Position[number]) => (
+const adviceAnnotationFactory = (method: ADVICE_POSITION) => (
   pointCut: string | POINT_CUT_MATCHER,
 ) => (ctr: any, methodName: string) => {
   ctr = ctr.constructor;

@@ -65,7 +65,9 @@ export default class InvokerImplement implements Invoker {
       const advice = this.adviceChains[this.index++];
       return advice.invoke(this);
     } finally {
-      Context.delProxy(this.target);
+      if (this.exposeProxy) {
+        Context.delProxy(this.target);
+      }
     }
   }
 }

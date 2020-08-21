@@ -1,4 +1,4 @@
-import Advice, { Advice_Position } from './advice';
+import Advice, { ADVICE_POSITION } from './advice';
 import Invoker from './invoker_implement';
 
 export default class Afteradvice extends Advice {
@@ -10,7 +10,7 @@ export default class Afteradvice extends Advice {
     }
   }
 
-  getPosition(): typeof Advice_Position[number] {
+  getPosition(): ADVICE_POSITION {
     return 'after';
   }
 }

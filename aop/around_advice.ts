@@ -1,4 +1,4 @@
-import Advice, { Advice_Position } from './advice';
+import Advice, { ADVICE_POSITION } from './advice';
 import Invoker from './invoker_implement';
 
 export default class Aroundadvice extends Advice {
@@ -6,7 +6,7 @@ export default class Aroundadvice extends Advice {
     return this.invokeAdvice(invoker);
   }
 
-  getPosition(): typeof Advice_Position[number] {
+  getPosition(): ADVICE_POSITION {
     return 'around';
   }
 }
