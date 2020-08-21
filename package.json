@@ -31,7 +31,7 @@
     "watch": "tsc --watch",
     "build": "npm test && node ./bin/clean.js && npm run compile",
     "preversion": "npm run build",
-    "postversion": "node ./bin/copy.js && cd dist && npm publish"
+    "postversion": "node ./bin/copy.js && node ./bin/deltest.js && cd dist && npm publish"
   },
   "devDependencies": {
     "@types/jest": "^26.0.10",
