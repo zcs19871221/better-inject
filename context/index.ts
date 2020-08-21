@@ -11,7 +11,7 @@ type FILE_CONFIG =
       type: 'pointcut';
     } & POINT_CUT)
   | ({ type: 'aspect' } & ASPECT_CONFIG);
-class Context {
+export default class Context {
   private beanFactory: BeanFactory = new BeanFactory();
   private configParser: LocateParser;
   private scanParser: LocateParser;
@@ -115,4 +115,3 @@ class Context {
     return this.beanFactory.getBean(idOrName, ...args);
   }
 }
-export default Context;
