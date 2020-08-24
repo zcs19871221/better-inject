@@ -21,10 +21,10 @@
 用在方法上 如果方法和类都定义，方法是相对路径，否则绝对路径
 
     拦截路径 path=
-    方法method =
+    方法  method =
     请求参数 /user/{userId}
-    媒体类型 consumes = "application/json" 方法上用会覆盖类配置 支持否定表达式类似于 !text/html 匹配所有非text/html
-    accept类型 produces = MediaType.APPLICATION_JSON_UTF8_VALUE 支持编码选择 方法上用会覆盖类配置 支持否定表达式类似于
+    媒体类型  consumes = "application/json" 方法上用会覆盖类配置 支持否定表达式类似于 !text/html 匹配所有非text/html
+    accept类型  produces = MediaType.APPLICATION_JSON_UTF8_VALUE 支持编码选择 方法上用会覆盖类配置 支持否定表达式类似于
 
 ## @RequestMapping 的组合
 
@@ -84,8 +84,20 @@ String requestHeader = requestEntity.getHeaders().getFirst("MyRequestHeader"));
 
 ## @ModelAttribute
 
-添加模型对象属性
+在执行RequestMapping 之前调用，在一个controller里
 
+作用在方法上：
+  1. 返回值会自动添加到model属性上。默认名称是返回值类型
+    添加account属性(或自定义@ModelAttribute('myAccount'))
+    @ModelAttribute
+    public Account addAccount(@RequestParam String number) {
+        return accountManager.findAccount(number);
+    }
+  2. 返回值void，通过model.addAttribute添加
+
+作用在参数上：
+如果不存在model中，初始化。
+然后从参数中找到匹配key，同步model
 ## 响应函数的参数
 
 所有的路由处理器参数类型:
@@ -95,7 +107,37 @@ https://docs.spring.io/spring/docs/4.3.x/spring-framework-reference/html/mvc.htm
 
 https://docs.spring.io/spring/docs/4.3.x/spring-framework-reference/html/mvc.html#mvc-ann-return-types
 
-问题:
+## @SessionAttribute
+保存到session或读取session注入到参数
+
+## @RequestAttribute
+获取请求request的属性，请求request对象的属性，不是url参数
+
+## @CookieValue
+根据key获取cookie的值
+
+JSESSIONID=415A4AC178C59DACE0B2C9CA727CDD84
+@CookieValue("JSESSIONID") String cookie
+
+## @RequestHeader
+获取请求头字段注入参数
+如果参数类型是Map或string或HttpHeaders或string[]类型，自动注入
+string[]对应有;分割的
+
+##  @InitBinder
+设置解析器
+##  @JsonView
+将返回对象字段进行郭论热庵后序列化
+
+## 全局配置
+controllerAdvice
+## 文件上传支持
+@RequestParam("file") MultipartFile file
+
+## 异常处理
+@ExceptionHandler
+## jsonP支持
+# 问题:
 
 Prior to Spring 3.1, type and method-level request mappings were examined in two separate stages — a controller was selected first by the DefaultAnnotationHandlerMapping and the actual method to invoke was narrowed down second by the AnnotationMethodHandlerAdapter.
 
