@@ -29,6 +29,7 @@ interface BeanDefinitionConfig {
   type?: keyof typeof InjectType;
   parent?: string;
   exposeProxy?: boolean;
+  isController?: boolean;
 }
 export {
   BeanDefinitionConfig,
@@ -46,6 +47,7 @@ export default class BeanDefinition {
   private mergedParams: ConstructParams = {};
   private hasMergedParams: boolean = false;
   private exposeProxy: boolean;
+  private isControll: boolean;
 
   constructor({
     id,
@@ -55,6 +57,7 @@ export default class BeanDefinition {
     type = 'prototype',
     parent = '',
     exposeProxy = false,
+    isController = false,
   }: BeanDefinitionConfig) {
     this.id = id;
     if (typeof alias === 'string') {
@@ -66,6 +69,7 @@ export default class BeanDefinition {
     this.type = type;
     this.parent = parent;
     this.exposeProxy = exposeProxy;
+    this.isControll = isController;
   }
 
   static isValidConfig(mayBeConfig: any) {
@@ -75,6 +79,10 @@ export default class BeanDefinition {
     return mayBeConfig.every(
       (each: any) => typeof each === 'object' && each.id && each.beanClass,
     );
+  }
+
+  isController() {
+    return this.isControll;
   }
 
   getBeanClass() {

@@ -33,7 +33,11 @@ const Resource = ({
   parent = '',
   exposeProxy = false,
   auto = 'byName',
-}: Pick<BeanDefinitionConfig, 'type' | 'parent' | 'exposeProxy'> & {
+  isController = false,
+}: Pick<
+  BeanDefinitionConfig,
+  'type' | 'parent' | 'exposeProxy' | 'isController'
+> & {
   auto?: 'byName' | 'byType' | 'no';
 } = {}): ClassDecorator => {
   return ctr => {
@@ -43,6 +47,7 @@ const Resource = ({
       type,
       parent,
       exposeProxy,
+      isController,
     };
     if (auto !== 'no') {
       const originParams = Reflect.getMetadata('design:paramtypes', ctr);
