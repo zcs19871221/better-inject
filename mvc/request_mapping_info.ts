@@ -1,3 +1,8 @@
+import { ClientRequest } from 'http';
+import PathParser from './path_parser';
+import ContentTypeParser from './content_type_parser';
+import AcceptParser from './accept_parser';
+
 enum HTTP_METHOD {
   'GET',
   'POST',
@@ -11,31 +16,32 @@ enum HTTP_METHOD {
 }
 type METHOD = keyof typeof HTTP_METHOD;
 export default class RequestMappingInfo {
+  private path: PathParser;
   private method: METHOD;
+  private accept: AcceptParser;
+  private contentType: ContentTypeParser;
   constructor({
     path,
     method = 'GET',
-    consumes = '',
-    produces = '',
+    accept = '',
+    contentType = '',
   }: {
     path: string;
     method: METHOD;
-    consumes: string;
-    produces: string;
+    accept: string;
+    contentType: string;
   }) {
     this.method = method;
-    this.path = new PathResolver(path);
-    this.consume = new ConsumeParser();
-    this.produce = new ProduceParser();
+    this.path = new PathParser(path);
+    this.accept = new AcceptParser(accept);
+    this.contentType = new ContentTypeParser(contentType);
   }
 
-  match(request: HttpCLi) {
-    return this.PathResolver;
+  match(request: ClientRequest) {
+    return (
+      this.path.match(request) &&
+      this.accept.match(request) &&
+      this.contentType.match(request)
+    );
   }
-}
-interface InfoParser {
-  match(input: req): boolean;
-}
-class PathResolver {
-  resolve() {}
 }
