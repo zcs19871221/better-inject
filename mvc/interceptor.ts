@@ -1,13 +1,21 @@
-import { ClientRequest, ServerResponse } from 'http';
+import { IncomingMessage, ServerResponse } from 'http';
 import ModelView from './model_view';
 
 export default class Interceptor {
-  constructor(request: ClientRequest) {}
-  applyPre(request: ClientRequest, response: ServerResponse): boolean {
+  constructor(request: IncomingMessage) {}
+  applyPre(request: IncomingMessage, response: ServerResponse): boolean {
     return false;
   }
 
-  applyPost(request: ClientRequest, response: ServerResponse, mv: ModelView) {}
+  applyPost(
+    request: IncomingMessage,
+    response: ServerResponse,
+    mv: ModelView,
+  ) {}
 
-  applyAfter(request: ClientRequest, response: ServerResponse, error?: Error) {}
+  applyAfter(
+    request: IncomingMessage,
+    response: ServerResponse,
+    error?: Error,
+  ) {}
 }

@@ -6,6 +6,7 @@ import Invoker from '../aop/invoker_implement';
 import Aspect, { ASPECT_ARGS } from '../aop/aspect';
 import POINT_CUT from '../aop/point_cut';
 import { AutoInjectConstruct } from '../annotation/inject';
+import RequestMapping from '../mvc/request_mapping';
 
 type ASPECT_CONFIG = Omit<ASPECT_ARGS, 'advice' | 'globalPointCuts'> & {
   adviceId?: string;
@@ -114,6 +115,38 @@ export default class BeanFactory {
       );
     });
     this.tmpAspectConfig = [];
+  }
+
+  doRegistMvc() {
+    const mappingId = RequestMapping.beanId;
+    this.definitionMap.set(
+      mappingId,
+      new BeanDefinition({
+        id: mappingId,
+        beanClass: RequestMapping,
+        type: 'single',
+      }),
+    );
+    const requestMapping = <RequestMapping>this.getBean(mappingId);
+    [...this.definitionMap.values()]
+      .filter(def => def.isController)
+      .forEach(def => {
+        const bean = this.getBean(def.getId());
+        const beanClass = def.getBeanClass();
+        requestMapping.regist(bean, beanClass);
+      });
+
+    //     defs.forEach(def => {
+    //   const mvcMeta = helper.get(def.getBeanClass);
+    //   Object.entries(mvcMeta).forEach(([method, { info, argsResolvers, returnValueResolvers }]) => {
+    //     const condition = info.getCondition()
+    //     if (this.infoKeySet.has(condition)) {
+    //       throw new Error('已经定义拦截条件' + info.)
+    //     }
+    //     this.infoKeySet.add(condition)
+    //     this.mapping.push([info, new HandlerMethod({bean,method,argsResolvers,returnValueResolvers})])
+    //   })
+    // });
   }
 
   private getDefination(idOrName: string): BeanDefinition | null {

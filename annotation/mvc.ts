@@ -1,62 +1,63 @@
-import { isClass, classToId } from './class_utils';
-import {
-  BeanDefinitionConfig,
-  ConstructParamEach,
-  ConstructParams,
-} from '../definition';
 import MetaHelper from './metaHelper';
+import RequestMappingInfo, {
+  RequestMappingInfoArgs,
+} from '../mvc/request_mapping_info';
 import { Resource } from './inject';
-import HandlerMethod from 'mvc/handler_method';
 
-enum Methods {
-  'GET',
-  'POST',
-  'HEAD',
-  'PUT',
-  'DELETE',
-  'CONNECT',
-  'OPTIONS',
-  'TRACE',
-  'PATCH',
-}
 interface MvcMeta {
   [method: string]: {
-    info: RequestInfo;
-    args: Resolver[];
+    info: RequestMappingInfo;
+    argsResolvers: [];
+    returnValueResolvers: [];
   };
 }
-// getBean()
-// [(req,)]
-//   0: (req, info, modelAndVIew) => info.getPath('0')
 
-const beanMetaKey = Symbol('__inject beanDefinition');
-const helper = new MetaHelper<BeanMeta>(beanMetaKey);
+class MvcHelper extends MetaHelper<MvcMeta> {
+  constructor() {
+    super('__mvc meta data');
+  }
+
+  initMetaData() {
+    return {};
+  }
+}
+
+const helper = new MvcHelper();
 
 const Controller = (ctr: any) => {
-  Resource({ type: 'single', isController: true })(ctr);
-  for (const each of Methods) {
-    const handlerMethod = new HandlerMethod(
-      beanName,
-      each.argsResolvers,
-      each.returnValueResolvers,
-    );
-    RequestMapping.regist(each.info, handlerMethod);
+  if (Object.keys(helper.get(ctr)).length === 0) {
+    throw new Error('必须在方法上注解@RequestMapping作为相应函数');
   }
+  Resource({ type: 'single', isController: true })(ctr);
 };
-const RequestMapping = ({
-  path,
-  method,
-  consumes,
-  produces,
-}: {
-  path: string;
-  method: keyof typeof Methods;
-  consumes: string;
-  produces: string;
-}) => (ctr: any, methodName?: string) => {
+
+const RequestMapping = (args: RequestMappingInfoArgs) => (
+  ctr: any,
+  methodName?: string,
+) => {
+  const info = new RequestMappingInfo(args);
   if (methodName) {
     ctr = ctr.constructor;
+    const mvcMeta = helper.get(ctr);
+    if (!mvcMeta[methodName]) {
+      mvcMeta[methodName] = {
+        info: info,
+        argsResolvers: [],
+        returnValueResolvers: [],
+      };
+    } else {
+      mvcMeta[methodName].info = info;
+    }
+    helper.set(ctr, mvcMeta);
+  } else {
+    const mvcMeta = helper.get(ctr);
+    if (Object.keys(mvcMeta).length === 0) {
+      throw new Error('没有方法定义RequestMapping');
+    }
+    Object.values(mvcMeta).forEach(data => {
+      data.info = info.merge(data.info);
+    });
   }
 };
 
-export { Controller, helper, AutoInjectConstruct };
+export { Controller, helper, RequestMapping };

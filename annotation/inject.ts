@@ -17,17 +17,22 @@ interface BeanMeta extends Omit<BeanDefinitionConfig, 'constructParams'> {
   constructParams: ConstructParams;
 }
 
-const beanMetaKey = Symbol('__inject beanDefinition');
-const helper = new MetaHelper<BeanMeta>(beanMetaKey);
-const initBeanMeta = (ctr: any): BeanMeta => {
-  return {
-    type: 'prototype',
-    id: classToId(ctr),
-    beanClass: ctr,
-    autoInjectConstuct: {},
-    constructParams: {},
-  };
-};
+class InjectHelper extends MetaHelper<BeanMeta> {
+  constructor() {
+    super('__inject beanDefinition');
+  }
+  initMetaData(ctr: any): BeanMeta {
+    return {
+      type: 'prototype',
+      id: classToId(ctr),
+      beanClass: ctr,
+      autoInjectConstuct: {},
+      constructParams: {},
+    };
+  }
+}
+const helper = new InjectHelper();
+
 const Resource = ({
   type = 'prototype',
   parent = '',
@@ -41,7 +46,7 @@ const Resource = ({
   auto?: 'byName' | 'byType' | 'no';
 } = {}): ClassDecorator => {
   return ctr => {
-    let beanMeta: BeanMeta = helper.get(ctr) || initBeanMeta(ctr);
+    let beanMeta: BeanMeta = helper.get(ctr);
     beanMeta = {
       ...beanMeta,
       type,
@@ -76,7 +81,7 @@ const Resource = ({
 
 const Inject = (value: any, isBean: boolean = true) => {
   return (ctr: any, _name: string | undefined, index: number) => {
-    const beanMeta: BeanMeta = helper.get(ctr) || initBeanMeta(ctr);
+    const beanMeta: BeanMeta = helper.get(ctr);
     beanMeta.constructParams[index] = {
       value,
       isBean,
@@ -87,7 +92,7 @@ const Inject = (value: any, isBean: boolean = true) => {
 
 const InjectObj = (prop: { [propName: string]: ConstructParamEach }) => {
   return (ctr: any, _name: string | undefined, index: number) => {
-    const beanMeta: BeanMeta = helper.get(ctr) || initBeanMeta(ctr);
+    const beanMeta: BeanMeta = helper.get(ctr);
     beanMeta.constructParams[index] = [prop];
     helper.set(ctr, beanMeta);
   };

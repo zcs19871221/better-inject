@@ -1,16 +1,9 @@
-@Controller
-@RequestMapping({
-  path: '/user',
-  method: 'GET',
-  consumes: 'application/json',
-  accept: 'application/json;charset=utf-8',
-})
-class A {
-  @RequestMapping({
-    path: '/{userID}',
-    method: 'GET',
-    consumes: 'application/json',
-    accept: 'application/json;charset=utf-8',
-  })
-  user(@PathVariable('ownerId')) {}
+function B(_ctr: any) {
+  console.log('B');
 }
+function C(_ctr: any) {
+  console.log('C');
+}
+B;
+C;
+class A {}

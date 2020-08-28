@@ -4,22 +4,27 @@ import { ADVICE_POSITION } from '../aop/advice';
 import { POINT_CUT_MATCHER, MatcherGroup } from '../aop/point_cut';
 import MetaHelper from './metaHelper';
 
-const aspectMetaKey = Symbol('__inject Aspect');
-const helper = new MetaHelper<ASPECT_CONFIG>(aspectMetaKey);
+class AopMetaHelper extends MetaHelper<ASPECT_CONFIG> {
+  constructor() {
+    super('__inject Aspect');
+  }
 
-const initAspectConfig = (ctr: any): ASPECT_CONFIG => {
-  const id = classToId(ctr);
-  return {
-    id,
-    order: 0,
-    adviceConfigs: [],
-    adviceId: id,
-    pointCuts: [],
-  };
-};
+  initMetaData(ctr: any): ASPECT_CONFIG {
+    const id = classToId(ctr);
+    return {
+      id,
+      order: 0,
+      adviceConfigs: [],
+      adviceId: id,
+      pointCuts: [],
+    };
+  }
+}
+const helper = new AopMetaHelper();
+
 const Aspect = (order: number = 0) => {
   return function(ctr: any) {
-    const aspectConfig = helper.get(ctr) || initAspectConfig(ctr);
+    const aspectConfig = helper.get(ctr);
     aspectConfig.order = order;
     helper.set(ctr, aspectConfig);
   };
@@ -29,7 +34,7 @@ const adviceAnnotationFactory = (method: ADVICE_POSITION) => (
   pointCut: string | POINT_CUT_MATCHER,
 ) => (ctr: any, methodName: string) => {
   ctr = ctr.constructor;
-  const aspectConfig = helper.get(ctr) || initAspectConfig(ctr);
+  const aspectConfig = helper.get(ctr);
   aspectConfig.adviceConfigs.push([method, methodName, pointCut]);
   helper.set(ctr, aspectConfig);
 };
@@ -39,7 +44,7 @@ const PointCut = (classMatcher: MatcherGroup, methodMatcher: MatcherGroup) => (
   methodName: string,
 ) => {
   ctr = ctr.constructor;
-  const aspectConfig = helper.get(ctr) || initAspectConfig(ctr);
+  const aspectConfig = helper.get(ctr);
   aspectConfig.pointCuts?.push({
     id: methodName,
     classMatcher,

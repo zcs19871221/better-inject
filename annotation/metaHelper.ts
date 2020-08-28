@@ -1,9 +1,11 @@
-export default class MetaHelper<MetaDataType> {
+export default abstract class MetaHelper<MetaDataType> {
   private metaKey: Symbol;
 
-  constructor(metaKey: Symbol) {
-    this.metaKey = metaKey;
+  constructor(metaKey: string) {
+    this.metaKey = Symbol(metaKey);
   }
+
+  abstract initMetaData(ctr: any): MetaDataType;
 
   getKey() {
     return this.metaKey;
@@ -13,7 +15,7 @@ export default class MetaHelper<MetaDataType> {
     Reflect.defineMetadata(this.metaKey, metaData, ctr);
   }
 
-  get(ctr: any): MetaDataType | undefined {
-    return Reflect.getMetadata(this.metaKey, ctr);
+  get(ctr: any): MetaDataType {
+    return Reflect.getMetadata(this.metaKey, ctr) || this.initMetaData(ctr);
   }
 }

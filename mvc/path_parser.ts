@@ -1,23 +1,33 @@
-import { ClientRequest } from 'http';
+import { IncomingMessage } from 'http';
 import InfoParser from './info_parser';
 
-export default class PathParser implements InfoParser {
-  private path: string;
-  private pathVariable: [number, string][] = [];
-  constructor(path: string) {
-    this.path = path.replace(/\/+/g, '/');
+export default class PathParser extends InfoParser {
+  private pathVariable: {
+    [name: string]: number;
+  } = {};
+  constructor(paths: string[]) {
+    super(paths);
     this.setPathVariable();
   }
 
-  getPath() {
-    return this.path;
-  }
-  match(req: ClientRequest) {
-    return this.matchBlock(this.path.split('/'), req.path.split('/'), 0, 0);
+  filterCondition(req: IncomingMessage) {
+    return this.condition.filter(path => {
+      this.matchBlock(path.split('/'), (req.url || '').split('/'), 0, 0);
+    });
   }
 
-  merge(sub: PathParser) {
-    return new PathParser(this.path + sub.getPath());
+  createEntity(matched: string[]) {
+    return new PathParser(matched);
+  }
+
+  getPathVariable(req: IncomingMessage) {
+    const url = (<string>req.url).split('/');
+    return Object.entries(this.pathVariable).reduce((acc, [name, index]) => {
+      if (url[index] !== undefined) {
+        acc[name] = url[index];
+      }
+      return acc;
+    }, <{ [name: string]: string }>{});
   }
 
   private matchBlock(
@@ -90,10 +100,12 @@ export default class PathParser implements InfoParser {
   }
 
   private setPathVariable() {
-    this.path.split('/').forEach((part, index) => {
-      if (this.isPathVariable(part)) {
-        this.pathVariable.push([index, part.slice(1, part.length - 1)]);
-      }
+    this.condition.forEach(path => {
+      path.split('/').forEach((part, index) => {
+        if (this.isPathVariable(part)) {
+          this.pathVariable[part.slice(1, part.length - 1)] = index;
+        }
+      });
     });
   }
 

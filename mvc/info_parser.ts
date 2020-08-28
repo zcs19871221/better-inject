@@ -1,6 +1,47 @@
-import { ClientRequest } from 'http';
+import { IncomingMessage } from 'http';
 
-export default interface InfoParser {
-  match(req: ClientRequest): boolean;
+interface InfoParser {
+  getMatchingCondition(req: IncomingMessage): InfoParser | null;
   merge(parser: InfoParser): InfoParser;
+  getKey(): string;
+}
+export { InfoParser };
+export default abstract class AbstractInfoParser implements InfoParser {
+  protected condition: string[] = [];
+  protected isEmpty: boolean = false;
+  static SPLITER = ';';
+  constructor(input: string[] | undefined) {
+    if (!input) {
+      this.condition = [];
+    } else {
+      input = [...new Set(input)];
+      input.sort();
+      this.condition = input;
+    }
+  }
+
+  getCondition() {
+    return this.condition;
+  }
+
+  getKey() {
+    return this.condition.join(',');
+  }
+
+  getMatchingCondition(req: IncomingMessage): InfoParser | null {
+    if (this.condition.length === 0) {
+      return this;
+    }
+    const matchedCondition = this.filterCondition(req);
+    if (matchedCondition.length == 0) {
+      return null;
+    }
+    return this.createEntity(matchedCondition);
+  }
+
+  abstract filterCondition(req: IncomingMessage): string[];
+  abstract createEntity(matchedCondition: string[]): InfoParser;
+  merge(parser: AbstractInfoParser): InfoParser {
+    return this.createEntity(this.condition.concat(parser.getCondition()));
+  }
 }

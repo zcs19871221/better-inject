@@ -1,15 +1,17 @@
-import { ClientRequest, ServerResponse } from 'http';
+import { IncomingMessage, ServerResponse } from 'http';
 import RequestMappingHandler from './request_mapping_handler';
 import Intercepter from './interceptor';
 import ModelView from './model_view';
+import Context from 'index';
 
 export default class Dispatch {
   private mapping: RequestMappingHandler;
+  private context: Context;
   constructor() {
-    this.mapping = new RequestMappingHandler();
+    this.mapping = this.context.getBean('request_mapping');
   }
 
-  doDispatch(request: ClientRequest, response: ServerResponse) {
+  doDispatch(request: IncomingMessage, response: ServerResponse) {
     let exception = null;
     let modelView = null;
     let interceptor;
@@ -35,7 +37,7 @@ export default class Dispatch {
 
   private processResult(
     mv: ModelView | null,
-    request: ClientRequest,
+    request: IncomingMessage,
     response: ServerResponse,
     error?: Error,
   ) {}

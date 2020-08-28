@@ -53,6 +53,7 @@ export default class Context {
     });
     this.beanFactory.doRegistBean();
     this.beanFactory.doRegistAspect();
+    this.beanFactory.doRegistMvc();
   }
 
   private static targetMapProxy: Map<any, any> = new Map();

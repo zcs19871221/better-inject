@@ -1,13 +1,18 @@
-import { ClientRequest, ServerResponse } from 'http';
-import ModelView from './model_view';
+import { IncomingMessage, ServerResponse } from 'http';
 
 export default class HandlerMethod {
-  private beanId: string;
-  private method: string;
-  private argsResolver;
-  private returnValueResolver;
-  handle(request: ClientRequest, response: ServerResponse): ModelView {
-    const bean = factory.getBean('beanId');
+  private bean: any;
+  private beanMethod: string;
+  private argsResolvers;
+  private returnValueResolvers;
+  constructor({ bean, beanMethod, argsResolvers, returnValueResolvers }) {
+    this.bean = bean;
+    this.beanMethod = beanMethod;
+    this.argsResolvers = argsResolvers;
+    this.returnValueResolvers = returnValueResolvers;
+  }
+
+  handle(request: IncomingMessage, response: ServerResponse): ModelView {
     const args = this.argsResolver.map(resolve =>
       resolve(info, req, modelView),
     );
