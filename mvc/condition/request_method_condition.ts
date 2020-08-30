@@ -13,35 +13,20 @@ enum HTTP_METHOD {
   'PATCH',
 }
 type METHOD = keyof typeof HTTP_METHOD;
-export default class RequestMethodCondition extends RequestCondition {
-  private methods: METHOD[];
+export default class RequestMethodCondition extends RequestCondition<METHOD> {
   constructor(methods: METHOD[]) {
-    super();
-    this.methods = [...new Set(methods)];
+    super([...new Set(methods)]);
   }
 
-  isEmpty() {
-    return this.methods.length > 0;
+  doGetMatchingCondition(req: IncomingMessage) {
+    return this.contents.filter(method => method === req.method);
   }
 
-  getContent() {
-    return this.methods;
+  doCombine(other: RequestMethodCondition) {
+    return this.contents.concat(other.contents);
   }
 
-  getMatchingCondition(req: IncomingMessage) {
-    if (this.isEmpty()) {
-      return this;
-    }
-    return new RequestMethodCondition(
-      this.methods.filter(method => method === req.method),
-    );
-  }
-
-  combine(other: RequestMethodCondition) {
-    return new RequestMethodCondition(this.methods.concat(other.methods));
-  }
-
-  compareTo(other: RequestMethodCondition) {
-    return other.methods.length - this.methods.length;
+  doCompareTo(other: RequestMethodCondition) {
+    return other.contents.length - this.contents.length;
   }
 }
