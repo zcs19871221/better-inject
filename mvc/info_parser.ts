@@ -9,7 +9,6 @@ export { InfoParser };
 export default abstract class AbstractInfoParser implements InfoParser {
   protected condition: string[] = [];
   protected isEmpty: boolean = false;
-  static SPLITER = ';';
   constructor(input: string[] | undefined) {
     if (!input) {
       this.condition = [];
@@ -24,8 +23,9 @@ export default abstract class AbstractInfoParser implements InfoParser {
     return this.condition;
   }
 
+  abstract getJoinLogic(): '&&' | '||';
   getKey() {
-    return this.condition.join(',');
+    return this.condition.join(this.getJoinLogic());
   }
 
   getMatchingCondition(req: IncomingMessage): InfoParser | null {
