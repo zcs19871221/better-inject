@@ -1,5 +1,5 @@
 import { IncomingMessage } from 'http';
-import InfoParser from './info_parser';
+import InfoParser from './request_condition';
 
 class AcceptParser extends InfoParser {
   filterCondition(req: IncomingMessage) {

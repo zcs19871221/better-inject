@@ -1,6 +1,6 @@
 import { IncomingMessage } from 'http';
-import InfoParser from './info_parser';
-import PathParser from './path_parser';
+import InfoParser from './request_condition';
+import PathParser from './request_url_condition';
 
 type ValueCondition = ['exists' | 'notExists'] | ['equal', string];
 

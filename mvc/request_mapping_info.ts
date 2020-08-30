@@ -1,9 +1,9 @@
 import { IncomingMessage } from 'http';
-import InfoParser from './info_parser';
-import PathParser from './path_parser';
-import AcceptParser from './accept_parser';
-import ContentTypeParser from './content_type_parser';
-import { HeaderParser, ParamParser } from './header_param_parser';
+import InfoParser from './condition/request_condition';
+import PathParser from './condition/request_url_condition';
+import AcceptParser from './condition/accept_parser';
+import ContentTypeParser from './condition/content_type_parser';
+import { HeaderParser, ParamParser } from './condition/header_param_parser';
 
 enum HTTP_METHOD {
   'GET',
