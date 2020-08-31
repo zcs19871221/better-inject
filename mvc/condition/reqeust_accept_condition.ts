@@ -2,6 +2,10 @@ import { IncomingMessage } from 'http';
 import RequestMimeTypeCondition from './request_mimetype_condition';
 
 export default class RequestAcceptCondition extends RequestMimeTypeCondition {
+  protected createhashCode() {
+    return 'accept:' + this.contents.map(each => each.hashCode()).join('||');
+  }
+
   doGetMatchingCondition(req: IncomingMessage) {
     const accept = req.headers.accept;
     if (!accept) {

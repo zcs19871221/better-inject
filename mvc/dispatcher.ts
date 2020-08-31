@@ -1,14 +1,20 @@
 import { IncomingMessage, ServerResponse } from 'http';
-import RequestMappingHandler from './request_mapping_handler';
+import RequestMapping from './request_mapping';
 import Intercepter from './interceptor';
 import ModelView from './model_view';
 import Context from 'index';
 
 export default class Dispatch {
-  private mapping: RequestMappingHandler;
+  private mapping: RequestMapping;
   private context: Context;
-  constructor() {
-    this.mapping = this.context.getBean('request_mapping');
+  constructor(context: Context) {
+    this.context = context;
+    this.mapping = new RequestMapping();
+    this.context.regist({
+      type: 'single',
+      beanClass: RequestMapping,
+      id: RequestMapping.beanId,
+    });
   }
 
   doDispatch(request: IncomingMessage, response: ServerResponse) {
@@ -16,7 +22,7 @@ export default class Dispatch {
     let modelView = null;
     let interceptor;
     try {
-      const handler = this.mapping.getHandler();
+      const handler = this.mapping.getHandler(request);
       interceptor = new Intercepter(request);
       if (!interceptor.applyPre(request, response)) {
         return;
@@ -36,9 +42,9 @@ export default class Dispatch {
   }
 
   private processResult(
-    mv: ModelView | null,
-    request: IncomingMessage,
-    response: ServerResponse,
-    error?: Error,
+    _mv: ModelView | null,
+    _request: IncomingMessage,
+    _response: ServerResponse,
+    _error?: Error,
   ) {}
 }

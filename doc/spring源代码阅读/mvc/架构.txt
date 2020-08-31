@@ -25,9 +25,9 @@ DispatcherServlet.doDispatch
 checkMultipart - 查找是否文件上传
 getHandler 返回 HandlerExecutionChain 包含 HandlerMethod 和拦截器查找 urlLookup(url 直接映射)，如果没找到，遍历 mappingLookup 查找匹配的 info。然后对 info 排序，返回最符合的一个 handlerMethod 实例 排序规则 value>params>headers>consumes>produces>methods>custom
 AbstractHandlerMapping.getHandler
-AbstractHandlerMethodMapping.getHandlerInternal
-lookupHandlerMethod 查找 urlLookup(url 直接映射)，执行 RequestMappingInfo.getMatchingCondition 进行匹配。否则查找所有 info 执行上边方法进行匹配
-RequestMappingInfo.getMatchingCondition
+  AbstractHandlerMethodMapping.getHandlerInternal
+  lookupHandlerMethod 查找 urlLookup(url 直接映射)，执行 RequestMappingInfo.getMatchingCondition 进行匹配。否则查找所有 info 执行上边方法进行匹配
+    RequestMappingInfo.getMatchingCondition
 
 getHandlerAdapter 返回 RequestMappingHandlerAdapter
 HandlerExecutionChain.applyPreHandle 执行前置拦截器，如果失败，停止后面代码

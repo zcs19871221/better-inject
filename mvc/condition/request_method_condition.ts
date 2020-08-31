@@ -18,6 +18,10 @@ export default class RequestMethodCondition extends RequestCondition<METHOD> {
     super([...new Set(methods)]);
   }
 
+  protected createhashCode() {
+    return 'method:' + this.contents.join('||');
+  }
+
   doGetMatchingCondition(req: IncomingMessage) {
     return this.contents.filter(method => method === req.method);
   }

@@ -1,8 +1,8 @@
-import MetaHelper from './metaHelper';
+import MetaHelper from '../annotation/metaHelper';
 import RequestMappingInfo, {
   RequestMappingInfoArgs,
-} from '../mvc/request_mapping_infots';
-import { Resource } from './inject';
+} from './request_mapping_info';
+import { Resource } from '../annotation/inject';
 
 interface MvcMeta {
   [method: string]: {
@@ -31,11 +31,11 @@ const Controller = (ctr: any) => {
   Resource({ type: 'single', isController: true })(ctr);
 };
 
-const RequestMapping = (args: RequestMappingInfoArgs) => (
+const RequestMapping = (args: Omit<RequestMappingInfoArgs, 'type'>) => (
   ctr: any,
   methodName?: string,
 ) => {
-  const info = new RequestMappingInfo(args);
+  const info = new RequestMappingInfo({ ...args, type: 'init' });
   if (methodName) {
     ctr = ctr.constructor;
     const mvcMeta = helper.get(ctr);
@@ -55,7 +55,7 @@ const RequestMapping = (args: RequestMappingInfoArgs) => (
       throw new Error('没有方法定义RequestMapping');
     }
     Object.values(mvcMeta).forEach(data => {
-      data.info = info.merge(data.info);
+      data.info = info.combine(data.info);
     });
   }
 };

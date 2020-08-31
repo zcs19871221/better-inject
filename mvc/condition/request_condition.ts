@@ -1,9 +1,11 @@
 import { IncomingMessage } from 'http';
 
 interface RequestCondition {
-  getMatchingCondition(req: IncomingMessage): null | RequestCondition;
+  getMatchingCondition(req: IncomingMessage): null | RequestCondition | this;
   compareTo(other: RequestCondition, req?: IncomingMessage): number;
-  combine(other: RequestCondition): RequestCondition;
+  combine(other: RequestCondition): RequestCondition | this;
+  isEmpty(): boolean;
+  hashCode(): string;
 }
 export { RequestCondition };
 export default abstract class AbstractRequestCondition<Content>
@@ -17,9 +19,7 @@ export default abstract class AbstractRequestCondition<Content>
     return this.contents;
   }
 
-  getMatchingCondition(
-    req: IncomingMessage,
-  ): null | AbstractRequestCondition<Content> {
+  getMatchingCondition(req: IncomingMessage): null | RequestCondition | this {
     if (this.isEmpty()) {
       return this;
     }
@@ -34,10 +34,7 @@ export default abstract class AbstractRequestCondition<Content>
     return this.contents.length === 0;
   }
 
-  compareTo(
-    other: AbstractRequestCondition<Content>,
-    req?: IncomingMessage,
-  ): number {
+  compareTo(other: RequestCondition, req?: IncomingMessage): number {
     if (this.isEmpty() && !other.isEmpty()) {
       return 1;
     }
@@ -50,9 +47,7 @@ export default abstract class AbstractRequestCondition<Content>
     return this.doCompareTo(other, req);
   }
 
-  combine(
-    other: AbstractRequestCondition<Content>,
-  ): AbstractRequestCondition<Content> {
+  combine(other: RequestCondition): RequestCondition | this {
     if (other.isEmpty()) {
       return this;
     }
@@ -66,12 +61,20 @@ export default abstract class AbstractRequestCondition<Content>
     return combined;
   }
 
-  abstract doGetMatchingCondition(req: IncomingMessage): Content[];
-  abstract doCombine(
-    other: AbstractRequestCondition<Content>,
-  ): Content[] | AbstractRequestCondition<Content>;
-  abstract doCompareTo(
-    other: AbstractRequestCondition<Content>,
+  hashCode(): string {
+    if (this.isEmpty()) {
+      return '';
+    }
+    return this.createhashCode();
+  }
+
+  protected abstract createhashCode(): string;
+  protected abstract doGetMatchingCondition(req: IncomingMessage): Content[];
+  protected abstract doCombine(
+    other: RequestCondition,
+  ): Content[] | RequestCondition;
+  protected abstract doCompareTo(
+    other: RequestCondition,
     req?: IncomingMessage,
   ): number;
 }

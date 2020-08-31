@@ -17,6 +17,10 @@ export default class UrlPattern {
     this.parse();
   }
 
+  hashCode() {
+    return this.url;
+  }
+
   combine(other: UrlPattern) {
     if (this.isEmpty() && !other.isEmpty()) {
       return other;

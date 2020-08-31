@@ -11,6 +11,10 @@ export default class RequestUrlCondition extends RequestCondition<UrlPattern> {
     super(parsedUrl);
   }
 
+  protected createhashCode() {
+    return 'path:' + this.contents.map(each => each.hashCode()).join('||');
+  }
+
   doGetMatchingCondition(req: IncomingMessage) {
     const matched = this.getContent().filter(each =>
       each.getMatchingCondition(String(req.url)),

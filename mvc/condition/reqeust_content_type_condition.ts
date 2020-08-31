@@ -2,6 +2,12 @@ import { IncomingMessage } from 'http';
 import RequestMimeTypeCondition from './request_mimetype_condition';
 
 export default class RequestContentTypeCondition extends RequestMimeTypeCondition {
+  protected createhashCode() {
+    return (
+      'contentType:' + this.contents.map(each => each.hashCode()).join('||')
+    );
+  }
+
   doGetMatchingCondition(req: IncomingMessage) {
     const contentType = req.headers['content-type'];
     if (!contentType) {

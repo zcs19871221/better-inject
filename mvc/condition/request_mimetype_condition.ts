@@ -31,6 +31,10 @@ export class MimeTypeParser {
     }
   }
 
+  hashCode() {
+    return this.expression;
+  }
+
   private score() {
     if (this.isWholeWildcard) {
       return 3;
