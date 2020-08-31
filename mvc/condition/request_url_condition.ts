@@ -15,6 +15,12 @@ export default class RequestUrlCondition extends RequestCondition<UrlPattern> {
     return 'path:' + this.contents.map(each => each.hashCode()).join('||');
   }
 
+  filterPureUrl() {
+    return this.contents
+      .filter(each => each.isPureUrlPattern())
+      .map(each => each.getUrl());
+  }
+
   doGetMatchingCondition(req: IncomingMessage) {
     const matched = this.getContent().filter(each =>
       each.getMatchingCondition(String(req.url)),

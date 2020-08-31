@@ -5,17 +5,30 @@ import { helper } from './annotation';
 
 export default class RequestMapping {
   private mapping: [RequestMappingInfo, HandlerMethod][] = [];
+  private urlMapping: Map<
+    string,
+    [RequestMappingInfo, HandlerMethod][]
+  > = new Map();
   private infoKeySet: Set<string> = new Set();
 
   static beanId: string = 'REQUEST_MAPPING';
   getHandler(req: IncomingMessage): HandlerMethod {
     const matched: [RequestMappingInfo, HandlerMethod][] = [];
-    this.mapping.forEach(each => {
-      const matching = each[0].getMatchingCondition(req);
-      if (matching !== null) {
-        matched.push([matching, each[1]]);
-      }
-    });
+    if (this.urlMapping.get(<string>req.url)) {
+      matched.push(
+        ...(<[RequestMappingInfo, HandlerMethod][]>(
+          this.urlMapping.get(<string>req.url)
+        )),
+      );
+    }
+    if (!matched.length) {
+      this.mapping.forEach(each => {
+        const matching = each[0].getMatchingCondition(req);
+        if (matching !== null) {
+          matched.push([matching, each[1]]);
+        }
+      });
+    }
     if (matched.length === 0) {
       throw new Error('请求条件：' + req.url + req.method + '没有匹配拦截器');
     }
@@ -44,8 +57,7 @@ export default class RequestMapping {
         if (this.infoKeySet.has(key)) {
           throw new Error('重复定义拦截条件:' + key);
         }
-        this.infoKeySet.add(key);
-        this.mapping.push([
+        const matcher: [RequestMappingInfo, HandlerMethod] = [
           info,
           new HandlerMethod({
             bean,
@@ -53,7 +65,18 @@ export default class RequestMapping {
             argsResolvers,
             returnValueResolvers,
           }),
-        ]);
+        ];
+        this.infoKeySet.add(key);
+        info
+          .getPathCondition()
+          .filterPureUrl()
+          .forEach(url => {
+            if (!this.urlMapping.has(url)) {
+              this.urlMapping.set(url, []);
+            }
+            this.urlMapping.get(url)?.push(matcher);
+          });
+        this.mapping.push(matcher);
       },
     );
   }

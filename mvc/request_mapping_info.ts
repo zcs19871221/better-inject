@@ -1,6 +1,6 @@
 import { IncomingMessage } from 'http';
 import { RequestCondition } from './condition/request_condition';
-import RequestpathCondition from './condition/request_url_condition';
+import RequestPathCondition from './condition/request_url_condition';
 import RequestMethodCondition, {
   METHOD,
 } from './condition/request_method_condition';
@@ -20,7 +20,7 @@ interface RequestMappingInfoArgs {
   type: 'init';
 }
 interface RequestMappingInfoArgsFilterd {
-  pathCondition: RequestCondition;
+  pathCondition: RequestPathCondition;
   methodCondition: RequestCondition;
   acceptCondition: RequestCondition;
   contentTypeCondition: RequestCondition;
@@ -31,7 +31,7 @@ interface RequestMappingInfoArgsFilterd {
 type OPT = RequestMappingInfoArgs | RequestMappingInfoArgsFilterd;
 export { RequestMappingInfoArgs };
 export default class RequestMappingInfo {
-  private pathCondition: RequestCondition;
+  private pathCondition: RequestPathCondition;
   private methodCondition: RequestCondition;
   private acceptCondition: RequestCondition;
   private contentTypeCondition: RequestCondition;
@@ -39,7 +39,7 @@ export default class RequestMappingInfo {
   private paramCondition: RequestCondition;
   constructor(args: OPT) {
     if (args.type === 'init') {
-      this.pathCondition = new RequestpathCondition(this.wrapArgs(args.path));
+      this.pathCondition = new RequestPathCondition(this.wrapArgs(args.path));
       this.methodCondition = new RequestMethodCondition(
         Array.isArray(args.method)
           ? args.method
@@ -94,6 +94,10 @@ export default class RequestMappingInfo {
     return value;
   }
 
+  getPathCondition() {
+    return this.pathCondition;
+  }
+
   getMatchingCondition(req: IncomingMessage) {
     const methods = this.methodCondition.getMatchingCondition(req);
     if (methods === null) {
@@ -121,7 +125,7 @@ export default class RequestMappingInfo {
     }
     return new RequestMappingInfo({
       type: 'filterd',
-      pathCondition: urls,
+      pathCondition: <RequestPathCondition>urls,
       methodCondition: methods,
       acceptCondition: accepts,
       contentTypeCondition: contentTypes,
@@ -133,7 +137,9 @@ export default class RequestMappingInfo {
   combine(other: RequestMappingInfo) {
     return new RequestMappingInfo({
       type: 'filterd',
-      pathCondition: this.pathCondition.combine(other.pathCondition),
+      pathCondition: <RequestPathCondition>(
+        this.pathCondition.combine(other.pathCondition)
+      ),
       methodCondition: this.methodCondition.combine(other.methodCondition),
       acceptCondition: this.acceptCondition.combine(other.acceptCondition),
       contentTypeCondition: this.contentTypeCondition.combine(

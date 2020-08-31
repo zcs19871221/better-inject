@@ -17,6 +17,14 @@ export default class UrlPattern {
     this.parse();
   }
 
+  getUrl() {
+    return this.url;
+  }
+
+  isPureUrlPattern() {
+    return this.variableCount === 0 && this.wildcardCount === 0;
+  }
+
   hashCode() {
     return this.url;
   }
