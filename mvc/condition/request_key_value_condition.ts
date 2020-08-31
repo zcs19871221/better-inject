@@ -11,19 +11,26 @@ export default abstract class RequestKeyValueCondition extends RequestCondition<
     super(params);
   }
 
-  private match(expression: string, obj: { [name: string]: any }) {
+  private match(expression: string, req: IncomingMessage) {
     const [key, value] = expression.split('=');
     let isNegative = false;
     if (key.startsWith('!')) {
       isNegative = true;
     }
-    let res: boolean;
+    let isMatched: boolean;
+    const reqValue = this.getValue(key, req);
     if (value) {
-      res = obj[key] === value;
+      if (reqValue === undefined) {
+        isMatched = false;
+      } else if (typeof reqValue === 'string') {
+        isMatched = reqValue === value;
+      } else {
+        isMatched = reqValue.includes(value);
+      }
     } else {
-      res = obj[key] !== undefined;
+      isMatched = reqValue !== undefined;
     }
-    return isNegative ? !res : res;
+    return isNegative ? !isMatched : isMatched;
   }
 
   private getValidCount() {
@@ -38,9 +45,8 @@ export default abstract class RequestKeyValueCondition extends RequestCondition<
   }
 
   protected doGetMatchingCondition(req: IncomingMessage) {
-    const obj = this.extracObject(req);
     const matched = this.contents.every(expression =>
-      this.match(expression, obj),
+      this.match(expression, req),
     );
     if (matched) {
       return this.contents;
@@ -48,9 +54,10 @@ export default abstract class RequestKeyValueCondition extends RequestCondition<
     return [];
   }
 
-  protected abstract extracObject(
+  protected abstract getValue(
+    key: string,
     req: IncomingMessage,
-  ): { [name: string]: any };
+  ): string | string[] | undefined;
 
   protected doCombine(other: RequestKeyValueCondition) {
     return this.contents.concat(other.contents);

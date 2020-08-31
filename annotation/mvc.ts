@@ -1,7 +1,7 @@
 import MetaHelper from './metaHelper';
 import RequestMappingInfo, {
   RequestMappingInfoArgs,
-} from '../mvc/request_mapping_info';
+} from '../mvc/request_mapping_infots';
 import { Resource } from './inject';
 
 interface MvcMeta {

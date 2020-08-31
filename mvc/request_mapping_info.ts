@@ -1,97 +1,148 @@
 import { IncomingMessage } from 'http';
-import InfoParser from './condition/request_condition';
-import PathParser from './condition/request_url_condition';
-import AcceptParser from './condition/accept_parser';
-import ContentTypeParser from './condition/content_type_parser';
-import { HeaderParser, ParamParser } from './condition/header_param_parser';
+import RequestCondition from './condition/request_condition';
+import RequestUrlCondition from './condition/request_url_condition';
+import RequestMethodCondition, {
+  METHOD,
+} from './condition/request_method_condition';
+import RequestContentTypeCondition from './condition/reqeust_content_type_condition';
+import RequestAcceptCondition from './condition/reqeust_accept_condition';
+import RequestHeaderCondition from './condition/request_header_condition';
+import RequestParamCondition from './condition/request_param_condition';
 
-enum HTTP_METHOD {
-  'GET',
-  'POST',
-  'HEAD',
-  'PUT',
-  'DELETE',
-  'CONNECT',
-  'OPTIONS',
-  'TRACE',
-  'PATCH',
-}
-type METHOD = keyof typeof HTTP_METHOD;
 type OneOrList<T> = T | T[];
 interface RequestMappingInfoArgs {
-  path: OneOrList<string>;
+  path?: OneOrList<string>;
   method?: OneOrList<METHOD>;
   accept?: OneOrList<string>;
   contentType?: OneOrList<string>;
-  headers?: string;
-  params?: string;
+  headers?: OneOrList<string>;
+  params?: OneOrList<string>;
+  type: 'init';
 }
+interface RequestMappingInfoArgsFilterd {
+  pathCondition: RequestUrlCondition;
+  methodCondition: RequestMethodCondition;
+  acceptCondition: RequestAcceptCondition;
+  contentTypeCondition: RequestContentTypeCondition;
+  headerCondition: RequestHeaderCondition;
+  paramCondition: RequestParamCondition;
+  hashKey: string;
+  type: 'filterd';
+}
+type OPT = RequestMappingInfoArgs | RequestMappingInfoArgsFilterd;
 export { RequestMappingInfoArgs };
-export default class RequestMappingInfo implements InfoParser {
-  private path: PathParser;
-  private method: METHOD[];
-  private accept: AcceptParser;
-  private contentType: ContentTypeParser;
-  private header: HeaderParser;
-  private param: ParamParser;
-  constructor({
-    path,
-    method = [],
-    accept = [],
-    contentType = [],
-    headers = '',
-    params = '',
-  }: RequestMappingInfoArgs) {
-    this.method = this.wrapArray(method);
-    this.method.sort();
-    this.path = new PathParser(this.wrapArray(path));
-    this.accept = new AcceptParser(this.wrapArray(accept));
-    this.contentType = new ContentTypeParser(this.wrapArray(contentType));
-    this.header = new HeaderParser(headers ? headers.split(';') : []);
-    this.param = new ParamParser(params ? params.split(';') : []);
+export default class RequestMappingInfo {
+  private urlCondition: RequestUrlCondition;
+  private methodCondition: RequestMethodCondition;
+  private acceptCondition: RequestAcceptCondition;
+  private contentTypeCondition: RequestContentTypeCondition;
+  private headerCondition: RequestHeaderCondition;
+  private paramCondition: RequestParamCondition;
+  private hashKey: string;
+  constructor(args: OPT) {
+    if (args.type === 'init') {
+      this.urlCondition = new RequestUrlCondition(this.wrapArgs(args.path));
+      this.methodCondition = new RequestMethodCondition(
+        Array.isArray(args.method)
+          ? args.method
+          : args.method
+          ? [args.method]
+          : [],
+      );
+      this.acceptCondition = new RequestAcceptCondition(
+        this.wrapArgs(args.accept),
+      );
+      this.contentTypeCondition = new RequestContentTypeCondition(
+        this.wrapArgs(args.contentType),
+      );
+      this.headerCondition = new RequestHeaderCondition(
+        this.wrapArgs(args.headers),
+      );
+      this.paramCondition = new RequestParamCondition(
+        this.wrapArgs(args.params),
+      );
+      this.hashKey = this.generateKey();
+    } else {
+      this.urlCondition = args.pathCondition;
+      this.methodCondition = args.methodCondition;
+      this.acceptCondition = args.acceptCondition;
+      this.contentTypeCondition = args.contentTypeCondition;
+      this.headerCondition = args.headerCondition;
+      this.paramCondition = args.paramCondition;
+      this.hashKey = args.hashKey;
+    }
   }
 
-  private wrapArray<T>(value: T | T[]): T[] {
+  private generateKey() {
+    return this.urlCondition.hashCode() + this.methodCondition.hashCode() + this.acceptCondition.hashCode() + this.contentTypeCondition.hashCode() + this.headerCondition.hashCode() + this.paramCondition.hashCode()
+  }
+  private wrapArgs(value: string | string[] | undefined) {
+    if (value === undefined) {
+      return [];
+    }
     if (!Array.isArray(value)) {
+      value = value.trim();
+      if (!value) {
+        return [];
+      }
       return [value];
     }
     return value;
   }
 
-  compare(other: RequestMappingInfo, req: IncomingMessage) {
-    let res: number = 0;
-    res = this.path.compare(other, req);
-    if (res !== 0) {
-      return res;
-    }
-  }
+  // private isNewArgs() {}
 
-  getMatchingCondition(request: IncomingMessage) {
-    const pathObj = this.path.getMatchingCondition(request);
-    if (!pathObj) {
+  // compareTo(other: RequestCondition, req: IncomingMessage) {
+  //   return this;
+  // }
+
+  getMatchingCondition(req: IncomingMessage) {
+    const methods = this.methodCondition.getMatchingCondition(req);
+    if (methods === null) {
       return null;
     }
-    const method = this.method.filter((<any>request.method).toUpperCase());
-    if ()
-    const contentType = this.contentType.getMatchingCondition(request)
-    return new RequestMappingInfo(key:this.getKey());
+    const urls = this.urlCondition.getMatchingCondition(req);
+    if (urls === null) {
+      return null;
+    }
+    const accepts = this.acceptCondition.getMatchingCondition(req);
+    if (accepts === null) {
+      return null;
+    }
+    const contentTypes = this.contentTypeCondition.getMatchingCondition(req);
+    if (contentTypes === null) {
+      return null;
+    }
+    const headers = this.headerCondition.getMatchingCondition(req);
+    if (headers === null) {
+      return null;
+    }
+    const params = this.paramCondition.getMatchingCondition(req);
+    if (params === null) {
+      return null;
+    }
+    return new RequestMappingInfo({
+      type: 'filterd',
+      pathCondition: <RequestUrlCondition>urls,
+      methodCondition: <RequestMethodCondition>methods,
+      acceptCondition: <RequestAcceptCondition>accepts,
+      contentTypeCondition: <RequestContentTypeCondition>contentTypes,
+      headerCondition: <RequestHeaderCondition>headers,
+      paramCondition: <RequestParamCondition>params,
+      hashKey: this.hashKey,
+    });
   }
 
-  getKey() {
-    return `path:${this.path.getCondition()} method:${this.method.join(
-      ';',
-    )} contentType:${this.contentType.getInput()} accept:${this.accept.getInput()}`;
-  }
-
-  merge(info: RequestMappingInfo) {
-    this.path = this.path.merge(info.path);
-    const m = [...new Set(info.method.concat(this.method))];
-    m.sort();
-    this.method = m;
-    this.accept = this.accept.merge(info.accept);
-    this.contentType = this.contentType.merge(info.contentType);
-    this.header = this.header.merge(info.header);
-    this.param = this.param.merge(info.param, this.path);
-    return this;
+  combine(other:RequestMappingInfo) {
+       return new RequestMappingInfo({
+      type: 'filterd',
+      pathCondition: <RequestUrlCondition>urls,
+      methodCondition: <RequestMethodCondition,
+      acceptCondition: <RequestAcceptCondition,
+      contentTypeCondition: <RequestContentTypeCondition,
+      headerCondition: <RequestHeaderCondition,
+      paramCondition: <RequestParamCondition,
+      hashKey: this.hashKey,
+    });
   }
 }

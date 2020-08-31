@@ -12,7 +12,7 @@ enum HTTP_METHOD {
   'TRACE',
   'PATCH',
 }
-type METHOD = keyof typeof HTTP_METHOD;
+export type METHOD = keyof typeof HTTP_METHOD;
 export default class RequestMethodCondition extends RequestCondition<METHOD> {
   constructor(methods: METHOD[]) {
     super([...new Set(methods)]);

@@ -13,7 +13,7 @@ export default class RequestUrlCondition extends RequestCondition<UrlPattern> {
 
   doGetMatchingCondition(req: IncomingMessage) {
     const matched = this.getContent().filter(each =>
-      each.getMatchingCondition(req.url),
+      each.getMatchingCondition(String(req.url)),
     );
     return matched;
   }

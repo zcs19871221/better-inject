@@ -1,6 +1,4 @@
-import InfoParser from './request_condition';
-
-export default class UrlPattern extends InfoParser {
+export default class UrlPattern {
   private isCatchAll: boolean = false;
   private size: number;
   private url: string;
@@ -10,7 +8,6 @@ export default class UrlPattern extends InfoParser {
   private variableCount: number = 0;
   private wildcardCount: number = 0;
   constructor(url: string) {
-    super();
     url = url.trim().replace(/\/+/g, '/');
     this.size = url.length;
     this.url = url;
@@ -19,6 +16,7 @@ export default class UrlPattern extends InfoParser {
     }
     this.parse();
   }
+
   combine(other: UrlPattern) {
     if (this.isEmpty() && !other.isEmpty()) {
       return other;
@@ -42,6 +40,7 @@ export default class UrlPattern extends InfoParser {
     }
     return new UrlPattern(urlBlocks.join('/') + '/' + otherBlocks.join('/'));
   }
+
   compareTo(b: UrlPattern) {
     if (this.isEmpty() && !b.isEmpty()) {
       return 1;
@@ -67,6 +66,7 @@ export default class UrlPattern extends InfoParser {
     }
     return b.size - this.size;
   }
+
   getMatchingCondition(url: string) {
     if (this.isEmpty()) {
       return this;
@@ -76,15 +76,19 @@ export default class UrlPattern extends InfoParser {
     }
     return null;
   }
+
   getContent() {
     return this.url;
   }
+
   isEmpty() {
     return this.url === '';
   }
+
   private getScore() {
     return this.variableCount * 1 + this.wildcardCount * 100;
   }
+
   private matchBlock(
     pBlock: string[],
     tBlock: string[],
@@ -120,6 +124,7 @@ export default class UrlPattern extends InfoParser {
     }
     return true;
   }
+
   private matchInner(
     pBlock: string,
     tBlock: string,
@@ -152,6 +157,7 @@ export default class UrlPattern extends InfoParser {
     }
     return true;
   }
+
   private parse() {
     this.url.split('/').forEach((part, index) => {
       for (const char of part) {
@@ -165,6 +171,7 @@ export default class UrlPattern extends InfoParser {
       }
     });
   }
+
   private isPathVariable(part: string) {
     return part[0] === '{' && part[part.length - 1] === '}';
   }

@@ -1,9 +1,13 @@
-function B(_ctr: any) {
-  console.log('B');
+import B from './B';
+
+interface A {
+  a1: string;
+  a2: string;
+  type: 'a';
 }
-function C(_ctr: any) {
-  console.log('C');
+interface B {
+  b1: string;
+  b2: string;
+  type: 'b';
 }
-B;
-C;
-class A {}
+type X = A | B;

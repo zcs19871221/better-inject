@@ -1,6 +1,13 @@
 import { IncomingMessage } from 'http';
 
-export default abstract class RequestCondition<Content> {
+interface RequestCondition {
+  getMatchingCondition(req: IncomingMessage): null | RequestCondition;
+  compareTo(other: RequestCondition, req?: IncomingMessage): number;
+  combine(other: RequestCondition): RequestCondition;
+}
+export { RequestCondition };
+export default abstract class AbstractRequestCondition<Content>
+  implements RequestCondition {
   protected contents: Content[];
   constructor(contents: Content[]) {
     this.contents = contents;
@@ -10,7 +17,9 @@ export default abstract class RequestCondition<Content> {
     return this.contents;
   }
 
-  getMatchingCondition(req: IncomingMessage): null | RequestCondition<Content> {
+  getMatchingCondition(
+    req: IncomingMessage,
+  ): null | AbstractRequestCondition<Content> {
     if (this.isEmpty()) {
       return this;
     }
@@ -18,14 +27,17 @@ export default abstract class RequestCondition<Content> {
     if (!matched || matched.length === 0) {
       return null;
     }
-    return Reflect.construct(this.constructor, matched);
+    return Reflect.construct(this.constructor, [matched]);
   }
 
   isEmpty(): boolean {
     return this.contents.length === 0;
   }
 
-  compareTo(other: RequestCondition<Content>): number {
+  compareTo(
+    other: AbstractRequestCondition<Content>,
+    req?: IncomingMessage,
+  ): number {
     if (this.isEmpty() && !other.isEmpty()) {
       return 1;
     }
@@ -35,20 +47,31 @@ export default abstract class RequestCondition<Content> {
     if (this.isEmpty() && other.isEmpty()) {
       return 0;
     }
-    return this.doCompareTo(other);
+    return this.doCompareTo(other, req);
   }
 
-  combine(other: RequestCondition<Content>): RequestCondition<Content> {
+  combine(
+    other: AbstractRequestCondition<Content>,
+  ): AbstractRequestCondition<Content> {
     if (other.isEmpty()) {
       return this;
     }
     if (this.isEmpty()) {
       return other;
     }
-    return Reflect.construct(this.constructor, this.doCombine(other));
+    const combined = this.doCombine(other);
+    if (Array.isArray(combined)) {
+      return Reflect.construct(this.constructor, []);
+    }
+    return combined;
   }
 
-  protected abstract doGetMatchingCondition(req: IncomingMessage): Content[];
-  protected abstract doCombine(other: RequestCondition<Content>): Content[];
-  protected abstract doCompareTo(other: RequestCondition<Content>): number;
+  abstract doGetMatchingCondition(req: IncomingMessage): Content[];
+  abstract doCombine(
+    other: AbstractRequestCondition<Content>,
+  ): Content[] | AbstractRequestCondition<Content>;
+  abstract doCompareTo(
+    other: AbstractRequestCondition<Content>,
+    req?: IncomingMessage,
+  ): number;
 }

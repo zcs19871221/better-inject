@@ -1,6 +1,6 @@
 import { IncomingMessage } from 'http';
 import HandlerMethod from './handler_method';
-import RequestMappingInfo from './request_mapping_info';
+import RequestMappingInfo from './request_mapping_infots';
 import { helper } from '../annotation/mvc';
 
 export default class RequestMapping {

@@ -1,0 +1,127 @@
+import { IncomingMessage } from 'http';
+import AbstractRequestCondition, {
+  RequestCondition,
+} from './condition/request_condition';
+import RequestUrlCondition from './condition/request_url_condition';
+import RequestMethodCondition, {
+  METHOD,
+} from './condition/request_method_condition';
+import RequestContentTypeCondition from './condition/reqeust_content_type_condition';
+import RequestAcceptCondition from './condition/reqeust_accept_condition';
+import RequestHeaderCondition from './condition/request_header_condition';
+import RequestParamCondition from './condition/request_param_condition';
+
+type OneOrList<T> = T | T[];
+interface RequestMappingInfoArgs {
+  path?: OneOrList<string>;
+  method?: OneOrList<METHOD>;
+  accept?: OneOrList<string>;
+  contentType?: OneOrList<string>;
+  headers?: OneOrList<string>;
+  params?: OneOrList<string>;
+}
+
+export { RequestMappingInfoArgs };
+export default class RequestMappingInfo implements RequestCondition {
+  private urlCondition: RequestUrlCondition;
+  private methodCondition: RequestMethodCondition;
+  private acceptCondition: RequestAcceptCondition;
+  private contentTypeCondition: RequestContentTypeCondition;
+  private headerCondition: RequestHeaderCondition;
+  private paramCondition: RequestParamCondition;
+  constructor({
+    path = [],
+    method = [],
+    accept = [],
+    contentType = [],
+    headers = [],
+    params = [],
+  }:
+    | RequestMappingInfoArgs
+    | {
+        path: RequestUrlCondition;
+        method: RequestMethodCondition;
+        accept: RequestAcceptCondition;
+        contentType: RequestContentTypeCondition;
+        headers: RequestHeaderCondition;
+        params: RequestParamCondition;
+      }) {
+    this.urlCondition =
+      typeof path === 'string' || Array.isArray(path)
+        ? new RequestUrlCondition(this.wrapArgs(path))
+        : path;
+    this.methodCondition =
+      typeof path === 'string' || Array.isArray(path)
+        ? new RequestMethodCondition(Array.isArray(method) ? method : [method])
+        : method;
+    this.acceptCondition = new RequestAcceptCondition(this.wrapArgs(accept));
+    this.contentTypeCondition = new RequestContentTypeCondition(
+      this.wrapArgs(contentType),
+    );
+    this.headerCondition = new RequestHeaderCondition(this.wrapArgs(headers));
+    this.paramCondition = new RequestParamCondition(this.wrapArgs(params));
+  }
+
+  private wrapArgs(value: string | string[]) {
+    if (!Array.isArray(value)) {
+      value = value.trim();
+      if (!value) {
+        return [];
+      }
+      return [value];
+    }
+    return value;
+  }
+
+  private isNewArgs() {}
+
+  compareTo(other: RequestCondition, req: IncomingMessage) {
+    return this;
+  }
+
+  getMatchingCondition(req: IncomingMessage) {
+    const methods = this.methodCondition.getMatchingCondition(req);
+    if (methods === null) {
+      return null;
+    }
+    const urls = this.urlCondition.getMatchingCondition(req);
+    if (urls === null) {
+      return null;
+    }
+    const accepts = this.acceptCondition.getMatchingCondition(req);
+    if (accepts === null) {
+      return null;
+    }
+    const contentTypes = this.contentTypeCondition.getMatchingCondition(req);
+    if (contentTypes === null) {
+      return null;
+    }
+    const headers = this.headerCondition.getMatchingCondition(req);
+    if (headers === null) {
+      return null;
+    }
+    const params = this.paramCondition.getMatchingCondition(req);
+    if (params === null) {
+      return null;
+    }
+    return new RequestMappingInfo({});
+  }
+
+  getKey() {
+    return `path:${this.path.getCondition()} method:${this.method.join(
+      ';',
+    )} contentType:${this.contentType.getInput()} accept:${this.accept.getInput()}`;
+  }
+
+  merge(info: RequestMappingInfo) {
+    this.path = this.path.merge(info.path);
+    const m = [...new Set(info.method.concat(this.method))];
+    m.sort();
+    this.method = m;
+    this.accept = this.accept.merge(info.accept);
+    this.contentType = this.contentType.merge(info.contentType);
+    this.header = this.header.merge(info.header);
+    this.param = this.param.merge(info.param, this.path);
+    return this;
+  }
+}
