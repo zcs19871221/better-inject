@@ -21,22 +21,23 @@ interface RequestMappingInfoArgs {
 }
 interface RequestMappingInfoArgsFilterd {
   pathCondition: RequestPathCondition;
-  methodCondition: RequestCondition;
-  acceptCondition: RequestCondition;
-  contentTypeCondition: RequestCondition;
-  headerCondition: RequestCondition;
-  paramCondition: RequestCondition;
+  methodCondition: RequestMethodCondition;
+  acceptCondition: RequestAcceptCondition;
+  contentTypeCondition: RequestContentTypeCondition;
+  headerCondition: RequestHeaderCondition;
+  paramCondition: RequestParamCondition;
   type: 'filterd';
 }
 type OPT = RequestMappingInfoArgs | RequestMappingInfoArgsFilterd;
 export { RequestMappingInfoArgs };
-export default class RequestMappingInfo {
+export default class RequestMappingInfo
+  implements RequestCondition<RequestMappingInfo> {
   private pathCondition: RequestPathCondition;
-  private methodCondition: RequestCondition;
-  private acceptCondition: RequestCondition;
-  private contentTypeCondition: RequestCondition;
-  private headerCondition: RequestCondition;
-  private paramCondition: RequestCondition;
+  private methodCondition: RequestMethodCondition;
+  private acceptCondition: RequestAcceptCondition;
+  private contentTypeCondition: RequestContentTypeCondition;
+  private headerCondition: RequestHeaderCondition;
+  private paramCondition: RequestParamCondition;
   constructor(args: OPT) {
     if (args.type === 'init') {
       this.pathCondition = new RequestPathCondition(this.wrapArgs(args.path));
@@ -67,6 +68,17 @@ export default class RequestMappingInfo {
       this.headerCondition = args.headerCondition;
       this.paramCondition = args.paramCondition;
     }
+  }
+
+  isEmpty() {
+    return (
+      this.pathCondition.isEmpty() &&
+      this.methodCondition.isEmpty() &&
+      this.acceptCondition.isEmpty() &&
+      this.contentTypeCondition.isEmpty() &&
+      this.headerCondition.isEmpty() &&
+      this.paramCondition.isEmpty()
+    );
   }
 
   hashCode() {
@@ -125,7 +137,7 @@ export default class RequestMappingInfo {
     }
     return new RequestMappingInfo({
       type: 'filterd',
-      pathCondition: <RequestPathCondition>urls,
+      pathCondition: urls,
       methodCondition: methods,
       acceptCondition: accepts,
       contentTypeCondition: contentTypes,

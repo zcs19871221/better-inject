@@ -1,7 +1,9 @@
 import { IncomingMessage } from 'http';
 import RequestMimeTypeCondition from './request_mimetype_condition';
 
-export default class RequestAcceptCondition extends RequestMimeTypeCondition {
+export default class RequestAcceptCondition extends RequestMimeTypeCondition<
+  RequestAcceptCondition
+> {
   protected createhashCode() {
     return 'accept:' + this.contents.map(each => each.hashCode()).join('||');
   }

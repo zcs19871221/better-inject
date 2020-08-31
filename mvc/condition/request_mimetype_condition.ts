@@ -66,9 +66,9 @@ export class MimeTypeParser {
     return this.score() - other.score();
   }
 }
-export default abstract class RequestMimeTypeCondition extends RequestCondition<
-  MimeTypeParser
-> {
+export default abstract class RequestMimeTypeCondition<
+  T extends RequestMimeTypeCondition<T>
+> extends RequestCondition<MimeTypeParser, T> {
   constructor(accpets: (string | MimeTypeParser)[]) {
     const expressions = [...new Set(accpets)].map(accept =>
       typeof accept === 'string' ? new MimeTypeParser(accept) : accept,
@@ -79,12 +79,9 @@ export default abstract class RequestMimeTypeCondition extends RequestCondition<
 
   abstract doGetMatchingCondition(req: IncomingMessage): MimeTypeParser[];
 
-  doCombine(other: RequestMimeTypeCondition) {
+  doCombine(other: T) {
     return other;
   }
 
-  abstract doCompareTo(
-    other: RequestMimeTypeCondition,
-    req: IncomingMessage,
-  ): number;
+  abstract doCompareTo(other: T, req: IncomingMessage): number;
 }

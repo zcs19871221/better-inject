@@ -1,9 +1,9 @@
 import { IncomingMessage } from 'http';
 import RequestCondition from './request_condition';
 
-export default abstract class RequestKeyValueCondition extends RequestCondition<
-  string
-> {
+export default abstract class RequestKeyValueCondition<
+  T extends RequestKeyValueCondition<T>
+> extends RequestCondition<string, T> {
   constructor(params: string[] | string) {
     if (typeof params === 'string') {
       params = params.split(';');
@@ -59,11 +59,11 @@ export default abstract class RequestKeyValueCondition extends RequestCondition<
     req: IncomingMessage,
   ): string | string[] | undefined;
 
-  protected doCombine(other: RequestKeyValueCondition) {
+  protected doCombine(other: T) {
     return this.contents.concat(other.contents);
   }
 
-  protected doCompareTo(other: RequestKeyValueCondition) {
+  protected doCompareTo(other: T) {
     const compare = other.contents.length - this.contents.length;
     if (compare !== 0) {
       return compare;

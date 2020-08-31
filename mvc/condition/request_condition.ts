@@ -1,15 +1,17 @@
 import { IncomingMessage } from 'http';
 
-interface RequestCondition {
-  getMatchingCondition(req: IncomingMessage): null | RequestCondition | this;
-  compareTo(other: RequestCondition, req?: IncomingMessage): number;
-  combine(other: RequestCondition): RequestCondition | this;
+interface RequestCondition<T> {
+  getMatchingCondition(req: IncomingMessage): null | T | this;
+  compareTo(other: T, req?: IncomingMessage): number;
+  combine(other: T): T | this;
   isEmpty(): boolean;
   hashCode(): string;
 }
 export { RequestCondition };
-export default abstract class AbstractRequestCondition<Content>
-  implements RequestCondition {
+export default abstract class AbstractRequestCondition<
+  Content,
+  T extends AbstractRequestCondition<Content, T>
+> implements RequestCondition<T> {
   protected contents: Content[];
   constructor(contents: Content[]) {
     this.contents = contents;
@@ -19,7 +21,7 @@ export default abstract class AbstractRequestCondition<Content>
     return this.contents;
   }
 
-  getMatchingCondition(req: IncomingMessage): null | RequestCondition | this {
+  getMatchingCondition(req: IncomingMessage): null | T | this {
     if (this.isEmpty()) {
       return this;
     }
@@ -34,7 +36,7 @@ export default abstract class AbstractRequestCondition<Content>
     return this.contents.length === 0;
   }
 
-  compareTo(other: RequestCondition, req?: IncomingMessage): number {
+  compareTo(other: T, req?: IncomingMessage): number {
     if (this.isEmpty() && !other.isEmpty()) {
       return 1;
     }
@@ -47,7 +49,7 @@ export default abstract class AbstractRequestCondition<Content>
     return this.doCompareTo(other, req);
   }
 
-  combine(other: RequestCondition): RequestCondition | this {
+  combine(other: T): T | this {
     if (other.isEmpty()) {
       return this;
     }
@@ -70,11 +72,6 @@ export default abstract class AbstractRequestCondition<Content>
 
   protected abstract createhashCode(): string;
   protected abstract doGetMatchingCondition(req: IncomingMessage): Content[];
-  protected abstract doCombine(
-    other: RequestCondition,
-  ): Content[] | RequestCondition;
-  protected abstract doCompareTo(
-    other: RequestCondition,
-    req?: IncomingMessage,
-  ): number;
+  protected abstract doCombine(other: T): Content[] | T;
+  protected abstract doCompareTo(other: T, req?: IncomingMessage): number;
 }

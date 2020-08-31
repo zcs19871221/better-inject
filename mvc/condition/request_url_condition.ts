@@ -2,7 +2,10 @@ import { IncomingMessage } from 'http';
 import RequestCondition from './request_condition';
 import UrlPattern from './url_pattern';
 
-export default class RequestUrlCondition extends RequestCondition<UrlPattern> {
+export default class RequestUrlCondition extends RequestCondition<
+  UrlPattern,
+  RequestUrlCondition
+> {
   constructor(urls: (string | UrlPattern)[]) {
     const parsedUrl = [...new Set(urls)].map(url =>
       typeof url === 'string' ? new UrlPattern(url) : url,

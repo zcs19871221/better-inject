@@ -1,7 +1,9 @@
 import { IncomingMessage } from 'http';
 import RequestMimeTypeCondition from './request_mimetype_condition';
 
-export default class RequestContentTypeCondition extends RequestMimeTypeCondition {
+export default class RequestContentTypeCondition extends RequestMimeTypeCondition<
+  RequestContentTypeCondition
+> {
   protected createhashCode() {
     return (
       'contentType:' + this.contents.map(each => each.hashCode()).join('||')
@@ -19,7 +21,7 @@ export default class RequestContentTypeCondition extends RequestMimeTypeConditio
     });
   }
 
-  doCompareTo(other: RequestMimeTypeCondition) {
+  doCompareTo(other: RequestContentTypeCondition) {
     return this.getContent()[0].compareTo(other.getContent()[0]);
   }
 
