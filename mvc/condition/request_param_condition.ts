@@ -1,4 +1,3 @@
-/// <reference path="./index.d.ts" />
 import { IncomingMessage } from 'http';
 import RequestKeyValueCondition from './request_key_value_condition';
 

@@ -27,7 +27,7 @@
     "compile": "tsc",
     "clear": "jest --clearCache",
     "test": "tsc && jest",
-    "jest": "jest",
+    "jest": "jest --watch",
     "watch": "tsc --watch",
     "build": "npm test && node ./bin/clean.js && npm run compile",
     "preversion": "npm run build",

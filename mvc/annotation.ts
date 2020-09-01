@@ -38,7 +38,7 @@ const RequestMapping = (args: Omit<RequestMappingInfoArgs, 'type'>) => (
   const info = new RequestMappingInfo({ ...args, type: 'init' });
   if (methodName) {
     ctr = ctr.constructor;
-    const mvcMeta = helper.get(ctr);
+    const mvcMeta = helper.getIfNotExisisInit(ctr);
     if (!mvcMeta[methodName]) {
       mvcMeta[methodName] = {
         info: info,
@@ -50,7 +50,7 @@ const RequestMapping = (args: Omit<RequestMappingInfoArgs, 'type'>) => (
     }
     helper.set(ctr, mvcMeta);
   } else {
-    const mvcMeta = helper.get(ctr);
+    const mvcMeta = helper.getIfNotExisisInit(ctr);
     if (Object.keys(mvcMeta).length === 0) {
       throw new Error('没有方法定义RequestMapping');
     }

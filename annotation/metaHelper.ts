@@ -15,7 +15,11 @@ export default abstract class MetaHelper<MetaDataType> {
     Reflect.defineMetadata(this.metaKey, metaData, ctr);
   }
 
+  getIfNotExisisInit(ctr: any): MetaDataType {
+    return this.get(ctr) || this.initMetaData(ctr);
+  }
+
   get(ctr: any): MetaDataType {
-    return Reflect.getMetadata(this.metaKey, ctr) || this.initMetaData(ctr);
+    return Reflect.getMetadata(this.metaKey, ctr);
   }
 }

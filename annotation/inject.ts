@@ -46,7 +46,7 @@ const Resource = ({
   auto?: 'byName' | 'byType' | 'no';
 } = {}): ClassDecorator => {
   return ctr => {
-    let beanMeta: BeanMeta = helper.get(ctr);
+    let beanMeta: BeanMeta = helper.getIfNotExisisInit(ctr);
     beanMeta = {
       ...beanMeta,
       type,
@@ -59,7 +59,10 @@ const Resource = ({
       if (Array.isArray(originParams)) {
         const autoInjectConstuct = beanMeta.autoInjectConstuct;
         originParams.forEach((classOrOther: any, index: number) => {
-          if (!isClass(classOrOther)) {
+          if (
+            beanMeta.constructParams[index] !== undefined ||
+            !isClass(classOrOther)
+          ) {
             return;
           }
           autoInjectConstuct[beanMeta.id] =
@@ -81,7 +84,7 @@ const Resource = ({
 
 const Inject = (value: any, isBean: boolean = true) => {
   return (ctr: any, _name: string | undefined, index: number) => {
-    const beanMeta: BeanMeta = helper.get(ctr);
+    const beanMeta: BeanMeta = helper.getIfNotExisisInit(ctr);
     beanMeta.constructParams[index] = {
       value,
       isBean,
@@ -92,7 +95,7 @@ const Inject = (value: any, isBean: boolean = true) => {
 
 const InjectObj = (prop: { [propName: string]: ConstructParamEach }) => {
   return (ctr: any, _name: string | undefined, index: number) => {
-    const beanMeta: BeanMeta = helper.get(ctr);
+    const beanMeta: BeanMeta = helper.getIfNotExisisInit(ctr);
     beanMeta.constructParams[index] = [prop];
     helper.set(ctr, beanMeta);
   };

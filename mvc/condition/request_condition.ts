@@ -29,7 +29,7 @@ export default abstract class AbstractRequestCondition<
     if (!matched || matched.length === 0) {
       return null;
     }
-    return Reflect.construct(this.constructor, [matched]);
+    return this.instance(matched);
   }
 
   isEmpty(): boolean {
@@ -58,9 +58,13 @@ export default abstract class AbstractRequestCondition<
     }
     const combined = this.doCombine(other);
     if (Array.isArray(combined)) {
-      return Reflect.construct(this.constructor, []);
+      return this.instance(combined);
     }
     return combined;
+  }
+
+  private instance(contents: Content[]): T {
+    return Reflect.construct(this.constructor, [contents]);
   }
 
   hashCode(): string {

@@ -1,5 +1,5 @@
-declare namespace http {
-  export interface Inco {
-    tenant?: string;
+declare module 'http' {
+  interface IncomingMessage {
+    params: { [key: string]: string | string[] };
   }
 }

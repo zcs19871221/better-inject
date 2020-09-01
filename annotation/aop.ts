@@ -24,7 +24,7 @@ const helper = new AopMetaHelper();
 
 const Aspect = (order: number = 0) => {
   return function(ctr: any) {
-    const aspectConfig = helper.get(ctr);
+    const aspectConfig = helper.getIfNotExisisInit(ctr);
     aspectConfig.order = order;
     helper.set(ctr, aspectConfig);
   };
@@ -34,7 +34,7 @@ const adviceAnnotationFactory = (method: ADVICE_POSITION) => (
   pointCut: string | POINT_CUT_MATCHER,
 ) => (ctr: any, methodName: string) => {
   ctr = ctr.constructor;
-  const aspectConfig = helper.get(ctr);
+  const aspectConfig = helper.getIfNotExisisInit(ctr);
   aspectConfig.adviceConfigs.push([method, methodName, pointCut]);
   helper.set(ctr, aspectConfig);
 };
@@ -44,7 +44,7 @@ const PointCut = (classMatcher: MatcherGroup, methodMatcher: MatcherGroup) => (
   methodName: string,
 ) => {
   ctr = ctr.constructor;
-  const aspectConfig = helper.get(ctr);
+  const aspectConfig = helper.getIfNotExisisInit(ctr);
   aspectConfig.pointCuts?.push({
     id: methodName,
     classMatcher,

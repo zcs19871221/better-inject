@@ -1,3 +1,4 @@
+/// <reference path="./index.d.ts" />
 import Context from './context';
 
 import Definition from './definition';

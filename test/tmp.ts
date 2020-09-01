@@ -1,13 +1,8 @@
-import B from './B';
+import Condition from '../mvc/condition/request_url_condition';
 
-interface A {
-  a1: string;
-  a2: string;
-  type: 'a';
-}
-interface B {
-  b1: string;
-  b2: string;
-  type: 'b';
-}
-type X = A | B;
+const c = new Condition(['/other/**', 'u', '/list']);
+const d = new Condition(['/id1', '/id2']);
+
+const obj = c.combine(d);
+console.log(obj);
+obj.getContent().map(each => each.getContent());

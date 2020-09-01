@@ -51,6 +51,9 @@ export default class RequestMapping {
 
   regist(bean: any, beanClass: any) {
     const mvcMeta = helper.get(beanClass);
+    if (!mvcMeta) {
+      return;
+    }
     Object.entries(mvcMeta).forEach(
       ([beanMethod, { info, argsResolvers, returnValueResolvers }]) => {
         const key = info.hashCode();

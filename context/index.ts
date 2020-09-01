@@ -4,6 +4,7 @@ import BeanDefinition, { BeanDefinitionConfig } from '../definition';
 import LocateParser from '../locateparser';
 import { helper as aopHelper } from '../annotation/aop';
 import { helper as injectHelper } from '../annotation/inject';
+import { isClass } from '../annotation/class_utils';
 
 type FILE_CONFIG =
   | BeanDefinitionConfig
@@ -37,6 +38,9 @@ export default class Context {
       this.regist(configModule);
     });
     this.scanParser.requireDefault().forEach(classModule => {
+      if (!isClass(classModule)) {
+        return;
+      }
       const injectMetaData = injectHelper.get(classModule);
       if (injectMetaData) {
         this.beanFactory.registDefination(new BeanDefinition(injectMetaData));

@@ -21,7 +21,7 @@ export default class RequestUrlCondition extends RequestCondition<
   filterPureUrl() {
     return this.contents
       .filter(each => each.isPureUrlPattern())
-      .map(each => each.getUrl());
+      .map(each => each.getContent());
   }
 
   doGetMatchingCondition(req: IncomingMessage) {
@@ -31,7 +31,7 @@ export default class RequestUrlCondition extends RequestCondition<
     return matched;
   }
 
-  doCombine(other: RequestUrlCondition) {
+  doCombine(other: RequestUrlCondition): UrlPattern[] {
     const res: UrlPattern[] = [];
     other.getContent().forEach(toAppend => {
       this.getContent().forEach(cur => {
@@ -51,6 +51,8 @@ export default class RequestUrlCondition extends RequestCondition<
       if (compareRes !== 0) {
         return compareRes;
       }
+      i++;
+      j++;
     }
     return other.getContent().length - this.getContent().length;
   }

@@ -1,5 +1,5 @@
 import { IncomingMessage, ServerResponse } from 'http';
-import ModelView from './model_view';
+import ModelView from './model_view.tts';
 
 export default class Interceptor {
   constructor(request: IncomingMessage) {}

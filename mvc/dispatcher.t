@@ -1,7 +1,7 @@
 import { IncomingMessage, ServerResponse } from 'http';
 import RequestMapping from './request_mapping';
-import Intercepter from './interceptor';
-import ModelView from './model_view';
+import Intercepter from './interceptor.tts';
+import ModelView from './model_view.tts';
 import Context from 'index';
 
 export default class Dispatch {

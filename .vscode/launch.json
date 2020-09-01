@@ -9,7 +9,8 @@
       "request": "launch",
       "name": "node",
       "program": "${file}",
-      "skipFiles": ["<node_internals>/**"]
+      "skipFiles": ["<node_internals>/**"],
+      "outputCapture": "std"
     },
     {
       "type": "node",
@@ -17,7 +18,8 @@
       "name": "ts",
       "program": "${file}",
       "preLaunchTask": "compile",
-      "outFiles": ["${workspaceFolder}/dist/**/*.js"]
+      "outFiles": ["${workspaceFolder}/dist/**/*.js"],
+      "outputCapture": "std"
     },
     {
       "type": "node",
@@ -28,7 +30,8 @@
       "outFiles": ["${workspaceFolder}/dist/**/*.js"],
       "env": {
         "NODE_ENV": "development"
-      }
+      },
+      "outputCapture": "std"
     }
   ]
 }
