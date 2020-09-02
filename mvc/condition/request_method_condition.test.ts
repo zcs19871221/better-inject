@@ -1,52 +1,34 @@
 import Condition from './request_method_condition';
 
 it('getMatchingCondition', () => {
-  const d = new Condition(['GET']);
+  const d = new Condition(['GET', 'POST', 'CONNECT']);
   const req: any = { method: 'GET' };
   const matched = <Condition>d.getMatchingCondition(req);
-  expect(matched.getContent().map(pattern => pattern.getContent())).toEqual([
-    '/bcdefg',
-    '/{name}',
-    '/bcd*fg',
-  ]);
+  expect(matched.getContent().join(',')).toEqual('GET');
 });
 
 it('sort', () => {
-  const a = new Condition([]);
-  const b = new Condition(['/abc/**/a*.html', '/abcdef']);
-  const c = new Condition(['/abc', '/{abc}/a.html']);
-  const d = new Condition(['/abcde', '*', '/{a}/**/a.html']);
-  const e = new Condition(['/abcde']);
-  const list = [a, b, c, d, e];
+  const a = new Condition(['GET']);
+  const b = new Condition(['GET', 'POST']);
+  const c = new Condition(['GET', 'POST', 'CONNECT']);
+
+  const list = [a, b, c];
   list.sort((a, b) => a.compareTo(b));
-  expect(list).toEqual([b, d, e, c, a]);
+  expect(list).toEqual([c, b, a]);
 });
 
 it('combine', () => {
-  const a = new Condition([]);
-  const b = new Condition(['/id1', 'id2']);
-  const c = new Condition(['/other/**', 'u', '/list']);
-  const d = new Condition(['/id1', '/id2']);
-  expect(a.combine(b)).toBe(b);
-  expect(b.combine(a)).toBe(b);
+  const a = new Condition(['GET']);
+  const b = new Condition(['GET', 'POST']);
   expect(
-    c
-      .combine(d)
+    a
+      .combine(b)
       .getContent()
-      .map(each => each.getContent()),
-  ).toEqual([
-    '/list/id1',
-    '/list/id2',
-    'u/id1',
-    'u/id2',
-    '/other/**/id1',
-    '/other/**/id2',
-  ]);
+      .join(','),
+  ).toBe('GET,POST');
 });
 
 it('hashCode', () => {
-  const a = new Condition(['/other/**', 'u', '/list']);
-  const b = new Condition([]);
-  expect(a.hashCode()).toBe('path:/list||u||/other/**');
-  expect(b.hashCode()).toBe('');
+  const a = new Condition(['GET', 'POST', 'PUT']);
+  expect(a.hashCode()).toBe('method:GET||POST||PUT');
 });

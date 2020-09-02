@@ -33,12 +33,12 @@ export default class RequestMapping {
       throw new Error('请求条件：' + req.url + req.method + '没有匹配拦截器');
     }
     matched.sort((a, b) => {
-      return a[0].compareTo(b[0]);
+      return a[0].compareTo(b[0], req);
     });
     if (
       matched[0] &&
       matched[1] &&
-      matched[0][0].compareTo(matched[1][0]) === 0
+      matched[0][0].compareTo(matched[1][0], req) === 0
     ) {
       throw new Error(
         `请求url${

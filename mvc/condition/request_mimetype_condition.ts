@@ -5,7 +5,6 @@ export class MimeTypeParser {
   private expression!: string;
   private type!: string;
   private subType!: string;
-  private isWholeWildcard: boolean = false;
   private isTypeWildcard: boolean = false;
   private isSubTypeWildcard: boolean = false;
   constructor(expression: string) {
@@ -22,13 +21,16 @@ export class MimeTypeParser {
     }
     this.type = type;
     this.subType = subType;
-    if (this.type === '*' && this.subType === '*') {
-      this.isWholeWildcard = true;
+    if (this.type === '*') {
       this.isTypeWildcard = true;
-      this.isSubTypeWildcard = true;
-    } else if (this.subType === '*') {
+    }
+    if (this.subType === '*') {
       this.isSubTypeWildcard = true;
     }
+  }
+
+  getContent() {
+    return this.expression;
   }
 
   hashCode() {
@@ -36,10 +38,10 @@ export class MimeTypeParser {
   }
 
   private score() {
-    if (this.isWholeWildcard) {
+    if (this.isTypeWildcard && this.isSubTypeWildcard) {
       return 3;
     }
-    if (this.isTypeWildcard) {
+    if (this.isSubTypeWildcard) {
       return 2;
     }
     return 1;
@@ -49,7 +51,7 @@ export class MimeTypeParser {
     return this.expression === mime;
   }
   match(mime: string) {
-    if (this.isWholeWildcard) {
+    if (this.isTypeWildcard && this.isSubTypeWildcard) {
       return true;
     }
     const [type, subType] = mime.split('/');

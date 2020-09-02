@@ -162,34 +162,34 @@ export default class RequestMappingInfo
     });
   }
 
-  compareTo(other: RequestMappingInfo) {
+  compareTo(other: RequestMappingInfo, req: IncomingMessage) {
     let res: number;
-    res = this.pathCondition.compareTo(other.pathCondition);
+    res = this.pathCondition.compareTo(other.pathCondition, req);
     if (res !== 0) {
       return res;
     }
-    res = this.pathCondition.compareTo(other.pathCondition);
+    res = this.pathCondition.compareTo(other.pathCondition, req);
     if (res !== 0) {
       return res;
     }
-    res = this.paramCondition.compareTo(other.paramCondition);
+    res = this.paramCondition.compareTo(other.paramCondition, req);
     if (res !== 0) {
       return res;
     }
-    res = this.headerCondition.compareTo(other.headerCondition);
+    res = this.headerCondition.compareTo(other.headerCondition, req);
     if (res !== 0) {
       return res;
     }
-    res = this.contentTypeCondition.compareTo(other.contentTypeCondition);
+    res = this.contentTypeCondition.compareTo(other.contentTypeCondition, req);
     if (res !== 0) {
       return res;
     }
 
-    res = this.acceptCondition.compareTo(other.acceptCondition);
+    res = this.acceptCondition.compareTo(other.acceptCondition, req);
     if (res !== 0) {
       return res;
     }
-    res = this.methodCondition.compareTo(other.methodCondition);
+    res = this.methodCondition.compareTo(other.methodCondition, req);
     if (res !== 0) {
       return res;
     }
