@@ -20,6 +20,9 @@ export default class RequestAcceptCondition extends RequestMimeTypeCondition<
   }
 
   doCompareTo(other: RequestAcceptCondition, req: IncomingMessage) {
+    if (!req) {
+      throw new Error('accept doCompareTo缺少req');
+    }
     const accept = req.headers.accept;
     if (!accept) {
       return 0;

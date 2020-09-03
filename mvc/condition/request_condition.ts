@@ -39,7 +39,7 @@ export default abstract class AbstractRequestCondition<
     return this.contents.length === 0;
   }
 
-  compareTo(other: T, req: IncomingMessage): number {
+  compareTo(other: T, req?: IncomingMessage): number {
     if (this.isEmpty() && !other.isEmpty()) {
       return 1;
     }

@@ -4,15 +4,19 @@ import RequestCondition from './request_condition';
 export default abstract class RequestKeyValueCondition<
   T extends RequestKeyValueCondition<T>
 > extends RequestCondition<string, T> {
-  constructor(params: string) {
+  constructor(params: string | string[]) {
     let splited: string[] = [];
-    if (params.trim()) {
-      splited = params
-        .split(';')
-        .filter(each => each.trim())
-        .map(each => each.trim());
+    if (typeof params === 'string') {
+      if (params.trim()) {
+        splited = params
+          .split(';')
+          .filter(each => each.trim())
+          .map(each => each.trim());
+      }
+    } else {
+      splited = params;
     }
-    super(splited);
+    super([...new Set(splited)]);
   }
 
   private match(expression: string, req: IncomingMessage) {

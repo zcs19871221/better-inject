@@ -39,9 +39,9 @@ it('sort', () => {
   const b = new Condition(['text/html', 'text/*', '*/*']);
   const d = new Condition(['text/*', '*/*']);
   const c = new Condition([]);
-  expect([a, c].sort((a, b) => a.compareTo(b, <any>{}))).toEqual([a, c]);
-  expect([a, b].sort((a, b) => a.compareTo(b, <any>{}))).toEqual([b, a]);
-  expect([d, b].sort((a, b) => a.compareTo(b, <any>{}))).toEqual([b, d]);
+  expect([a, c].sort((a, b) => a.compareTo(b))).toEqual([a, c]);
+  expect([a, b].sort((a, b) => a.compareTo(b))).toEqual([b, a]);
+  expect([d, b].sort((a, b) => a.compareTo(b))).toEqual([b, d]);
 });
 
 it('combine', () => {
