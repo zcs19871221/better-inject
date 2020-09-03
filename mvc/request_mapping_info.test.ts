@@ -14,13 +14,13 @@ it('getMathcing', () => {
     url: '/',
     method: 'GET',
     headers: {
-      accept: '',
-      'content-type': 'text/html',
-      myHeader: 'value',
+      // accept: '',
+      // 'content-type': 'text/html',
+      // myHeader: 'value',
     },
-    params: {
-      user: 'zcs',
-    },
+    // params: {
+    //   user: 'zcs',
+    // },
   });
   expect(matched['pathCondition'].hashCode()).toBe('path:*');
   expect(matched['methodCondition'].hashCode()).toBe('method:GET');
