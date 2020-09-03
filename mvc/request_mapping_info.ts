@@ -160,27 +160,26 @@ export default class RequestMappingInfo
 
   compareTo(other: RequestMappingInfo, req: IncomingMessage) {
     let res: number;
-    res = this.pathCondition.compareTo(other.pathCondition, req);
+    res = this.pathCondition.compareTo(other.pathCondition);
     if (res !== 0) {
       return res;
     }
-    res = this.pathCondition.compareTo(other.pathCondition, req);
+    res = this.methodCondition.compareTo(other.methodCondition);
     if (res !== 0) {
       return res;
     }
-    res = this.paramCondition.compareTo(other.paramCondition, req);
+    res = this.paramCondition.compareTo(other.paramCondition);
     if (res !== 0) {
       return res;
     }
-    res = this.headerCondition.compareTo(other.headerCondition, req);
+    res = this.headerCondition.compareTo(other.headerCondition);
     if (res !== 0) {
       return res;
     }
-    res = this.contentTypeCondition.compareTo(other.contentTypeCondition, req);
+    res = this.contentTypeCondition.compareTo(other.contentTypeCondition);
     if (res !== 0) {
       return res;
     }
-
     res = this.acceptCondition.compareTo(other.acceptCondition, req);
     if (res !== 0) {
       return res;
