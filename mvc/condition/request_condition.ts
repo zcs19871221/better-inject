@@ -29,6 +29,9 @@ export default abstract class AbstractRequestCondition<
     if (!matched || matched.length === 0) {
       return null;
     }
+    if (matched === this.contents) {
+      return this;
+    }
     return this.instance(matched);
   }
 

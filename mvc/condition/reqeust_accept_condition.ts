@@ -49,6 +49,9 @@ export default class RequestAcceptCondition extends RequestMimeTypeCondition<
         }
         return iIndex - jIndex;
       }
+      if (iIndex === -1) {
+        return 0;
+      }
       const iObj = this.contents[iIndex];
       const jObj = other.contents[jIndex];
       const compare = iObj.compareTo(jObj);

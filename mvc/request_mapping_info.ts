@@ -15,8 +15,8 @@ interface RequestMappingInfoArgs {
   method?: OneOrList<METHOD>;
   accept?: OneOrList<string>;
   contentType?: OneOrList<string>;
-  headers?: OneOrList<string>;
-  params?: OneOrList<string>;
+  headers?: string;
+  params?: string;
   type: 'init';
 }
 interface RequestMappingInfoArgsFilterd {
@@ -54,12 +54,8 @@ export default class RequestMappingInfo
       this.contentTypeCondition = new RequestContentTypeCondition(
         this.wrapArgs(args.contentType),
       );
-      this.headerCondition = new RequestHeaderCondition(
-        this.wrapArgs(args.headers),
-      );
-      this.paramCondition = new RequestParamCondition(
-        this.wrapArgs(args.params),
-      );
+      this.headerCondition = new RequestHeaderCondition(args.headers || '');
+      this.paramCondition = new RequestParamCondition(args.params || '');
     } else {
       this.pathCondition = args.pathCondition;
       this.methodCondition = args.methodCondition;

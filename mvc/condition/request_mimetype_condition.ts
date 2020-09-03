@@ -50,18 +50,19 @@ export class MimeTypeParser {
   equalMatch(mime: string) {
     return this.expression === mime;
   }
+
   match(mime: string) {
-    if (this.isTypeWildcard && this.isSubTypeWildcard) {
+    const input = new MimeTypeParser(mime);
+    if (
+      (this.isTypeWildcard && this.isSubTypeWildcard) ||
+      (input.isTypeWildcard && input.isSubTypeWildcard)
+    ) {
       return true;
     }
-    const [type, subType] = mime.split('/');
-    if (this.isTypeWildcard) {
-      return this.subType === subType;
+    if (this.isSubTypeWildcard || input.isSubTypeWildcard) {
+      return this.type === input.type;
     }
-    if (this.isSubTypeWildcard) {
-      return this.type === type;
-    }
-    return this.type === type && this.subType === subType;
+    return this.type === input.type && this.subType === input.subType;
   }
 
   compareTo(other: MimeTypeParser) {

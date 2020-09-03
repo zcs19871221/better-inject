@@ -4,18 +4,25 @@ import RequestCondition from './request_condition';
 export default abstract class RequestKeyValueCondition<
   T extends RequestKeyValueCondition<T>
 > extends RequestCondition<string, T> {
-  constructor(params: string[] | string) {
-    if (typeof params === 'string') {
-      params = params.split(';');
+  constructor(params: string) {
+    let splited: string[] = [];
+    if (params.trim()) {
+      splited = params
+        .split(';')
+        .filter(each => each.trim())
+        .map(each => each.trim());
     }
-    super(params);
+    super(splited);
   }
 
   private match(expression: string, req: IncomingMessage) {
-    const [key, value] = expression.split('=');
+    const parsed = expression.split('=');
+    let key = parsed[0];
+    const value = parsed[1];
     let isNegative = false;
     if (key.startsWith('!')) {
       isNegative = true;
+      key = key.slice(1);
     }
     let isMatched: boolean;
     const reqValue = this.getValue(key, req);

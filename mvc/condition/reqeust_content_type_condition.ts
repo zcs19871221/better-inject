@@ -15,10 +15,8 @@ export default class RequestContentTypeCondition extends RequestMimeTypeConditio
     if (!contentType) {
       return this.contents;
     }
-    const contentTypes = this.parseContentType(contentType);
-    return this.contents.filter(expr => {
-      return contentTypes.some(value => expr.match(value));
-    });
+    const mimeType = this.parseContentType(contentType);
+    return this.contents.filter(expr => expr.match(mimeType));
   }
 
   doCompareTo(other: RequestContentTypeCondition) {
@@ -26,9 +24,12 @@ export default class RequestContentTypeCondition extends RequestMimeTypeConditio
   }
 
   private parseContentType(contentType: string) {
-    return contentType
+    const t = contentType
       .split(';')
-      .filter(each => each.trim() && each.includes('/'))
-      .map(each => each.trim().toLowerCase());
+      .find(each => each.trim() && each.includes('/'));
+    if (!t) {
+      throw new Error('content-type:' + contentType + '没有有效mimetype');
+    }
+    return t.trim();
   }
 }
