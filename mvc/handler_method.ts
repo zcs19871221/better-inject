@@ -22,6 +22,9 @@ export default class HandlerMethod {
 //   }
 
 //   handle(request: IncomingMessage, response: ServerResponse): ModelView {
+  const dataConverter = initDataConverter();
+const model = initModel(dataConverter);
+const args = 
 //     const args = this.argsResolver.map(resolve =>
 //       resolve(info, req, modelView),
 //     );

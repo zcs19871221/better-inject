@@ -1,6 +1,9 @@
 import Condition from './request_param_condition';
 
 it('getMatching', () => {
+  expect(() => new Condition('myHeader=abcde;!myHeader')).toThrow();
+  expect(() => new Condition('myHeader=abcde;myHeader')).toThrow();
+  expect(() => new Condition('myHeader=abcde;myHeader=2234')).toThrow();
   const condition = new Condition('myHeader=abcde;accept-language;!cookie');
   expect(
     condition.getMatchingCondition(<any>{
@@ -34,6 +37,26 @@ it('getMatching', () => {
       },
     }),
   ).toBe(null);
+  const condition2 = new Condition('!user=1234');
+  expect(
+    condition2.getMatchingCondition(<any>{
+      params: {
+        user: '1234',
+      },
+    }),
+  ).toBe(null);
+  expect(
+    condition2.getMatchingCondition(<any>{
+      params: {},
+    }),
+  ).toBe(condition2);
+  expect(
+    condition2.getMatchingCondition(<any>{
+      params: {
+        user: '2345',
+      },
+    }),
+  ).toBe(condition2);
 });
 
 it('sort', () => {
@@ -59,5 +82,5 @@ it('combine', () => {
 it('hashCode', () => {
   const a = new Condition('myHeader=abcde;accept-language;!cookie');
 
-  expect(a.hashCode()).toBe('param:myHeader=abcde&&accept-language&&!cookie');
+  expect(a.hashCode()).toBe('params:myHeader=abcde&&accept-language&&!cookie');
 });

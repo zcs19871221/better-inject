@@ -1,6 +1,6 @@
 import { IncomingMessage } from 'http';
 import { RequestCondition } from './condition/request_condition';
-import RequestPathCondition from './condition/request_url_condition';
+import RequestPathCondition from './condition/request_path_condition';
 import RequestMethodCondition, {
   METHOD,
 } from './condition/request_method_condition';
@@ -78,14 +78,16 @@ export default class RequestMappingInfo
   }
 
   hashCode() {
-    return (
-      this.pathCondition.hashCode() +
-      this.methodCondition.hashCode() +
-      this.acceptCondition.hashCode() +
-      this.contentTypeCondition.hashCode() +
-      this.headerCondition.hashCode() +
-      this.paramCondition.hashCode()
-    );
+    return [
+      this.pathCondition.hashCode(),
+      this.methodCondition.hashCode(),
+      this.paramCondition.hashCode(),
+      this.headerCondition.hashCode(),
+      this.contentTypeCondition.hashCode(),
+      this.acceptCondition.hashCode(),
+    ]
+      .filter(e => e)
+      .join(' && ');
   }
 
   private wrapArgs(value: string | string[] | undefined) {
@@ -184,7 +186,6 @@ export default class RequestMappingInfo
     if (res !== 0) {
       return res;
     }
-    res = this.methodCondition.compareTo(other.methodCondition, req);
     if (res !== 0) {
       return res;
     }

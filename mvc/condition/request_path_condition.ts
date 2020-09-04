@@ -1,14 +1,14 @@
 import { IncomingMessage } from 'http';
 import RequestCondition from './request_condition';
-import UrlPattern from './url_pattern';
+import PathPattern from './path_pattern';
 
-export default class RequestUrlCondition extends RequestCondition<
-  UrlPattern,
-  RequestUrlCondition
+export default class RequestPathCondition extends RequestCondition<
+  PathPattern,
+  RequestPathCondition
 > {
-  constructor(urls: (string | UrlPattern)[]) {
+  constructor(urls: (string | PathPattern)[]) {
     const parsedUrl = [...new Set(urls)].map(url =>
-      typeof url === 'string' ? new UrlPattern(url) : url,
+      typeof url === 'string' ? new PathPattern(url) : url,
     );
     parsedUrl.sort((a, b) => a.compareTo(b));
     super(parsedUrl);
@@ -16,6 +16,16 @@ export default class RequestUrlCondition extends RequestCondition<
 
   protected createhashCode() {
     return 'path:' + this.contents.map(each => each.hashCode()).join('||');
+  }
+
+  getVariableMap() {
+    const res: Map<string, string> = new Map();
+    this.contents.forEach(content => {
+      for (const [key, value] of content.getVariableMap()) {
+        res.set(key, value);
+      }
+    });
+    return res;
   }
 
   filterPureUrl() {
@@ -31,8 +41,8 @@ export default class RequestUrlCondition extends RequestCondition<
     return matched;
   }
 
-  doCombine(other: RequestUrlCondition): UrlPattern[] {
-    const res: UrlPattern[] = [];
+  doCombine(other: RequestPathCondition): PathPattern[] {
+    const res: PathPattern[] = [];
     other.getContent().forEach(toAppend => {
       this.getContent().forEach(cur => {
         res.push(cur.combine(toAppend));
@@ -41,7 +51,7 @@ export default class RequestUrlCondition extends RequestCondition<
     return res;
   }
 
-  doCompareTo(other: RequestUrlCondition) {
+  doCompareTo(other: RequestPathCondition) {
     let i = 0;
     let j = 0;
     while (i < this.getContent().length && j < other.getContent().length) {

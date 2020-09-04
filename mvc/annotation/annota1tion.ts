@@ -1,8 +1,8 @@
-import MetaHelper from '../annotation/metaHelper';
+import MetaHelper from '../../annotation/metaHelper';
 import RequestMappingInfo, {
   RequestMappingInfoArgs,
-} from './request_mapping_info';
-import { Resource } from '../annotation/inject';
+} from '../request_mapping_info';
+import { Resource } from '../../annotation/inject';
 
 interface MvcMeta {
   [method: string]: {

@@ -59,5 +59,5 @@ it('combine', () => {
 it('hashCode', () => {
   const a = new Condition('myHeader=abcde;accept-language;!cookie');
 
-  expect(a.hashCode()).toBe('header:myHeader=abcde&&accept-language&&!cookie');
+  expect(a.hashCode()).toBe('headers:myHeader=abcde&&accept-language&&!cookie');
 });

@@ -28,12 +28,13 @@ AbstractHandlerMapping.getHandler
   AbstractHandlerMethodMapping.getHandlerInternal
   lookupHandlerMethod 查找 urlLookup(url 直接映射)，执行 RequestMappingInfo.getMatchingCondition 进行匹配。否则查找所有 info 执行上边方法进行匹配
     RequestMappingInfo.getMatchingCondition
+    handleMatch 把匹配到的信息存放到request上
 
 getHandlerAdapter 返回 RequestMappingHandlerAdapter
 HandlerExecutionChain.applyPreHandle 执行前置拦截器，如果失败，停止后面代码
 AbstractHandlerMethodAdapter.handle
-RequestMappingHandlerAdapter.handleInternal
-invokeHandlerMethod https://juejin.im/post/6844904201265348621
+  RequestMappingHandlerAdapter.handleInternal
+  invokeHandlerMethod https://juejin.im/post/6844904201265348621
 
 1. 标识 controller bean
 2. 根据注解，生成条件 -> 实际执行 bean 的映射。

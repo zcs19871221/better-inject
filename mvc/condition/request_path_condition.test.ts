@@ -1,4 +1,4 @@
-import Condition from './request_url_condition';
+import Condition from './request_path_condition';
 
 it('getMatchingCondition with empty', () => {
   const d = new Condition([]);
@@ -20,6 +20,16 @@ it('getMatchingCondition with filtered and sort', () => {
     '/bcdefg',
     '/{name}',
     '/bcd*fg',
+  ]);
+});
+it('getMatchingCondition with path variable name', () => {
+  const d = new Condition(['/{base}', '/a/text', '/a/{sub}']);
+  const req: any = { url: '/text' };
+  const matched = <Condition>d.getMatchingCondition(req);
+  expect(matched.getContent().map(pattern => pattern.getContent())).toEqual([
+    '/text',
+    '/a/{sub}',
+    '/{name}',
   ]);
 });
 

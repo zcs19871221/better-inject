@@ -16,7 +16,20 @@ export default abstract class RequestKeyValueCondition<
     } else {
       splited = params;
     }
-    super([...new Set(splited)]);
+    splited = [...new Set(splited)];
+    const existsKey: Set<string> = new Set();
+    splited.forEach(each => {
+      let [key] = each.split('=');
+      if (key.startsWith('!')) {
+        key = key.slice(1);
+      }
+      if (existsKey.has(key)) {
+        throw new Error(`条件${each}中的key:${key}重复`);
+      } else {
+        existsKey.add(key);
+      }
+    });
+    super(splited);
   }
 
   private match(expression: string, req: IncomingMessage) {

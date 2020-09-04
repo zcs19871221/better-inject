@@ -5,7 +5,7 @@ export default class RequestHeaderCondition extends RequestKeyValueCondition<
   RequestHeaderCondition
 > {
   protected createhashCode() {
-    return 'header:' + this.contents.join('&&');
+    return 'headers:' + this.contents.join('&&');
   }
 
   protected getValue(key: string, req: IncomingMessage) {

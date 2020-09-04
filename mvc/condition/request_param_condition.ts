@@ -5,7 +5,7 @@ export default class RequestParamCondition extends RequestKeyValueCondition<
   RequestParamCondition
 > {
   protected createhashCode() {
-    return 'param:' + this.contents.join('&&');
+    return 'params:' + this.contents.join('&&');
   }
 
   protected getValue(key: string, req: IncomingMessage) {

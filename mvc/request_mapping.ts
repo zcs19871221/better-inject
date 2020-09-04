@@ -1,7 +1,7 @@
 import { IncomingMessage } from 'http';
 import HandlerMethod from './handler_method';
 import RequestMappingInfo from './request_mapping_info';
-import { helper } from './annotation';
+import { helper } from './annotation/annota1tion';
 
 export default class RequestMapping {
   private mapping: [RequestMappingInfo, HandlerMethod][] = [];
@@ -46,6 +46,9 @@ export default class RequestMapping {
         }匹配了两个相同的条件,对应方法：${matched[0][1].getMethod()}${matched[1][1].getMethod()}`,
       );
     }
+    const [bestMppingInfo, handler] = matched[0]
+    req.requestMappingInfo = bestMppingInfo;
+    req.patv = bestMppingInfo.
     return matched[0][1];
   }
 
