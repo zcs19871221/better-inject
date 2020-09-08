@@ -1,7 +1,7 @@
 import { IncomingMessage, ServerResponse } from 'http';
 import RequestMapping from './request_mapping';
-import Intercepter from './interceptor.tts';
-import ModelView from './model_view.tts';
+import Intercepter from './interceptor';
+import ModelView from './model_view';
 import Context from 'index';
 
 export default class Dispatch {
@@ -42,9 +42,17 @@ export default class Dispatch {
   }
 
   private processResult(
-    _mv: ModelView | null,
-    _request: IncomingMessage,
-    _response: ServerResponse,
-    _error?: Error,
-  ) {}
+    mv: ModelView | null,
+    request: IncomingMessage,
+    response: ServerResponse,
+    error?: Error,
+  ) {
+    if (error) {
+      console.log('404 or somae error');
+      return;
+    }
+    this.render(mv, request, response, error);
+  }
+
+  private render() {}
 }

@@ -90,6 +90,10 @@ export default class RequestMappingInfo
       .join(' && ');
   }
 
+  getPathVariableMap(): Map<string, string> {
+    return this.pathCondition.getVariableMap();
+  }
+
   private wrapArgs(value: string | string[] | undefined) {
     if (value === undefined) {
       return [];

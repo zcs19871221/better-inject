@@ -1,13 +1,16 @@
 import ArgsResolver from './args_resolver';
 interface PathVariableResolverInfo {
-  pathVariableName?: string;
+  pathVariableName: string;
 }
 
 const resolver: ArgsResolver<PathVariableResolverInfo> = (
-  paramINfo,
+  paramInfo,
   model,
   request,
   args,
 ) => {
   const name = args.pathVariableName;
+  const info = request.requestMappingInfo;
+  const variableMap = info.getPathCondition().getVariableMap();
+  return variableMap.get(name);
 };

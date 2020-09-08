@@ -1,7 +1,8 @@
 import { IncomingMessage } from 'http';
 import HandlerMethod from './handler_method';
 import RequestMappingInfo from './request_mapping_info';
-import { helper } from './annotation/annota1tion';
+import { helper, ArgsResolverInfo } from './annotation';
+import { ServerResponse } from 'http';
 
 export default class RequestMapping {
   private mapping: [RequestMappingInfo, HandlerMethod][] = [];
@@ -46,10 +47,9 @@ export default class RequestMapping {
         }匹配了两个相同的条件,对应方法：${matched[0][1].getMethod()}${matched[1][1].getMethod()}`,
       );
     }
-    const [bestMppingInfo, handler] = matched[0]
+    const [bestMppingInfo, handler] = matched[0];
     req.requestMappingInfo = bestMppingInfo;
-    req.patv = bestMppingInfo.
-    return matched[0][1];
+    return handler;
   }
 
   regist(bean: any, beanClass: any) {
@@ -57,19 +57,26 @@ export default class RequestMapping {
     if (!mvcMeta) {
       return;
     }
-    Object.entries(mvcMeta).forEach(
-      ([beanMethod, { info, argsResolvers, returnValueResolvers }]) => {
+    const { methods, modelIniter, converters } = mvcMeta;
+    Object.entries(methods).forEach(
+      ([beanMethod, { info, argsResolverInfo, returnValueResolvers }]) => {
+        if (!info) {
+          throw new Error(beanMethod + '不存在info');
+        }
         const key = info.hashCode();
         if (this.infoKeySet.has(key)) {
           throw new Error('重复定义拦截条件:' + key);
         }
         const matcher: [RequestMappingInfo, HandlerMethod] = [
           info,
-          new HandlerMethod({
-            bean,
-            beanMethod,
-            argsResolvers,
+          this.createHandlerMethod({
+            argsResolverInfo,
             returnValueResolvers,
+            beanClass,
+            beanMethod,
+            bean,
+            modelIniter,
+            converters,
           }),
         ];
         this.infoKeySet.add(key);
@@ -85,5 +92,58 @@ export default class RequestMapping {
         this.mapping.push(matcher);
       },
     );
+  }
+
+  private createHandlerMethod({
+    argsResolverInfo,
+    returnValueResolvers,
+    beanClass,
+    beanMethod,
+    bean,
+    modelIniter,
+    converters,
+  }: {
+    argsResolverInfo: ArgsResolverInfo[];
+    beanClass: any;
+    beanMethod: string;
+  }): HandlerMethod {
+    const params: any[] = Reflect.getMetadata(
+      'design:paramtypes',
+      beanClass.prototype,
+      beanMethod,
+    );
+    const argsInfos = [...argsResolverInfo];
+    params.forEach((each, index) => {
+      if (argsResolverInfo.find(e => e.index === index)) {
+        return;
+      }
+      if (each instanceof IncomingMessage) {
+        argsInfos.push({
+          type: 'request',
+          index,
+        });
+      }
+      if (each instanceof ServerResponse) {
+        argsInfos.push({
+          type: 'response',
+          index,
+        });
+      }
+      if (each === Map) {
+        argsInfos.push({
+          type: 'model',
+          index,
+        });
+      }
+    });
+    return new HandlerMethod({
+      argsResolverInfo,
+      returnValueResolvers,
+      beanClass,
+      beanMethod,
+      bean,
+      modelIniter,
+      converters,
+    });
   }
 }
