@@ -1,13 +1,7 @@
 import { IncomingMessage } from 'http';
 import HandlerMethod from './handler_method';
 import RequestMappingInfo from './request_mapping_info';
-import {
-  helper,
-  ArgsResolverInfo,
-  BinderInfo,
-  ModelIniterInfo,
-} from './annotation';
-import { ServerResponse } from 'http';
+import helper from './annotation/helper';
 
 export default class RequestMapping {
   private mapping: [RequestMappingInfo, HandlerMethod][] = [];
@@ -63,43 +57,38 @@ export default class RequestMapping {
       return;
     }
     const { methods, modelIniter, initBinder } = mvcMeta;
-    Object.entries(methods).forEach(
-      ([
+    Object.entries(methods).forEach(([beanMethod, methodMeta]) => {
+      const info = methodMeta.info;
+      if (!info) {
+        throw new Error(beanMethod + '不存在info');
+      }
+      const key = info.hashCode();
+      if (this.infoKeySet.has(key)) {
+        throw new Error('重复定义拦截条件:' + key);
+      }
+      const value = {
+        ...methodMeta,
+        modelIniter,
+        initBinder,
         beanMethod,
-        { info, argsResolverInfo, returnValueResolvers, params },
-      ]) => {
-        if (!info) {
-          throw new Error(beanMethod + '不存在info');
-        }
-        const key = info.hashCode();
-        if (this.infoKeySet.has(key)) {
-          throw new Error('重复定义拦截条件:' + key);
-        }
-        const matcher: [RequestMappingInfo, HandlerMethod] = [
-          info,
-          new HandlerMethod({
-            argsResolverInfo,
-            returnValueResolvers,
-            beanClass,
-            beanMethod,
-            bean,
-            modelIniter,
-            initBinder,
-            params,
-          }),
-        ];
-        this.infoKeySet.add(key);
-        info
-          .getPathCondition()
-          .filterPureUrl()
-          .forEach(url => {
-            if (!this.urlMapping.has(url)) {
-              this.urlMapping.set(url, []);
-            }
-            this.urlMapping.get(url)?.push(matcher);
-          });
-        this.mapping.push(matcher);
-      },
-    );
+        bean,
+      };
+      delete value.info;
+      const matcher: [RequestMappingInfo, HandlerMethod] = [
+        info,
+        new HandlerMethod(value),
+      ];
+      this.infoKeySet.add(key);
+      info
+        .getPathCondition()
+        .filterPureUrl()
+        .forEach(url => {
+          if (!this.urlMapping.has(url)) {
+            this.urlMapping.set(url, []);
+          }
+          this.urlMapping.get(url)?.push(matcher);
+        });
+      this.mapping.push(matcher);
+    });
   }
 }

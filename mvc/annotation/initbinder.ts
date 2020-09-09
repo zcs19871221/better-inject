@@ -1,4 +1,4 @@
-import { helper } from '.';
+import helper from './helper';
 
 const Initbinder = (ctr: any, methodName: string) => {
   const mvcMeta = helper.getIfNotExisisInit(ctr, true);

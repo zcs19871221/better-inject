@@ -1,46 +1,52 @@
 import { IncomingMessage, ServerResponse } from 'http';
-import { ModelIniterInfo, ArgsResolverInfo, BinderInfo } from './annotation';
+import { MethodMeta, MvcMeta } from '.';
 import ModelView from './model_view';
+
+type HandlerMethodArgs = Pick<MvcMeta, 'initBinder' | 'modelIniter'> &
+  Omit<MethodMeta, 'info'> & { bean: any } & { beanMethod: string };
 export default class HandlerMethod {
-  private bean: any;
-  private beanClass: any;
-  private methodName: string;
-  private argsInfos: ArgsResolverInfo[];
-  public model: ModelView;
-  constructor({
-    argsResolverInfo,
-    returnValueResolvers,
-    beanClass,
-    beanMethod,
-    bean,
-    modelIniter,
-    initBinder,
-    params,
-  }: {
-    argsResolverInfo: ArgsResolverInfo[];
-    beanClass: any;
-    bean: any;
-    beanMethod: string;
-    returnValueResolvers: any;
-    modelIniter: ModelIniterInfo[];
-    initBinder: BinderInfo[];
-    params: [any, string][];
-  }) {
-    this.bean = bean;
-    this.beanClass = beanClass;
-    this.params = params;
-    this.argsResolverInfo = argsResolverInfo;
+  private args: HandlerMethodArgs;
+  constructor(args: HandlerMethodArgs) {
+    this.args = args;
   }
 
   getMethod() {
-    return this.methodName;
+    return this.args.beanMethod;
   }
 
   handle(req: IncomingMessage, res: ServerResponse): any {
-    const model = this.initModel(modelInitInfo);
+    const model = this.initModel(this.args.modelIniter);
     const dataBinder = this.initDataBinder(this.initBinder);
     const args = this.createArgs(req, res, model, initBinder, argsResolverInfo);
     const returnValue = this.bean[this.methodName](...args);
     return this.initReturnValue(returnValue);
+  }
+
+  private createArgs(
+    req: IncomingMessage,
+    res: ServerResponse,
+    model: ModelView,
+  ): any[] {
+    return this.args.params.map(({ type, name }, index) => {
+      const resolver = this.args.argsResolver.find(e => e.getIndex() === index);
+      if (resolver) {
+        return resolver.resolve({
+          req,
+          res,
+          model,
+          param: {
+            type,
+            name,
+          },
+          binder: this.args.initBinder,
+        });
+      } else if (type === IncomingMessage) {
+        return req;
+      } else if (type === ServerResponse) {
+        return res;
+      } else if (type === ModelView) {
+        return model;
+      }
+    });
   }
 }

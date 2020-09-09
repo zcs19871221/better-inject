@@ -1,7 +1,7 @@
 import RequestMappingInfo, {
   RequestMappingInfoArgs,
 } from '../request_mapping_info';
-import { helper } from '.';
+import helper from './helper';
 
 const RequestMapping = (args: Omit<RequestMappingInfoArgs, 'type'>) => (
   ctr: any,

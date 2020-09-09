@@ -34,13 +34,16 @@ export default abstract class MetaHelper<MetaDataType> {
     return types;
   }
 
-  getMethodParam(ctr: any, methodName: string): [any, string][] {
+  getMethodParam(ctr: any, methodName: string): { type: any; name: string }[] {
     const types = this.getMethodParamTypes(ctr, methodName);
     let names = this.getParamNames(ctr[methodName]);
     if (names.length !== types.length) {
       names = new Array(types.length).fill('');
     }
-    return [types, names];
+    return types.map((type: any, index: number) => ({
+      type,
+      name: names[index],
+    }));
   }
 
   getParamNames(func: object) {
