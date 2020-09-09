@@ -1,5 +1,5 @@
 import { IncomingMessage, ServerResponse } from 'http';
-import RequestMapping from './request_mapping';
+import RequestMapping from './handle_request_mapping';
 import Intercepter from './interceptor';
 import ModelView from './model_view';
 import Context from 'index';

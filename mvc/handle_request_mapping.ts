@@ -1,7 +1,12 @@
 import { IncomingMessage } from 'http';
 import HandlerMethod from './handler_method';
 import RequestMappingInfo from './request_mapping_info';
-import { helper, ArgsResolverInfo } from './annotation';
+import {
+  helper,
+  ArgsResolverInfo,
+  BinderInfo,
+  ModelIniterInfo,
+} from './annotation';
 import { ServerResponse } from 'http';
 
 export default class RequestMapping {
@@ -57,9 +62,12 @@ export default class RequestMapping {
     if (!mvcMeta) {
       return;
     }
-    const { methods, modelIniter, converters } = mvcMeta;
+    const { methods, modelIniter, initBinder } = mvcMeta;
     Object.entries(methods).forEach(
-      ([beanMethod, { info, argsResolverInfo, returnValueResolvers }]) => {
+      ([
+        beanMethod,
+        { info, argsResolverInfo, returnValueResolvers, params },
+      ]) => {
         if (!info) {
           throw new Error(beanMethod + '不存在info');
         }
@@ -69,14 +77,15 @@ export default class RequestMapping {
         }
         const matcher: [RequestMappingInfo, HandlerMethod] = [
           info,
-          this.createHandlerMethod({
+          new HandlerMethod({
             argsResolverInfo,
             returnValueResolvers,
             beanClass,
             beanMethod,
             bean,
             modelIniter,
-            converters,
+            initBinder,
+            params,
           }),
         ];
         this.infoKeySet.add(key);
@@ -92,58 +101,5 @@ export default class RequestMapping {
         this.mapping.push(matcher);
       },
     );
-  }
-
-  private createHandlerMethod({
-    argsResolverInfo,
-    returnValueResolvers,
-    beanClass,
-    beanMethod,
-    bean,
-    modelIniter,
-    converters,
-  }: {
-    argsResolverInfo: ArgsResolverInfo[];
-    beanClass: any;
-    beanMethod: string;
-  }): HandlerMethod {
-    const params: any[] = Reflect.getMetadata(
-      'design:paramtypes',
-      beanClass.prototype,
-      beanMethod,
-    );
-    const argsInfos = [...argsResolverInfo];
-    params.forEach((each, index) => {
-      if (argsResolverInfo.find(e => e.index === index)) {
-        return;
-      }
-      if (each instanceof IncomingMessage) {
-        argsInfos.push({
-          type: 'request',
-          index,
-        });
-      }
-      if (each instanceof ServerResponse) {
-        argsInfos.push({
-          type: 'response',
-          index,
-        });
-      }
-      if (each === Map) {
-        argsInfos.push({
-          type: 'model',
-          index,
-        });
-      }
-    });
-    return new HandlerMethod({
-      argsResolverInfo,
-      returnValueResolvers,
-      beanClass,
-      beanMethod,
-      bean,
-      modelIniter,
-      converters,
-    });
   }
 }

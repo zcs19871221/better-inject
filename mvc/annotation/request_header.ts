@@ -7,19 +7,15 @@ const RequestHeader = (keyOrAll: string = '', isRequired = true) => (
   index: number,
 ) => {
   keyOrAll = keyOrAll.trim();
-  const mvcMeta = helper.getIfNotExisisInit(ctr);
+  const mvcMeta = helper.getIfNotExisisInit(ctr, true);
   checkInjectType(ctr, methodName, index, key);
-  if (!mvcMeta[methodName]) {
-    mvcMeta[methodName] = {
-      argsResolverInfo: [],
-      returnValueResolvers: [],
-    };
-  }
-  mvcMeta[methodName].argsResolverInfo.push({
+  const methodMeta = helper.getOrInitMethodData(mvcMeta, methodName);
+  methodMeta.argsResolverInfo.push({
     type: key,
-    headerKey: keyOrAll,
+    key: keyOrAll,
     isRequired,
     index,
+    targetType: helper.getMethodParamTypes(ctr, methodName, index),
   });
 };
 export default RequestHeader;

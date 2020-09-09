@@ -15,11 +15,42 @@ export default abstract class MetaHelper<MetaDataType> {
     Reflect.defineMetadata(this.metaKey, metaData, ctr);
   }
 
-  getIfNotExisisInit(ctr: any): MetaDataType {
+  getIfNotExisisInit(ctr: any, isPrototype = false): MetaDataType {
+    if (isPrototype) {
+      ctr = ctr.constructor;
+    }
     return this.get(ctr) || this.initMetaData(ctr);
   }
 
   get(ctr: any): MetaDataType {
     return Reflect.getMetadata(this.metaKey, ctr);
+  }
+
+  getMethodParamTypes(ctr: any, methodName: string, index?: number) {
+    const types = Reflect.getMetadata('design:paramtypes', ctr, methodName);
+    if (index !== undefined) {
+      return types[index];
+    }
+    return types;
+  }
+
+  getMethodParam(ctr: any, methodName: string): [any, string][] {
+    const types = this.getMethodParamTypes(ctr, methodName);
+    let names = this.getParamNames(ctr[methodName]);
+    if (names.length !== types.length) {
+      names = new Array(types.length).fill('');
+    }
+    return [types, names];
+  }
+
+  getParamNames(func: object) {
+    const STRIP_COMMENTS = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/gm;
+    const ARGUMENT_NAMES = /([^\s,]+)/g;
+    const fnStr = func.toString().replace(STRIP_COMMENTS, '');
+    let result = fnStr
+      .slice(fnStr.indexOf('(') + 1, fnStr.indexOf(')'))
+      .match(ARGUMENT_NAMES);
+    if (result === null) result = [];
+    return result;
   }
 }

@@ -1,31 +1,25 @@
 import MetaHelper from '../../annotation/metaHelper';
 import RequestMappingInfo from '../request_mapping_info';
+import { ArgsResolver } from '../args_resolver';
 
-interface RequestResolverInfo {
-  type: 'request';
+interface KeyValueInfo {
+  key: string;
+  isRequired: boolean;
+  targetType: any;
 }
-interface ResponseResolverInfo {
-  type: 'response';
-}
-interface ModelResolverInfo {
+interface ModelResolverInfo extends KeyValueInfo {
   type: 'model';
+  targetType: any;
 }
 
-interface PathVariableResolverInfo {
+interface PathVariableResolverInfo extends KeyValueInfo {
   type: 'pathVariable';
-  pathVariableName: string;
 }
-interface RequestParam {
+interface RequestParam extends KeyValueInfo {
   type: 'requestParam';
-  requestParamName: string;
-  isRequired: boolean;
-  targetType: any;
 }
-interface RequestHeader {
+interface RequestHeader extends KeyValueInfo {
   type: 'requestHeader';
-  headerKey: string;
-  isRequired: boolean;
-  targetType: any;
 }
 interface Method {
   type: 'httpMethod';
@@ -37,8 +31,6 @@ interface RequestBody {
 }
 type ArgsResolverInfo = (
   | PathVariableResolverInfo
-  | RequestResolverInfo
-  | ResponseResolverInfo
   | ModelResolverInfo
   | Method
   | RequestParam
@@ -48,19 +40,21 @@ type ArgsResolverInfo = (
 
 interface MethodMeta {
   info?: RequestMappingInfo;
-  argsResolverInfo: ArgsResolverInfo[];
+  params: [any, string][];
+  argsResolverInfo: ArgsResolver[];
   returnValueResolvers: [];
+}
+interface ModelIniterInfo {
+  methodName: string;
+  modelKey: string;
+}
+interface BinderInfo {
+  methodName: string;
 }
 interface MvcMeta {
   methods: { [method: string]: MethodMeta };
-  modelIniter: {
-    methodName: string;
-    modelKey: string;
-  }[];
-  converters: {
-    targetClass: any;
-    methodName: string;
-  }[];
+  modelIniter: ModelIniterInfo[];
+  initBinder: BinderInfo[];
 }
 
 class MvcHelper extends MetaHelper<MvcMeta> {
@@ -72,8 +66,23 @@ class MvcHelper extends MetaHelper<MvcMeta> {
     return {
       methods: {},
       modelIniter: [],
-      converters: [],
+      initBinder: [],
     };
+  }
+
+  initMethodData(): MethodMeta {
+    return {
+      params: [],
+      argsResolverInfo: [],
+      returnValueResolvers: [],
+    };
+  }
+
+  getOrInitMethodData(mvcMeta: MvcMeta, methodName: string) {
+    if (!mvcMeta.methods[methodName]) {
+      mvcMeta.methods[methodName] = this.initMethodData();
+    }
+    return mvcMeta.methods[methodName];
   }
 }
 
@@ -100,4 +109,33 @@ const checkInjectType = (
   return 'any';
 };
 
-export { helper, PathVariableResolverInfo, ArgsResolverInfo, checkInjectType };
+interface DataBinder {
+  addConveter: (
+    targetValue: string,
+    targetType: any,
+    targetName: string,
+  ) => any;
+  addValidater: (
+    targetValue: string,
+    targetType: any,
+    targetName: string,
+  ) => null;
+}
+
+export {
+  helper,
+  MethodMeta,
+  KeyValueInfo,
+  MvcMeta,
+  PathVariableResolverInfo,
+  ArgsResolverInfo,
+  checkInjectType,
+  DataBinder,
+  BinderInfo,
+  ModelIniterInfo,
+  ModelResolverInfo,
+  Method,
+  RequestParam,
+  RequestHeader,
+  RequestBody,
+};

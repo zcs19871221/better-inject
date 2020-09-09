@@ -10,7 +10,10 @@ export default class ModelView {
     this.model.set(key, value);
   }
 
-  getModel() {
-    return this.model;
+  getModel(key: string): string | Map<string, any> {
+    if (!key) {
+      return this.model;
+    }
+    return this.model.get(key);
   }
 }

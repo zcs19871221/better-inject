@@ -7,20 +7,15 @@ const RequestParam = (name: string, isRequired = true) => (
   index: number,
 ) => {
   name = name.trim();
-  const mvcMeta = helper.getIfNotExisisInit(ctr);
-  const type = checkInjectType(ctr, methodName, index, key);
-  if (!mvcMeta[methodName]) {
-    mvcMeta[methodName] = {
-      argsResolverInfo: [],
-      returnValueResolvers: [],
-    };
-  }
-  mvcMeta[methodName].argsResolverInfo.push({
+  const mvcMeta = helper.getIfNotExisisInit(ctr, true);
+  checkInjectType(ctr, methodName, index, key);
+  const methodMeta = helper.getOrInitMethodData(mvcMeta, methodName);
+  methodMeta.argsResolverInfo.push({
     type: key,
-    requestParamName: name,
+    key: name,
     isRequired,
     index,
-    isConvertToArray: type === 'array',
+    targetType: helper.getMethodParamTypes(ctr, methodName, index),
   });
 };
 export default RequestParam;

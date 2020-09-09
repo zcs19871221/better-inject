@@ -5,17 +5,13 @@ const RequestBody = (isRequired = true) => (
   methodName: string,
   index: number,
 ) => {
-  const mvcMeta = helper.getIfNotExisisInit(ctr);
-  if (!mvcMeta[methodName]) {
-    mvcMeta[methodName] = {
-      argsResolverInfo: [],
-      returnValueResolvers: [],
-    };
-  }
-  mvcMeta[methodName].argsResolverInfo.push({
+  const mvcMeta = helper.getIfNotExisisInit(ctr, true);
+  const methodMeta = helper.getOrInitMethodData(mvcMeta, methodName);
+  methodMeta.argsResolverInfo.push({
     type: 'requestBody',
     isRequired,
     index,
+    targetType: helper.getMethodParamTypes(ctr, methodName, index),
   });
 };
-export default RequestHeader;
+export default RequestBody;

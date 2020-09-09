@@ -30,16 +30,10 @@ function handleClass(ctr: any, info: RequestMappingInfo) {
 
 function handleMethod(ctr: any, methodName: string, info: RequestMappingInfo) {
   ctr = ctr.constructor;
-  const mvcMeta = helper.getIfNotExisisInit(ctr);
-  if (!mvcMeta[methodName]) {
-    mvcMeta[methodName] = {
-      info: info,
-      argsResolverInfo: [],
-      returnValueResolvers: [],
-    };
-  } else {
-    mvcMeta[methodName].info = info;
-  }
+  const mvcMeta = helper.getIfNotExisisInit(ctr, true);
+  const methodMeta = helper.getOrInitMethodData(mvcMeta, methodName);
+  methodMeta.info = info;
+  methodMeta.params = helper.getMethodParam(ctr, methodName);
   helper.set(ctr, mvcMeta);
   return ctr;
 }

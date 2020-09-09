@@ -6,7 +6,7 @@ import Invoker from '../aop/invoker_implement';
 import Aspect, { ASPECT_ARGS } from '../aop/aspect';
 import POINT_CUT from '../aop/point_cut';
 import { AutoInjectConstruct } from '../annotation/inject';
-import RequestMapping from '../mvc/request_mapping';
+import RequestMapping from '../mvc/handle_request_mapping';
 
 type ASPECT_CONFIG = Omit<ASPECT_ARGS, 'advice' | 'globalPointCuts'> & {
   adviceId?: string;
