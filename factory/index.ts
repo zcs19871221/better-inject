@@ -117,6 +117,16 @@ export default class BeanFactory {
     this.tmpAspectConfig = [];
   }
 
+  getBeanFromClass(beanClass: any): any {
+    const beanDefs = [...this.definitionMap.values()].filter(
+      def => def.getBeanClass() === beanClass,
+    );
+    if (beanDefs.length > 0) {
+      return this.getBean(beanDefs[0].getId());
+    }
+    return null;
+  }
+
   doRegistMvc() {
     const mappingId = RequestMapping.beanId;
     this.definitionMap.set(
@@ -133,20 +143,8 @@ export default class BeanFactory {
       .forEach(def => {
         const bean = this.getBean(def.getId());
         const beanClass = def.getBeanClass();
-        requestMapping.regist(bean, beanClass);
+        requestMapping.regist(bean, beanClass, this);
       });
-
-    //     defs.forEach(def => {
-    //   const mvcMeta = helper.get(def.getBeanClass);
-    //   Object.entries(mvcMeta).forEach(([method, { info, argsResolvers, returnValueResolvers }]) => {
-    //     const condition = info.getCondition()
-    //     if (this.infoKeySet.has(condition)) {
-    //       throw new Error('已经定义拦截条件' + info.)
-    //     }
-    //     this.infoKeySet.add(condition)
-    //     this.mapping.push([info, new HandlerMethod({bean,method,argsResolvers,returnValueResolvers})])
-    //   })
-    // });
   }
 
   private getDefination(idOrName: string): BeanDefinition | null {

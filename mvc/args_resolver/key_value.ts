@@ -53,7 +53,7 @@ export default abstract class KeyValueArgsResolver implements ArgsResolver {
   resolve(input: ResolveArgs): any {
     const value = this.doResolve(input);
     this.checkValue(value);
-    return input.binder.convert(value, input.param.type, input.param.name);
+    return value;
   }
 
   protected abstract doResolve(input: ResolveArgs): any;

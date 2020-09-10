@@ -7,11 +7,6 @@ class Method implements ArgsResolver {
   constructor(index: number) {
     this.index = index;
   }
-  static Annotation(ctr: any, methodName: string, index: number) {
-    const mvcMeta = helper.getIfNotExisisInit(ctr, true);
-    const methodMeta = helper.getOrInitMethodData(mvcMeta, methodName);
-    methodMeta.argsResolver.push(new Method(index));
-  }
 
   resolve(input: ResolveArgs) {
     const value = input.req.method;

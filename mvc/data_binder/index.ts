@@ -1,3 +1,6 @@
+import { Param, BinderInfo } from '..';
+import BeanFactory from '../../factory';
+
 interface Binder {
   type: string;
   name: string;
@@ -5,37 +8,24 @@ interface Binder {
 }
 export default class DataBinder {
   private converters: Binder[] = [];
-  private validaters: Binder[] = [];
+
+  constructor(binderInfo: BinderInfo[], factory: BeanFactory) {
+    binderInfo.forEach(info => {
+      factory.getBeanFromClass(info.beanClass)[info.methodName](this);
+    });
+  }
 
   addConveter(obj: Binder) {
     this.converters.push(obj);
   }
 
-  addValidater(obj: Binder) {
-    this.validaters.push(obj);
-  }
-
-  private run(data: any, type: any, name: string, binderList: Binder[]) {
-    const binders = binderList.filter(e => {
-      if (e.type && e.type !== type) {
-        return false;
-      }
-      if (e.name && e.name !== name) {
-        return false;
-      }
+  convert(value: any, param: Param) {
+    const binder = this.converters.find(e => {
+      return e.type === param.type && (!e.name || e.name === param.name);
     });
-    if (binders.length > 0) {
-      let binder = binders[0];
-      return binder.editor(data);
+    if (!binder) {
+      return value;
     }
-    return data;
-  }
-
-  convert(data: any, type: any, name: string): any {
-    return this.run(data, type, name, this.converters);
-  }
-
-  validate(data: string, type: any, name: string): any {
-    return this.run(data, type, name, this.validaters);
+    return binder.editor(value);
   }
 }

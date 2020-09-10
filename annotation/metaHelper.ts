@@ -22,7 +22,7 @@ export default abstract class MetaHelper<MetaDataType> {
     return this.get(ctr) || this.initMetaData(ctr);
   }
 
-  get(ctr: any): MetaDataType {
+  get(ctr: any): MetaDataType | undefined {
     return Reflect.getMetadata(this.metaKey, ctr);
   }
 

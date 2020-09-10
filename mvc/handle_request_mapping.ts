@@ -2,6 +2,7 @@ import { IncomingMessage } from 'http';
 import HandlerMethod from './handler_method';
 import RequestMappingInfo from './request_mapping_info';
 import helper from './annotation/helper';
+import BeanFactory from 'factory';
 
 export default class RequestMapping {
   private mapping: [RequestMappingInfo, HandlerMethod][] = [];
@@ -51,7 +52,7 @@ export default class RequestMapping {
     return handler;
   }
 
-  regist(bean: any, beanClass: any) {
+  regist(bean: any, beanClass: any, factory: BeanFactory) {
     const mvcMeta = helper.get(beanClass);
     if (!mvcMeta) {
       return;
@@ -76,7 +77,7 @@ export default class RequestMapping {
       delete value.info;
       const matcher: [RequestMappingInfo, HandlerMethod] = [
         info,
-        new HandlerMethod(value),
+        new HandlerMethod(value, factory),
       ];
       this.infoKeySet.add(key);
       info
