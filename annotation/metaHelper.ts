@@ -34,6 +34,10 @@ export default abstract class MetaHelper<MetaDataType> {
     return types;
   }
 
+  getMethodReturnType(ctr: any, methodName: string) {
+    return Reflect.getMetadata('design:returntype', ctr, methodName);
+  }
+
   getMethodParam(ctr: any, methodName: string): { type: any; name: string }[] {
     const types = this.getMethodParamTypes(ctr, methodName);
     let names = this.getParamNames(ctr[methodName]);

@@ -33,8 +33,9 @@ function handleMethod(ctr: any, methodName: string, info: RequestMappingInfo) {
   const mvcMeta = helper.getIfNotExisisInit(ctr, true);
   const methodMeta = helper.getOrInitMethodData(mvcMeta, methodName);
   methodMeta.info = info;
-  methodMeta.params = helper.getMethodParam(ctr, methodName);
+  methodMeta.params = helper.getMethodParam(ctr.prototype, methodName);
   helper.set(ctr, mvcMeta);
+  const returnType = helper.getMethodReturnType(ctr.prototype, methodName);
   return ctr;
 }
 
