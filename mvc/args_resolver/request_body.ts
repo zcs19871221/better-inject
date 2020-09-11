@@ -78,6 +78,7 @@ export const Annotation = (ctr: any, methodName: string, index: number) => {
     throw new Error('RequestBody注入类型必须是Buffer Object String 之一');
   }
   methodMeta.argsResolver.push(new RequestBody(index, type));
+  helper.set(ctr, mvcMeta);
 };
 
 export default RequestBody;

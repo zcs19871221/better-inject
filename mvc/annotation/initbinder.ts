@@ -6,6 +6,7 @@ const Initbinder = (ctr: any, methodName: string) => {
     methodName,
     beanClass: ctr.constructor,
   });
+  helper.set(ctr, mvcMeta);
 };
 
 export default Initbinder;

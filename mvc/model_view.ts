@@ -6,7 +6,11 @@ export default class ModelView {
     return this.view;
   }
 
-  addModel(key: string, value: any) {
+  setView(viewPath: string) {
+    this.view = viewPath;
+  }
+
+  setModel(key: string, value: any) {
     this.model.set(key, value);
   }
 

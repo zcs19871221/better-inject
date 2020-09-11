@@ -24,6 +24,7 @@ export const Annotation = (ctr: any, methodName: string, index: number) => {
   const mvcMeta = helper.getIfNotExisisInit(ctr, true);
   const methodMeta = helper.getOrInitMethodData(mvcMeta, methodName);
   methodMeta.argsResolver.push(new Method(index));
+  helper.set(ctr, mvcMeta);
 };
 
 export default Method;

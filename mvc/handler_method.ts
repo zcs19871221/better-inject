@@ -1,9 +1,10 @@
 import { IncomingMessage, ServerResponse } from 'http';
-import { MethodMeta, MvcMeta, ModelIniterInfo, BinderInfo } from '.';
+import { MethodMeta, MvcMeta, ModelIniterInfo, Param } from '.';
 import ModelView from './model_view';
 import helper from './annotation/helper';
 import DataBinder from './data_binder';
 import BeanFactory from 'factory';
+import ArgsResolver from './args_resolver';
 
 type HandlerMethodArgs = Pick<MvcMeta, 'initBinder' | 'modelIniter'> &
   Omit<MethodMeta, 'info'> & {
@@ -27,44 +28,86 @@ export default class HandlerMethod {
   }
 
   handle(req: IncomingMessage, res: ServerResponse): any {
-    const model = this.initModel(req, res, this.args.modelIniter);
     const dataBinder = new DataBinder(this.args.initBinder, this.factory);
-    const args = this.createArgs(req, res, model, dataBinder);
-    const returnValue = this.args.bean[this.args.beanMethod](...args);
+    const model = this.initModel(req, res, this.args.modelIniter, dataBinder);
+    const returnValue = this.invokeMethod({
+      req,
+      res,
+      model,
+      dataBinder,
+      params: this.args.params,
+      argsResolver: this.args.argsResolver,
+      bean: this.args.bean,
+      beanMethod: this.args.beanMethod,
+    });
     return this.initReturnValue(returnValue);
   }
+
+  private handleReturnValue(
+    returnValue: any,
+    mode: ModelView,
+    req: IncomingMessage,
+    res: ServerResponse,
+  ) {}
 
   private initModel(
     req: IncomingMessage,
     res: ServerResponse,
     modelInfos: ModelIniterInfo[],
+    dataBinder: DataBinder,
   ) {
-    let model: ModelView;
-    if (!this.model) {
-      model = new ModelView();
-    } else {
-      model = this.model;
-    }
-    modelInfos.forEach(({ modelKey, methodName, beanClass }) => {
+    const model: ModelView = new ModelView();
+    for (const { modelKey, methodName, beanClass } of modelInfos) {
       const metaData = helper.get(beanClass);
-      const bean: any = this.factory.getBeanFromClass(beanClass);
       if (metaData && metaData.methods[methodName]) {
-        const methodData = metaData.methods[methodName];
-        const handlerMethod = new HandlerMethod(
-          {
-            ...methodData,
-            initBinder: [],
-            modelIniter: [],
-            bean,
-            beanMethod: methodName,
-            model,
-          },
-          this.factory,
-        );
-        model = handlerMethod.handle(req, res);
+        const bean: any = this.factory.getBeanFromClass(beanClass);
+        const methodMeta = metaData.methods[methodName];
+        const returnValue = this.invokeMethod({
+          req,
+          res,
+          model,
+          dataBinder,
+          params: methodMeta.params,
+          argsResolver: methodMeta.argsResolver,
+          bean,
+          beanMethod: methodName,
+        });
+        if (returnValue !== undefined && modelKey) {
+          model.setModel(modelKey, returnValue);
+        }
       }
-    });
+    }
     return model;
+  }
+
+  private async invokeMethod({
+    req,
+    res,
+    model,
+    dataBinder,
+    params,
+    argsResolver,
+    bean,
+    beanMethod,
+  }: {
+    req: IncomingMessage;
+    res: ServerResponse;
+    model: ModelView;
+    dataBinder: DataBinder;
+    params: Param[];
+    argsResolver: ArgsResolver[];
+    bean: any;
+    beanMethod: any;
+  }) {
+    const args = this.createArgs(
+      req,
+      res,
+      model,
+      dataBinder,
+      params,
+      argsResolver,
+    );
+    return await Reflect.apply(Reflect.get(bean, beanMethod), bean, args);
   }
 
   private createArgs(
@@ -72,9 +115,11 @@ export default class HandlerMethod {
     res: ServerResponse,
     model: ModelView,
     dataBinder: DataBinder,
+    params: Param[],
+    argsResolver: ArgsResolver[],
   ): any[] {
-    return this.args.params.map(({ type, name }, index) => {
-      const resolver = this.args.argsResolver.find(e => e.getIndex() === index);
+    return params.map(({ type, name }, index) => {
+      const resolver = argsResolver.find(e => e.getIndex() === index);
       let value: any;
       if (resolver) {
         value = resolver.resolve({

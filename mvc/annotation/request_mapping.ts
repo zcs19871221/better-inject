@@ -17,15 +17,16 @@ const RequestMapping = (args: Omit<RequestMappingInfoArgs, 'type'>) => (
 
 function handleClass(ctr: any, info: RequestMappingInfo) {
   const mvcMeta = helper.getIfNotExisisInit(ctr);
-  if (Object.keys(mvcMeta).length === 0) {
+  if (Object.keys(mvcMeta.methods).length === 0) {
     throw new Error('没有方法定义RequestMapping');
   }
-  Object.values(mvcMeta).forEach(data => {
+  Object.values(mvcMeta.methods).forEach(data => {
     if (!data.info) {
       throw new Error('data.info错误');
     }
     data.info = info.combine(data.info);
   });
+  helper.set(ctr, mvcMeta);
 }
 
 function handleMethod(ctr: any, methodName: string, info: RequestMappingInfo) {

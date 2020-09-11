@@ -46,6 +46,7 @@ export default abstract class KeyValueArgsResolver implements ArgsResolver {
         const mvcMeta = helper.getIfNotExisisInit(ctr, true);
         const methodMeta = helper.getOrInitMethodData(mvcMeta, methodName);
         methodMeta.argsResolver.push(resolver);
+        helper.set(ctr, mvcMeta);
       };
     };
   }

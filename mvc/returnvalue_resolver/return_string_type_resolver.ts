@@ -3,9 +3,11 @@ import ModelView from 'mvc/model_view';
 
 class ReturnStringTypeResolver {
   resolve(
-    returnValue: any,
+    returnValue: string,
     req: IncomingMessage,
     res: ServerResponse,
     model: ModelView,
-  ) {}
+  ) {
+    model.setView(returnValue);
+  }
 }
