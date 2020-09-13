@@ -1,14 +1,14 @@
-import { ServerResponse, IncomingMessage } from 'http';
 import ModelView from '../model_view';
-import { Param } from '../';
+import { Param } from '..';
+import WebRequest from '../webrequest';
 
 export interface ReturnValueHandlerInput {
   returnValue: any;
-  req: IncomingMessage;
-  res: ServerResponse;
+  returnType: any;
+  webRequest: WebRequest;
   model: ModelView;
   param: Param;
 }
-export default interface ReturnValueResolver {
+export default interface ReturnValueHandler {
   handleReturnValue(input: ReturnValueHandlerInput): any;
 }

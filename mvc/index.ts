@@ -1,5 +1,6 @@
 import RequestMappingInfo from './request_mapping_info';
 import ArgsResolver from './args_resolver';
+import ReturnValueHandler from './returnvalue_handler';
 
 interface Param {
   type: any;
@@ -8,8 +9,9 @@ interface Param {
 interface MethodMeta {
   info?: RequestMappingInfo;
   params: Param[];
+  returnType: any;
   argsResolver: ArgsResolver[];
-  returnValueResolvers: [];
+  returnValueHandler: ReturnValueHandler[];
 }
 interface ModelIniterInfo {
   methodName: string;

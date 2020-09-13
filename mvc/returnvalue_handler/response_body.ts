@@ -12,21 +12,28 @@ const ResponseBody = (ctr: any, methodName: string) => {
   }
   const mvcMeta = helper.getIfNotExisisInit(ctr, true);
   const methodMeta = helper.getOrInitMethodData(mvcMeta, methodName);
-  methodMeta.returnValueResolvers.push(new ResponseBodyHandler());
+  methodMeta.returnValueHandler.push(new ResponseBodyHandler());
   helper.set(ctr, mvcMeta);
 };
 class ResponseBodyHandler implements ReturnValueHandler {
-  handleReturnValue(input: ReturnValueHandlerInput) {
+  async handleReturnValue(input: ReturnValueHandlerInput) {
     if (
       [String, Buffer].includes(input.param.type) &&
-      !input.res.writableEnded
+      !input.webRequest.canResponse()
     ) {
-      input.res.end(input.returnValue);
+      await input.webRequest.response(input.returnValue);
       return;
     }
-    if (input.req.headers['content-type']?.includes('application/json')) {
-      input.res.setHeader('content-type', 'application/json');
-      input.res.end(JSON.parse(input.returnValue));
+    if (input.webRequest.isReqContentTypeJson()) {
+      await input.webRequest.response(JSON.stringify(input.returnValue));
+      return;
     }
+    throw new Error(
+      'returnValue:' +
+        input.returnValue +
+        '不是字符串或Buffer且无对应contentType无法转换',
+    );
   }
 }
+export { ResponseBodyHandler };
+export default ResponseBody;

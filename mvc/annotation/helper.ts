@@ -18,7 +18,8 @@ class MvcHelper extends MetaHelper<MvcMeta> {
     return {
       params: [],
       argsResolver: [],
-      returnValueResolvers: [],
+      returnValueHandler: [],
+      returnType: undefined,
     };
   }
 
