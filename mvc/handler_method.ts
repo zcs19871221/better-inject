@@ -4,7 +4,9 @@ import ModelView from './model_view';
 import helper from './annotation/helper';
 import DataBinder from './data_binder';
 import BeanFactory from 'factory';
-import ArgsResolver from './args_resolver';
+import ArgsResolver from './param_resolver/index2';
+import ReturnValueHandler from './return_value_handler';
+import WebRequest from './webrequest';
 
 type HandlerMethodArgs = Pick<MvcMeta, 'initBinder' | 'modelIniter'> &
   Omit<MethodMeta, 'info'> & {
@@ -15,12 +17,16 @@ type HandlerMethodArgs = Pick<MvcMeta, 'initBinder' | 'modelIniter'> &
 
 export default class HandlerMethod {
   private args: HandlerMethodArgs;
-  private model?: ModelView;
   private factory: BeanFactory;
-  constructor(args: HandlerMethodArgs, factory: BeanFactory) {
+  private returnValueHandlers: ReturnValueHandler[];
+  constructor(
+    args: HandlerMethodArgs,
+    factory: BeanFactory,
+    returnValueHandlers: ReturnValueHandler[],
+  ) {
     this.args = args;
-    this.model = args.model;
     this.factory = factory;
+    this.returnValueHandlers = returnValueHandlers;
   }
 
   getMethod() {
@@ -28,6 +34,7 @@ export default class HandlerMethod {
   }
 
   handle(req: IncomingMessage, res: ServerResponse): any {
+    const webRequest = new WebRequest(req, res);
     const dataBinder = new DataBinder(this.args.initBinder, this.factory);
     const model = this.initModel(req, res, this.args.modelIniter, dataBinder);
     const returnValue = this.invokeMethod({
@@ -40,15 +47,27 @@ export default class HandlerMethod {
       bean: this.args.bean,
       beanMethod: this.args.beanMethod,
     });
-    return this.initReturnValue(returnValue);
+    return this.handleReturnValue(model, webRequest, returnValue);
   }
 
-  private handleReturnValue(
+  handleReturnValue(
+    model: ModelView,
+    webRequest: WebRequest,
     returnValue: any,
-    mode: ModelView,
-    req: IncomingMessage,
-    res: ServerResponse,
-  ) {}
+  ): ModelView {
+    this.returnValueHandlers.forEach(returnValueHandler => {
+      if (returnValueHandler.isSupport(this.args.returnInfo)) {
+        returnValueHandler.handleReturnValue({
+          returnValue,
+          returnInfo: this.args.returnInfo,
+          webRequest,
+          model,
+          paramInfos: this.args.paramInfos,
+        });
+      }
+    });
+    return model;
+  }
 
   private initModel(
     req: IncomingMessage,

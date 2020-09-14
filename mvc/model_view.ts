@@ -20,4 +20,9 @@ export default class ModelView {
     }
     return this.model.get(key);
   }
+
+  combine(modelView: ModelView) {
+    this.model = new Map([...this.model, ...modelView.model]);
+    this.view = modelView.view;
+  }
 }

@@ -1,6 +1,4 @@
-import ReturnValueHandler, {
-  ReturnValueHandlerInput,
-} from './return_value_handler';
+import ReturnValueHandler, { ReturnValueHandlerArguments, ReturnInfo } from '.';
 import helper from '../annotation/helper';
 
 const ResponseBody = (ctr: any, methodName: string) => {
@@ -12,11 +10,20 @@ const ResponseBody = (ctr: any, methodName: string) => {
   }
   const mvcMeta = helper.getIfNotExisisInit(ctr, true);
   const methodMeta = helper.getOrInitMethodData(mvcMeta, methodName);
-  methodMeta.returnValueHandler.push(new ResponseBodyHandler());
+  methodMeta.returnInfo.type = returnType;
+  methodMeta.returnInfo.annotations.push({ type: 'ResponseBody' });
   helper.set(ctr, mvcMeta);
 };
+
 class ResponseBodyHandler implements ReturnValueHandler {
-  async handleReturnValue(input: ReturnValueHandlerInput) {
+  isSupport(args: ReturnInfo) {
+    if (args.annotations.find(e => e.type === 'ResponseBody')) {
+      return true;
+    }
+    return false;
+  }
+
+  async handleReturnValue(input: ReturnValueHandlerArguments) {
     if (
       [String, Buffer].includes(input.param.type) &&
       !input.webRequest.canResponse()

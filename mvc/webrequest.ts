@@ -110,6 +110,10 @@ export default class WebRequest {
     }
   }
 
+  getRequestMethod(): string {
+    return <string>this.req.method;
+  }
+
   canSetHeader(): boolean {
     return this.res.headersSent === false;
   }
@@ -130,6 +134,77 @@ export default class WebRequest {
 
   getRequest() {
     return this.req;
+  }
+
+  getRequestHeaderMap(): Map<string, string[] | string> {
+    const map: any = new Map(
+      Object.entries(this.req.headers).filter(e => e[1] !== undefined),
+    );
+    return map;
+  }
+
+  getRequestParamMap(): Map<string, string[] | string> {
+    return new Map(Object.entries(this.req.params));
+  }
+
+  getContentType(): { mediaType: string; charset: string; boundary: string } {
+    return this.parseContentType(this.getRequestHeader('content-type'));
+  }
+
+  private getKeys(key: string): string[] {
+    key = key.trim();
+    const keys = [key, key.toLowerCase()];
+    const linePos = key.indexOf('-');
+    if (linePos > -1 && linePos !== 0 && linePos !== key.length - 1) {
+      keys.push(
+        key[0].toUpperCase() +
+          key.slice(1, linePos) +
+          '-' +
+          key[linePos + 1] +
+          key.slice(linePos + 2),
+      );
+    }
+    return keys;
+  }
+
+  getRequestCookie(): Map<string, string | string[]> {
+    const cookie = this.getRequestHeader('cookie');
+    return cookie
+      .split(';')
+      .reduce((acc: Map<string, string | string[]>, each: string) => {
+        each = each.trim();
+        const [name, value] = each.split('=');
+        if (name !== undefined && value !== undefined) {
+          const mapValue = acc.get(name);
+          if (mapValue === undefined) {
+            acc.set(name, value);
+          } else {
+            if (Array.isArray(mapValue)) {
+              mapValue.push(value);
+            } else {
+              acc.set(name, [mapValue, value]);
+            }
+          }
+        }
+        return acc;
+      }, new Map());
+  }
+
+  getRequestHeader(headerKey: string): string {
+    const keys = this.getKeys(headerKey);
+    let target: string = '';
+    for (const key of keys) {
+      const header = this.req.headers[key];
+      if (header !== undefined) {
+        if (Array.isArray(header)) {
+          target = header.join(';');
+        } else {
+          target = header;
+        }
+        break;
+      }
+    }
+    return target;
   }
 
   isReqContentTypeJson() {

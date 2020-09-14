@@ -3,7 +3,7 @@ import RequestMappingInfo, {
 } from '../request_mapping_info';
 import helper from './helper';
 import ModelView from '../model_view';
-import { ResponseBodyHandler } from '../returnvalue_handler/response_body';
+import { ResponseBodyHandler } from '../return_value_handler/response_body';
 import { ServerResponse } from 'http';
 
 const RequestMapping = (args: Omit<RequestMappingInfoArgs, 'type'>) => (
@@ -24,10 +24,10 @@ function handleClass(ctr: any, info: RequestMappingInfo) {
     throw new Error('没有方法定义RequestMapping');
   }
   Object.values(mvcMeta.methods).forEach(data => {
-    if (!data.info) {
-      throw new Error('data.info错误');
+    if (!data.mappingInfo) {
+      throw new Error('data.mappingInfo');
     }
-    data.info = info.combine(data.info);
+    data.mappingInfo = info.combine(data.mappingInfo);
   });
   helper.set(ctr, mvcMeta);
 }
@@ -36,18 +36,19 @@ function handleMethod(ctr: any, methodName: string, info: RequestMappingInfo) {
   ctr = ctr.constructor;
   const mvcMeta = helper.getIfNotExisisInit(ctr, true);
   const methodMeta = helper.getOrInitMethodData(mvcMeta, methodName);
-  methodMeta.info = info;
-  methodMeta.params = helper.getMethodParam(ctr.prototype, methodName);
+  methodMeta.mappingInfo = info;
+  methodMeta.paramInfos = helper.getMethodParam(ctr.prototype, methodName);
   const returnType = helper.getMethodReturnType(ctr.prototype, methodName);
   if (
     returnType === undefined &&
-    !methodMeta.params.find(e => e.type === ServerResponse)
+    !methodMeta.paramInfos.find(e => e.type === ServerResponse)
   ) {
     throw new Error('返回值void必须设置参数ServerResponse类型来手动处理返回');
   }
+  methodMeta.returnInfo.type = returnType;
   if (
     ![String, ModelView, undefined].includes(returnType) ||
-    !methodMeta.returnValueHandler.find(e => e instanceof ResponseBodyHandler)
+    !methodMeta.returnInfo.annotations.find(e => e.type === 'ResponseBody')
   ) {
     throw new Error(
       '返回值只支持String ModelView void或者ResponseBody注解后的Buffer Object类型',

@@ -16,10 +16,11 @@ class MvcHelper extends MetaHelper<MvcMeta> {
 
   initMethodData(): MethodMeta {
     return {
-      params: [],
-      argsResolver: [],
-      returnValueHandler: [],
-      returnType: undefined,
+      returnInfo: {
+        type: null,
+        annotations: [],
+      },
+      paramInfos: [],
     };
   }
 

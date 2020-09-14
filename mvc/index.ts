@@ -1,17 +1,11 @@
 import RequestMappingInfo from './request_mapping_info';
-import ArgsResolver from './args_resolver';
-import ReturnValueHandler from './returnvalue_handler';
+import { ReturnInfo } from './return_value_handler';
+import { ParamInfo } from './param_resolver';
 
-interface Param {
-  type: any;
-  name: string;
-}
 interface MethodMeta {
-  info?: RequestMappingInfo;
-  params: Param[];
-  returnType: any;
-  argsResolver: ArgsResolver[];
-  returnValueHandler: ReturnValueHandler[];
+  mappingInfo?: RequestMappingInfo;
+  paramInfos: ParamInfo[];
+  returnInfo: ReturnInfo;
 }
 interface ModelIniterInfo {
   methodName: string;
@@ -28,4 +22,4 @@ interface MvcMeta {
   initBinder: BinderInfo[];
 }
 
-export { MethodMeta, MvcMeta, BinderInfo, ModelIniterInfo, Param };
+export { MethodMeta, MvcMeta, BinderInfo, ModelIniterInfo, ParamInfo };
