@@ -3,10 +3,10 @@ import ParamResolver, {
   ModelAttributeAnnotationInfo,
   ParamInfo,
   ParamAnnotationInfo,
-} from '.';
+} from './param_resolver';
 import helper from '../annotation/helper';
 
-export default class ModelAttribute extends ParamResolver<
+export default class ModelAttributeResolver extends ParamResolver<
   ModelAttributeAnnotationInfo
 > {
   constructor() {
@@ -60,3 +60,5 @@ export default class ModelAttribute extends ParamResolver<
     return paramInfo.annotations.some(e => e.type === 'Method');
   }
 }
+export const instance = new ModelAttributeResolver();
+export const ModelAttribute = instance.Annotation;

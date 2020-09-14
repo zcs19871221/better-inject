@@ -1,4 +1,7 @@
-import ReturnValueHandler, { ReturnValueHandlerArguments, ReturnInfo } from '.';
+import ReturnValueHandler, {
+  ReturnValueHandlerArguments,
+  ReturnInfo,
+} from './return_value_handler';
 import ModelView from '../model_view';
 
 class ReturnModelViewTypeHandler implements ReturnValueHandler {
@@ -13,3 +16,6 @@ class ReturnModelViewTypeHandler implements ReturnValueHandler {
   }
 }
 export default ReturnModelViewTypeHandler;
+
+const returnModelViewTypeHandler = new ReturnModelViewTypeHandler();
+export { returnModelViewTypeHandler };

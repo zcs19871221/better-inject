@@ -3,9 +3,11 @@ import ParamResolver, {
   MethodAnnotationInfo,
   ParamInfo,
   ParamAnnotationInfo,
-} from '.';
+} from './param_resolver';
 
-export default class Method extends ParamResolver<MethodAnnotationInfo> {
+export default class MethodParamResolver extends ParamResolver<
+  MethodAnnotationInfo
+> {
   constructor() {
     super([String, Object]);
   }
@@ -37,3 +39,5 @@ export default class Method extends ParamResolver<MethodAnnotationInfo> {
     return paramInfo.annotations.some(e => e.type === 'Method');
   }
 }
+export const instance = new MethodParamResolver();
+export const Method = instance.Annotation;

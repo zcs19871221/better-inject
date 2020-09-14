@@ -1,4 +1,4 @@
-import { Param, BinderInfo } from '..';
+import { ParamInfo, BinderInfo } from '..';
 import BeanFactory from '../../factory';
 
 interface Binder {
@@ -19,7 +19,7 @@ export default class DataBinder {
     this.converters.push(obj);
   }
 
-  convert(value: any, param: Param) {
+  convert(value: any, param: ParamInfo) {
     const binder = this.converters.find(e => {
       return e.type === param.type && (!e.name || e.name === param.name);
     });

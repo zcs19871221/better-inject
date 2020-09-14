@@ -3,7 +3,6 @@ import RequestMappingInfo, {
 } from '../request_mapping_info';
 import helper from './helper';
 import ModelView from '../model_view';
-import { ResponseBodyHandler } from '../return_value_handler/response_body';
 import { ServerResponse } from 'http';
 
 const RequestMapping = (args: Omit<RequestMappingInfoArgs, 'type'>) => (
@@ -12,7 +11,7 @@ const RequestMapping = (args: Omit<RequestMappingInfoArgs, 'type'>) => (
 ) => {
   const info = new RequestMappingInfo({ ...args, type: 'init' });
   if (methodName) {
-    ctr = handleMethod(ctr, methodName, info);
+    handleMethod(ctr, methodName, info);
   } else {
     handleClass(ctr, info);
   }
@@ -33,12 +32,10 @@ function handleClass(ctr: any, info: RequestMappingInfo) {
 }
 
 function handleMethod(ctr: any, methodName: string, info: RequestMappingInfo) {
-  ctr = ctr.constructor;
-  const mvcMeta = helper.getIfNotExisisInit(ctr, true);
-  const methodMeta = helper.getOrInitMethodData(mvcMeta, methodName);
+  const mvcMeta = helper.getIfNotExisisInit(ctr.constructor, true);
+  const methodMeta = helper.getOrInitMethodData(mvcMeta, methodName, ctr);
   methodMeta.mappingInfo = info;
-  methodMeta.paramInfos = helper.getMethodParam(ctr.prototype, methodName);
-  const returnType = helper.getMethodReturnType(ctr.prototype, methodName);
+  const returnType = helper.getMethodReturnType(ctr, methodName);
   if (
     returnType === undefined &&
     !methodMeta.paramInfos.find(e => e.type === ServerResponse)
@@ -54,8 +51,7 @@ function handleMethod(ctr: any, methodName: string, info: RequestMappingInfo) {
       '返回值只支持String ModelView void或者ResponseBody注解后的Buffer Object类型',
     );
   }
-  helper.set(ctr, mvcMeta);
-  return ctr;
+  helper.set(ctr.constructor, mvcMeta);
 }
 
 export default RequestMapping;

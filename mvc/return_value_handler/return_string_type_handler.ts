@@ -1,4 +1,7 @@
-import ReturnValueHandler, { ReturnValueHandlerArguments, ReturnInfo } from '.';
+import ReturnValueHandler, {
+  ReturnValueHandlerArguments,
+  ReturnInfo,
+} from './return_value_handler';
 
 class ReturnStringTypeHandler implements ReturnValueHandler {
   isSupport(returnInfo: ReturnInfo) {
@@ -10,3 +13,5 @@ class ReturnStringTypeHandler implements ReturnValueHandler {
   }
 }
 export default ReturnStringTypeHandler;
+const returnStringTypeHandler = new ReturnStringTypeHandler();
+export { returnStringTypeHandler };

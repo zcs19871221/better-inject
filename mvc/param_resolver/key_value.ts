@@ -4,7 +4,7 @@ import ParamResolver, {
   KeyValueAnnotaionInfo,
   ParamAnnotationInfo,
   ParamInfo,
-} from '.';
+} from './param_resolver';
 
 export default abstract class KeyValue extends ParamResolver<
   KeyValueAnnotaionInfo
@@ -30,14 +30,14 @@ export default abstract class KeyValue extends ParamResolver<
     };
   }
 
-  isKeyValue(
+  private guard(
     annotationInfo: ParamAnnotationInfo,
   ): annotationInfo is KeyValueAnnotaionInfo {
     return annotationInfo.type === 'ModelAttribute';
   }
 
   getAnnotationInfo(paramInfo: ParamInfo): KeyValueAnnotaionInfo | null {
-    const t = paramInfo.annotations.filter(this.isKeyValue);
+    const t = paramInfo.annotations.filter(this.guard);
     if (t.length === 0) {
       return null;
     }
@@ -59,7 +59,7 @@ export default abstract class KeyValue extends ParamResolver<
     return map;
   }
 
-  abstract getMap(
+  protected abstract getMap(
     resolveParamArgs: ResolveParamArgs,
   ): Map<string, string | string[]>;
 }

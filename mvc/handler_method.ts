@@ -4,8 +4,12 @@ import ModelView from './model_view';
 import helper from './annotation/helper';
 import DataBinder from './data_binder';
 import BeanFactory from 'factory';
-import ParamResolver, { ParamAnnotationInfo } from './param_resolver';
-import ReturnValueHandler from './return_value_handler';
+import ParamResolver, {
+  ParamAnnotationInfo,
+} from './param_resolver/param_resolver';
+import { paramResolvers } from './param_resolver';
+import ReturnValueHandler from './return_value_handler/return_value_handler';
+import { returnValueHandlers } from './return_value_handler';
 import WebRequest from './webrequest';
 
 type HandlerMethodArgs = Pick<MvcMeta, 'initBinder' | 'modelIniter'> &
@@ -18,18 +22,11 @@ type HandlerMethodArgs = Pick<MvcMeta, 'initBinder' | 'modelIniter'> &
 export default class HandlerMethod {
   private args: HandlerMethodArgs;
   private factory: BeanFactory;
-  private paramResolvers: ParamResolver<ParamAnnotationInfo>[];
-  private returnValueHandlers: ReturnValueHandler[];
-  constructor(
-    args: HandlerMethodArgs,
-    factory: BeanFactory,
-    paramResolvers: ParamResolver<ParamAnnotationInfo>[],
-    returnValueHandlers: ReturnValueHandler[],
-  ) {
+  private paramResolvers: ParamResolver<ParamAnnotationInfo>[] = paramResolvers;
+  private returnValueHandlers: ReturnValueHandler[] = returnValueHandlers;
+  constructor(args: HandlerMethodArgs, factory: BeanFactory) {
     this.args = args;
     this.factory = factory;
-    this.paramResolvers = paramResolvers;
-    this.returnValueHandlers = returnValueHandlers;
   }
 
   getMethod() {
@@ -56,7 +53,12 @@ export default class HandlerMethod {
     webRequest: WebRequest,
     returnValue: any,
   ): ModelView {
-    this.returnValueHandlers.forEach(returnValueHandler => {
+    if (
+      !this.returnValueHandlers.some(e => e.isSupport(this.args.returnInfo))
+    ) {
+      throw new Error('没有找到返回值处理器');
+    }
+    for (const returnValueHandler of this.returnValueHandlers) {
       if (returnValueHandler.isSupport(this.args.returnInfo)) {
         returnValueHandler.handleReturnValue({
           returnValue,
@@ -65,8 +67,9 @@ export default class HandlerMethod {
           model,
           paramInfos: this.args.paramInfos,
         });
+        break;
       }
-    });
+    }
     return model;
   }
 

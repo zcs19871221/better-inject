@@ -1,6 +1,6 @@
 import RequestMappingInfo from './request_mapping_info';
-import { ReturnInfo } from './return_value_handler';
-import { ParamInfo } from './param_resolver';
+import { ReturnInfo } from './return_value_handler/return_value_handler';
+import { ParamInfo } from './param_resolver/param_resolver';
 
 interface MethodMeta {
   mappingInfo?: RequestMappingInfo;

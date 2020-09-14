@@ -2,7 +2,7 @@ import ParamResolver, {
   ResolveParamArgs,
   MethodAnnotationInfo,
   ParamInfo,
-} from '.';
+} from './param_resolver';
 import { ServerResponse, IncomingMessage } from 'http';
 import ModelView from '../model_view';
 import WebRequest from '../webrequest';
@@ -42,3 +42,5 @@ export default class ParamTypeResolver extends ParamResolver<
     return this.targetType.includes(paramInfo.type);
   }
 }
+
+export const instance = new ParamTypeResolver();

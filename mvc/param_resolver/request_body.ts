@@ -4,10 +4,10 @@ import ParamResolver, {
   RequestBodyAnnotationInfo,
   ParamAnnotationInfo,
   ParamInfo,
-} from '.';
-import { parse } from '../queryString';
+} from './param_resolver';
+import { parse } from '../query_string';
 
-export default class RequestBody extends ParamResolver<
+export default class RequestBodyResolver extends ParamResolver<
   RequestBodyAnnotationInfo
 > {
   constructor() {
@@ -87,3 +87,5 @@ export default class RequestBody extends ParamResolver<
     return body;
   }
 }
+export const instance = new RequestBodyResolver();
+export const RequestBody = instance.Annotation;

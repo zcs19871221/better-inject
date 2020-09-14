@@ -1,100 +1,43 @@
-import ModelView from '../model_view';
-import WebRequest from '../webrequest';
-import helper from '../annotation/helper';
-
-interface MethodAnnotationInfo {
-  type: 'Method';
-}
-interface RequestBodyAnnotationInfo {
-  type: 'RequestBody';
-}
-interface ModelAttributeAnnotationInfo {
-  type: 'ModelAttribute';
-  modelKey: string;
-  isRequired: boolean;
-}
-enum KeyValueEnum {
-  CookieValue,
+import { CookieValue, instance as cookieValueResolver } from './cookie_value';
+import { Method, instance as methodResolver } from './method';
+import {
+  ModelAttribute,
+  instance as modelAttributeResolver,
+} from './model_attribute';
+import {
   PathVariable,
+  instance as pathVariableResolver,
+} from './path_variable';
+import { RequestBody, instance as requestBodyResolver } from './request_body';
+import {
   RequestHeader,
+  instance as requestHeaderResolver,
+} from './request_header';
+import {
   RequestParam,
-}
+  instance as requestParamResolver,
+} from './request_param';
+import { instance as paramTypeResolver } from './resolve_by_type';
+import ParamResolver, { ParamAnnotationInfo } from './param_resolver';
 
-type KeyValueType = keyof typeof KeyValueEnum;
-interface KeyValueAnnotaionInfo {
-  type: KeyValueType;
-  key: string;
-  isRequired: boolean;
-}
-type ParamAnnotationInfo =
-  | KeyValueAnnotaionInfo
-  | RequestBodyAnnotationInfo
-  | ModelAttributeAnnotationInfo
-  | MethodAnnotationInfo;
-interface ParamInfo {
-  type: any;
-  name: string;
-  annotations: ParamAnnotationInfo[];
-}
+const paramResolvers: ParamResolver<ParamAnnotationInfo>[] = [
+  cookieValueResolver,
+  methodResolver,
+  modelAttributeResolver,
+  pathVariableResolver,
+  requestBodyResolver,
+  requestHeaderResolver,
+  requestParamResolver,
+  paramTypeResolver,
+];
 
-abstract class ParamResolverAnnotation<T extends ParamAnnotationInfo> {
-  protected requiredTypes: any[] | null;
-  constructor(requiredTypes: any[] | null) {
-    this.requiredTypes = requiredTypes;
-  }
-
-  AnnotationFactory(
-    ctr: any,
-    methodName: string,
-    index: number,
-    annotationInfo: T,
-  ) {
-    const param = helper.getMethodParam(ctr, methodName)[index];
-    if (
-      this.requiredTypes !== null &&
-      !this.requiredTypes.includes(param.type)
-    ) {
-      throw new Error(
-        annotationInfo.type +
-          '注解参数必须是' +
-          this.requiredTypes.join(',') +
-          '类型',
-      );
-    }
-    const mvcMeta = helper.getIfNotExisisInit(ctr, true);
-    const methodMeta = helper.getOrInitMethodData(mvcMeta, methodName);
-    if (!methodMeta.paramInfos[index]) {
-      methodMeta.paramInfos[index] = {
-        ...param,
-        annotations: [],
-      };
-    }
-    methodMeta.paramInfos[index].annotations.push(annotationInfo);
-    helper.set(ctr, mvcMeta);
-  }
-
-  abstract Annotation(...args: any[]): any;
-  abstract resolve(
-    resolveParamArgs: ResolveParamArgs,
-    annotationInfo: T | null,
-  ): any;
-  abstract isSupport(paramInfo: ParamInfo): boolean;
-  abstract getAnnotationInfo(paramInfo: ParamInfo): T | null;
-}
-interface ResolveParamArgs {
-  param: Omit<ParamInfo, 'annotations'>;
-  webRequest: WebRequest;
-  model: ModelView;
-}
 export {
-  ParamAnnotationInfo,
-  ResolveParamArgs,
-  KeyValueAnnotaionInfo,
-  ModelAttributeAnnotationInfo,
-  RequestBodyAnnotationInfo,
-  ParamInfo,
-  KeyValueType,
-  MethodAnnotationInfo,
+  paramResolvers,
+  CookieValue,
+  Method,
+  RequestParam,
+  RequestHeader,
+  RequestBody,
+  ModelAttribute,
+  PathVariable,
 };
-
-export default ParamResolverAnnotation;

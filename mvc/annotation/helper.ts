@@ -14,19 +14,22 @@ class MvcHelper extends MetaHelper<MvcMeta> {
     };
   }
 
-  initMethodData(): MethodMeta {
+  private initMethodData(ctr: any, methodName: string): MethodMeta {
     return {
       returnInfo: {
-        type: null,
+        type: this.getMethodReturnType(ctr, methodName),
         annotations: [],
       },
-      paramInfos: [],
+      paramInfos: helper.getMethodParam(ctr.prototype, methodName).map(e => ({
+        ...e,
+        annotations: [],
+      })),
     };
   }
 
-  getOrInitMethodData(mvcMeta: MvcMeta, methodName: string) {
+  getOrInitMethodData(mvcMeta: MvcMeta, methodName: string, ctr: any) {
     if (!mvcMeta.methods[methodName]) {
-      mvcMeta.methods[methodName] = this.initMethodData();
+      mvcMeta.methods[methodName] = this.initMethodData(ctr, methodName);
     }
     return mvcMeta.methods[methodName];
   }

@@ -12,8 +12,7 @@ const ModelAttribute = (key: string) => {
     if (!key && isClass(returnType)) {
       key = classToId(returnType);
     }
-    const methodMeta = helper.getOrInitMethodData(mvcMeta, methodName);
-    methodMeta.paramInfos = helper.getMethodParam(ctr.prototype, methodName);
+    helper.getOrInitMethodData(mvcMeta, methodName, ctr);
     mvcMeta.modelIniter.push({
       methodName,
       modelKey: key,

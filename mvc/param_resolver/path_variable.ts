@@ -1,7 +1,7 @@
 import KeyValueParamResolver from './key_value';
-import { ResolveParamArgs } from '.';
+import { ResolveParamArgs } from './param_resolver';
 
-export default class CookieValue extends KeyValueParamResolver {
+export default class PathVariableResolver extends KeyValueParamResolver {
   constructor() {
     super('PathVariable');
   }
@@ -11,3 +11,6 @@ export default class CookieValue extends KeyValueParamResolver {
     return req.requestMappingInfo.getPathVariableMap();
   }
 }
+
+export const instance = new PathVariableResolver();
+export const PathVariable = instance.Annotation;

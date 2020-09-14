@@ -1,5 +1,5 @@
 import MethodAnnotation from './method_annotation';
-import { Annotation as ParamAnnotation } from './param_resolver';
+import { ModelAttribute as ParamAnnotation } from '../param_resolver';
 
 const ModelAttribute = (key: string = '') => (
   ctr: any,

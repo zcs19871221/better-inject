@@ -1,25 +1,11 @@
-import ModelView from '../model_view';
-import { ParamInfo } from '..';
-import WebRequest from '../webrequest';
+import { ResponseBody, responseBodyHandler } from './response_body';
+import { returnModelViewTypeHandler } from './return_modelview_type_handler';
+import { returnStringTypeHandler } from './return_string_type_handler';
+import returnValueHandler from './return_value_handler';
 
-interface ResponseBodyAnnotationInfo {
-  type: 'ResponseBody';
-}
-type ReturnAnnotationInfo = ResponseBodyAnnotationInfo;
-interface ReturnInfo {
-  type: any;
-  annotations: ReturnAnnotationInfo[];
-}
-
-interface ReturnValueHandlerArguments {
-  returnValue: any;
-  returnInfo: ReturnInfo;
-  webRequest: WebRequest;
-  model: ModelView;
-  paramInfos: ParamInfo[];
-}
-export { ReturnValueHandlerArguments, ReturnInfo };
-export default interface ReturnValueHandler {
-  handleReturnValue(input: ReturnValueHandlerArguments): any;
-  isSupport(input: ReturnInfo): boolean;
-}
+const returnValueHandlers: returnValueHandler[] = [
+  responseBodyHandler,
+  returnModelViewTypeHandler,
+  returnStringTypeHandler,
+];
+export { ResponseBody, returnValueHandlers };

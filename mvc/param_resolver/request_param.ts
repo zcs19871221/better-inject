@@ -1,7 +1,7 @@
 import KeyValueParamResolver from './key_value';
-import { ResolveParamArgs } from '.';
+import { ResolveParamArgs } from './param_resolver';
 
-export default class RequestHeader extends KeyValueParamResolver {
+export default class RequestParamResolver extends KeyValueParamResolver {
   constructor() {
     super('RequestParam');
   }
@@ -10,3 +10,6 @@ export default class RequestHeader extends KeyValueParamResolver {
     return resolveParamArgs.webRequest.getRequestParamMap();
   }
 }
+
+export const instance = new RequestParamResolver();
+export const RequestParam = instance.Annotation;
