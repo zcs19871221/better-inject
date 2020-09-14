@@ -8,12 +8,16 @@ interface MethodAnnotationInfo {
 interface RequestBodyAnnotationInfo {
   type: 'RequestBody';
 }
+interface ModelAttributeAnnotationInfo {
+  type: 'ModelAttribute';
+  modelKey: string;
+  isRequired: boolean;
+}
 enum KeyValueEnum {
   CookieValue,
   PathVariable,
   RequestHeader,
   RequestParam,
-  ModelAttribute,
 }
 
 type KeyValueType = keyof typeof KeyValueEnum;
@@ -25,6 +29,7 @@ interface KeyValueAnnotaionInfo {
 type ParamAnnotationInfo =
   | KeyValueAnnotaionInfo
   | RequestBodyAnnotationInfo
+  | ModelAttributeAnnotationInfo
   | MethodAnnotationInfo;
 interface ParamInfo {
   type: any;
@@ -32,21 +37,29 @@ interface ParamInfo {
   annotations: ParamAnnotationInfo[];
 }
 
-interface ResolveParamArgs {
-  paramInfo: ParamInfo;
-  webRequest: WebRequest;
-  model: ModelView;
-}
-abstract class ParamResolverAnnotation {
-  protected type: ParamAnnotationInfo['type'];
-  constructor(name: ParamAnnotationInfo['type']) {
-    this.type = name;
+abstract class ParamResolverAnnotation<T extends ParamAnnotationInfo> {
+  protected requiredTypes: any[] | null;
+  constructor(requiredTypes: any[] | null) {
+    this.requiredTypes = requiredTypes;
   }
 
-  AnnotationFactory(ctr: any, methodName: string, index: number) {
+  AnnotationFactory(
+    ctr: any,
+    methodName: string,
+    index: number,
+    annotationInfo: T,
+  ) {
     const param = helper.getMethodParam(ctr, methodName)[index];
-    if (param.type !== String) {
-      throw new Error(this.type + '注解参数必须是string类型');
+    if (
+      this.requiredTypes !== null &&
+      !this.requiredTypes.includes(param.type)
+    ) {
+      throw new Error(
+        annotationInfo.type +
+          '注解参数必须是' +
+          this.requiredTypes.join(',') +
+          '类型',
+      );
     }
     const mvcMeta = helper.getIfNotExisisInit(ctr, true);
     const methodMeta = helper.getOrInitMethodData(mvcMeta, methodName);
@@ -56,22 +69,32 @@ abstract class ParamResolverAnnotation {
         annotations: [],
       };
     }
-    methodMeta.paramInfos[index].annotations.push(this.creatAnnotationInfo());
+    methodMeta.paramInfos[index].annotations.push(annotationInfo);
     helper.set(ctr, mvcMeta);
   }
 
-  abstract creatAnnotationInfo(): ParamAnnotationInfo;
+  abstract Annotation(...args: any[]): any;
+  abstract resolve(
+    resolveParamArgs: ResolveParamArgs,
+    annotationInfo: T | null,
+  ): any;
+  abstract isSupport(paramInfo: ParamInfo): boolean;
+  abstract getAnnotationInfo(paramInfo: ParamInfo): T | null;
 }
-
+interface ResolveParamArgs {
+  param: Omit<ParamInfo, 'annotations'>;
+  webRequest: WebRequest;
+  model: ModelView;
+}
 export {
   ParamAnnotationInfo,
   ResolveParamArgs,
   KeyValueAnnotaionInfo,
+  ModelAttributeAnnotationInfo,
+  RequestBodyAnnotationInfo,
   ParamInfo,
   KeyValueType,
-  ParamResolverAnnotation,
+  MethodAnnotationInfo,
 };
-export default interface ParamResolver {
-  resolve(input: ResolveParamArgs): any;
-  isSupport(input: ResolveParamArgs): boolean;
-}
+
+export default ParamResolverAnnotation;

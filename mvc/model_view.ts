@@ -14,11 +14,8 @@ export default class ModelView {
     this.model.set(key, value);
   }
 
-  getModel(key: string): string | Map<string, any> {
-    if (!key) {
-      return this.model;
-    }
-    return this.model.get(key);
+  getModel(): Map<string, any> {
+    return this.model;
   }
 
   combine(modelView: ModelView) {

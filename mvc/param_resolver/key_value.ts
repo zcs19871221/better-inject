@@ -1,59 +1,62 @@
-import ParamResolver, { ResolveParamArgs, KeyValueType } from '.';
-import helper from '../annotation/helper';
+import ParamResolver, {
+  ResolveParamArgs,
+  KeyValueType,
+  KeyValueAnnotaionInfo,
+  ParamAnnotationInfo,
+  ParamInfo,
+} from '.';
 
-export const AnnotationFactory = (type: KeyValueType) => {
-  return (key: string = '', isRequired = true) => {
-    return (ctr: any, methodName: string, index: number) => {
-      const param = helper.getMethodParam(ctr, methodName)[index];
-      if (![String, Map, Object].includes(param.type)) {
-        throw new Error(
-          `${type}不支持注入类型${param.type},只支持String Map Object`,
-        );
-      }
-      const mvcMeta = helper.getIfNotExisisInit(ctr, true);
-      const methodMeta = helper.getOrInitMethodData(mvcMeta, methodName);
-      if (!methodMeta.paramInfos[index]) {
-        methodMeta.paramInfos[index] = {
-          ...param,
-          annotations: [],
-        };
-      }
-      methodMeta.paramInfos[index].annotations.push({
-        type,
-        isRequired,
-        key,
-      });
-      helper.set(ctr, mvcMeta);
-    };
-  };
-};
-
-export default abstract class KeyValue implements ParamResolver {
+export default abstract class KeyValue extends ParamResolver<
+  KeyValueAnnotaionInfo
+> {
   private type: KeyValueType;
   constructor(type: KeyValueType) {
+    super([String, Map, Object]);
     this.type = type;
   }
-  isSupport(resolveParamArgs: ResolveParamArgs) {
-    return resolveParamArgs.paramInfo.annotations.some(
-      e => e.type === this.type,
-    );
+
+  isSupport(paramInfo: ParamInfo) {
+    return paramInfo.annotations.some(e => e.type === this.type);
   }
 
-  resolve(resolveParamArgs: ResolveParamArgs): any {
-    const map = this.getMap(resolveParamArgs);
-    for (const each of resolveParamArgs.paramInfo.annotations) {
-      if (each.type === this.type) {
-        const key = each.key.trim();
-        if (key) {
-          if (each.isRequired && !map.has(key)) {
-            throw new Error(this.type + '的键' + key + '对应值不存在');
-          }
-          return map.get(key);
-        }
-        return map;
-      }
+  Annotation(key: string = '', isRequired = true) {
+    return (ctr: any, methodName: string, index: number) => {
+      const info = {
+        type: this.type,
+        isRequired,
+        key,
+      };
+      return this.AnnotationFactory(ctr, methodName, index, info);
+    };
+  }
+
+  isKeyValue(
+    annotationInfo: ParamAnnotationInfo,
+  ): annotationInfo is KeyValueAnnotaionInfo {
+    return annotationInfo.type === 'ModelAttribute';
+  }
+
+  getAnnotationInfo(paramInfo: ParamInfo): KeyValueAnnotaionInfo | null {
+    const t = paramInfo.annotations.filter(this.isKeyValue);
+    if (t.length === 0) {
+      return null;
     }
-    throw new Error(this.type + '错误');
+    return t[0];
+  }
+
+  resolve(
+    resolveParamArgs: ResolveParamArgs,
+    annotationInfo: KeyValueAnnotaionInfo,
+  ): any {
+    const map = this.getMap(resolveParamArgs);
+    const key = annotationInfo.key.trim();
+    if (key) {
+      if (annotationInfo.isRequired && !map.has(key)) {
+        throw new Error(this.type + '的键' + key + '对应值不存在');
+      }
+      return map.get(key);
+    }
+    return map;
   }
 
   abstract getMap(

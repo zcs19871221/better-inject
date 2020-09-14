@@ -1,7 +1,6 @@
-import KeyValueParamResolver, { AnnotationFactory } from './key_value';
+import KeyValueParamResolver from './key_value';
 import { ResolveParamArgs } from '.';
 
-export const Annotation = AnnotationFactory('PathVariable');
 export default class CookieValue extends KeyValueParamResolver {
   constructor() {
     super('PathVariable');

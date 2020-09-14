@@ -1,10 +1,9 @@
-import KeyValueParamResolver, { AnnotationFactory } from './key_value';
+import KeyValueParamResolver from './key_value';
 import { ResolveParamArgs } from '.';
 
-export const Annotation = AnnotationFactory('RequestHeader');
 export default class RequestHeader extends KeyValueParamResolver {
   constructor() {
-    super('RequestHeader');
+    super('RequestParam');
   }
 
   getMap(resolveParamArgs: ResolveParamArgs) {

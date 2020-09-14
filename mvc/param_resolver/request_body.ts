@@ -1,12 +1,43 @@
 import iconvLite from 'iconv-lite';
-import ParamResolver, { ResolveParamArgs } from '.';
-import helper from '../annotation/helper';
+import ParamResolver, {
+  ResolveParamArgs,
+  RequestBodyAnnotationInfo,
+  ParamAnnotationInfo,
+  ParamInfo,
+} from '.';
 import { parse } from '../queryString';
 
-export default class RequestBody implements ParamResolver {
-  isSupport(input: ResolveParamArgs) {
-    return input.paramInfo.annotations.some(e => e.type === 'RequestBody');
+export default class RequestBody extends ParamResolver<
+  RequestBodyAnnotationInfo
+> {
+  constructor() {
+    super([Buffer, Object, String]);
   }
+
+  isSupport(paramInfo: ParamInfo) {
+    return paramInfo.annotations.some(e => e.type === 'RequestBody');
+  }
+
+  Annotation(ctr: any, methodName: string, index: number) {
+    return this.AnnotationFactory(ctr, methodName, index, {
+      type: 'RequestBody',
+    });
+  }
+
+  guard(
+    annotationInfo: ParamAnnotationInfo,
+  ): annotationInfo is RequestBodyAnnotationInfo {
+    return annotationInfo.type === 'RequestBody';
+  }
+
+  getAnnotationInfo(paramInfo: ParamInfo): null | RequestBodyAnnotationInfo {
+    const t = paramInfo.annotations.filter(this.guard);
+    if (t.length === 0) {
+      return null;
+    }
+    return t[0];
+  }
+
   resolve(input: ResolveParamArgs): Promise<any> {
     return new Promise((resolve, reject) => {
       const buf: Buffer[] = [];
@@ -20,10 +51,10 @@ export default class RequestBody implements ParamResolver {
         try {
           const { charset, mediaType } = input.webRequest.getContentType();
           const result: Buffer = Buffer.concat(buf, len);
-          if (input.paramInfo.type === String) {
+          if (input.param.type === String) {
             return resolve(this.Buffer2String(result, charset));
           }
-          if (input.paramInfo.type === Buffer) {
+          if (input.param.type === Buffer) {
             return resolve(result);
           }
           return resolve(this.Buffer2Object(result, mediaType, charset));
@@ -56,21 +87,3 @@ export default class RequestBody implements ParamResolver {
     return body;
   }
 }
-export const Annotation = (ctr: any, methodName: string, index: number) => {
-  const param = helper.getMethodParam(ctr, methodName)[index];
-  if (![Buffer, Object, String].includes(param.type)) {
-    throw new Error('RequestBody注入类型必须是Buffer Object String 之一');
-  }
-  const mvcMeta = helper.getIfNotExisisInit(ctr, true);
-  const methodMeta = helper.getOrInitMethodData(mvcMeta, methodName);
-  if (!methodMeta.paramInfos[index]) {
-    methodMeta.paramInfos[index] = {
-      ...param,
-      annotations: [],
-    };
-  }
-  methodMeta.paramInfos[index].annotations.push({
-    type: 'RequestBody',
-  });
-  helper.set(ctr, mvcMeta);
-};

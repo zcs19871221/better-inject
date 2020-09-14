@@ -1,5 +1,5 @@
 import ModelView from '../model_view';
-import { Param } from '..';
+import { ParamInfo } from '..';
 import WebRequest from '../webrequest';
 
 interface ResponseBodyAnnotationInfo {
@@ -16,7 +16,7 @@ interface ReturnValueHandlerArguments {
   returnInfo: ReturnInfo;
   webRequest: WebRequest;
   model: ModelView;
-  param: Param;
+  paramInfos: ParamInfo[];
 }
 export { ReturnValueHandlerArguments, ReturnInfo };
 export default interface ReturnValueHandler {

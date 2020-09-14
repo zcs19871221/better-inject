@@ -1,10 +1,10 @@
 import { IncomingMessage, ServerResponse } from 'http';
-import { MethodMeta, MvcMeta, ModelIniterInfo, Param } from '.';
+import { MethodMeta, MvcMeta, ModelIniterInfo, ParamInfo } from '.';
 import ModelView from './model_view';
 import helper from './annotation/helper';
 import DataBinder from './data_binder';
 import BeanFactory from 'factory';
-import ArgsResolver from './param_resolver/index2';
+import ParamResolver, { ParamAnnotationInfo } from './param_resolver';
 import ReturnValueHandler from './return_value_handler';
 import WebRequest from './webrequest';
 
@@ -18,14 +18,17 @@ type HandlerMethodArgs = Pick<MvcMeta, 'initBinder' | 'modelIniter'> &
 export default class HandlerMethod {
   private args: HandlerMethodArgs;
   private factory: BeanFactory;
+  private paramResolvers: ParamResolver<ParamAnnotationInfo>[];
   private returnValueHandlers: ReturnValueHandler[];
   constructor(
     args: HandlerMethodArgs,
     factory: BeanFactory,
+    paramResolvers: ParamResolver<ParamAnnotationInfo>[],
     returnValueHandlers: ReturnValueHandler[],
   ) {
     this.args = args;
     this.factory = factory;
+    this.paramResolvers = paramResolvers;
     this.returnValueHandlers = returnValueHandlers;
   }
 
@@ -36,14 +39,12 @@ export default class HandlerMethod {
   handle(req: IncomingMessage, res: ServerResponse): any {
     const webRequest = new WebRequest(req, res);
     const dataBinder = new DataBinder(this.args.initBinder, this.factory);
-    const model = this.initModel(req, res, this.args.modelIniter, dataBinder);
+    const model = this.initModel(webRequest, this.args.modelIniter, dataBinder);
     const returnValue = this.invokeMethod({
-      req,
-      res,
+      webRequest,
       model,
       dataBinder,
-      params: this.args.params,
-      argsResolver: this.args.argsResolver,
+      paramInfos: this.args.paramInfos,
       bean: this.args.bean,
       beanMethod: this.args.beanMethod,
     });
@@ -70,8 +71,7 @@ export default class HandlerMethod {
   }
 
   private initModel(
-    req: IncomingMessage,
-    res: ServerResponse,
+    webRequest: WebRequest,
     modelInfos: ModelIniterInfo[],
     dataBinder: DataBinder,
   ) {
@@ -82,12 +82,10 @@ export default class HandlerMethod {
         const bean: any = this.factory.getBeanFromClass(beanClass);
         const methodMeta = metaData.methods[methodName];
         const returnValue = this.invokeMethod({
-          req,
-          res,
+          webRequest,
           model,
           dataBinder,
-          params: methodMeta.params,
-          argsResolver: methodMeta.argsResolver,
+          paramInfos: methodMeta.paramInfos,
           bean,
           beanMethod: methodName,
         });
@@ -100,64 +98,45 @@ export default class HandlerMethod {
   }
 
   private async invokeMethod({
-    req,
-    res,
+    webRequest,
     model,
     dataBinder,
-    params,
-    argsResolver,
+    paramInfos,
     bean,
     beanMethod,
   }: {
-    req: IncomingMessage;
-    res: ServerResponse;
+    webRequest: WebRequest;
     model: ModelView;
     dataBinder: DataBinder;
-    params: Param[];
-    argsResolver: ArgsResolver[];
+    paramInfos: ParamInfo[];
     bean: any;
     beanMethod: any;
   }) {
-    const args = this.createArgs(
-      req,
-      res,
-      model,
-      dataBinder,
-      params,
-      argsResolver,
-    );
+    const args = this.createArgs(webRequest, model, dataBinder, paramInfos);
     return await Reflect.apply(Reflect.get(bean, beanMethod), bean, args);
   }
 
   private createArgs(
-    req: IncomingMessage,
-    res: ServerResponse,
+    webRequest: WebRequest,
     model: ModelView,
     dataBinder: DataBinder,
-    params: Param[],
-    argsResolver: ArgsResolver[],
+    paramInfos: ParamInfo[],
   ): any[] {
-    return params.map(({ type, name }, index) => {
-      const resolver = argsResolver.find(e => e.getIndex() === index);
-      let value: any;
-      if (resolver) {
-        value = resolver.resolve({
-          req,
-          res,
-          model,
-          param: {
-            type,
-            name,
-          },
-        });
-      } else if (type === IncomingMessage) {
-        return req;
-      } else if (type === ServerResponse) {
-        return res;
-      } else if (type === ModelView) {
-        return model;
+    return paramInfos.map(param => {
+      const paramResolver = this.paramResolvers.find(e => e.isSupport(param));
+      if (!paramResolver) {
+        throw new Error(param.type + param.name + '不匹配参数解析器');
       }
-      return dataBinder.convert(value, { type, name });
+      const annotationInfo = paramResolver.getAnnotationInfo(param);
+      const value = paramResolver.resolve(
+        {
+          webRequest,
+          model,
+          param,
+        },
+        annotationInfo,
+      );
+      return dataBinder.convert(value, param);
     });
   }
 }
