@@ -1,5 +1,5 @@
-import MetaHelper from '../../annotation/metaHelper';
-import { MvcMeta, MethodMeta } from '..';
+import MetaHelper from '../annotation/metaHelper';
+import { MvcMeta, MethodMeta } from '.';
 
 class MvcHelper extends MetaHelper<MvcMeta> {
   constructor() {
@@ -20,7 +20,7 @@ class MvcHelper extends MetaHelper<MvcMeta> {
         type: this.getMethodReturnType(ctr, methodName),
         annotations: [],
       },
-      paramInfos: helper.getMethodParam(ctr.prototype, methodName).map(e => ({
+      paramInfos: helper.getMethodParam(ctr, methodName).map(e => ({
         ...e,
         annotations: [],
       })),

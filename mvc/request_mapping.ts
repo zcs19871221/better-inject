@@ -1,8 +1,8 @@
 import RequestMappingInfo, {
   RequestMappingInfoArgs,
-} from '../request_mapping_info';
-import helper from './helper';
-import ModelView from '../model_view';
+} from './request_mapping_info';
+import helper from './meta_helper';
+import ModelView from './model_view';
 import { ServerResponse } from 'http';
 
 const RequestMapping = (args: Omit<RequestMappingInfoArgs, 'type'>) => (
@@ -32,7 +32,7 @@ function handleClass(ctr: any, info: RequestMappingInfo) {
 }
 
 function handleMethod(ctr: any, methodName: string, info: RequestMappingInfo) {
-  const mvcMeta = helper.getIfNotExisisInit(ctr.constructor, true);
+  const mvcMeta = helper.getIfNotExisisInit(ctr.constructor);
   const methodMeta = helper.getOrInitMethodData(mvcMeta, methodName, ctr);
   methodMeta.mappingInfo = info;
   const returnType = helper.getMethodReturnType(ctr, methodName);

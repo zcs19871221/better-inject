@@ -1,5 +1,7 @@
-import KeyValueParamResolver from './key_value';
-import { ResolveParamArgs } from './param_resolver';
+import KeyValueParamResolver, {
+  Annotation as AnnotationFactory,
+} from './key_value';
+import { ResolveParamArgs } from './resolver';
 
 export default class PathVariableResolver extends KeyValueParamResolver {
   constructor() {
@@ -13,4 +15,4 @@ export default class PathVariableResolver extends KeyValueParamResolver {
 }
 
 export const instance = new PathVariableResolver();
-export const PathVariable = instance.Annotation;
+export const Annotation = AnnotationFactory('PathVariable');

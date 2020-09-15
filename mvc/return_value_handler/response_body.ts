@@ -2,7 +2,7 @@ import ReturnValueHandler, {
   ReturnValueHandlerArguments,
   ReturnInfo,
 } from './return_value_handler';
-import helper from '../annotation/helper';
+import helper from '../meta_helper';
 
 const ResponseBody = (ctr: any, methodName: string) => {
   const returnType = helper.getMethodReturnType(ctr, methodName);
@@ -11,11 +11,11 @@ const ResponseBody = (ctr: any, methodName: string) => {
       'ResponseBody注解的函数返回类型必须设置成string Buffer 或 普通对象之一',
     );
   }
-  const mvcMeta = helper.getIfNotExisisInit(ctr, true);
+  const mvcMeta = helper.getIfNotExisisInit(ctr.constructor);
   const methodMeta = helper.getOrInitMethodData(mvcMeta, methodName, ctr);
   methodMeta.returnInfo.type = returnType;
   methodMeta.returnInfo.annotations.push({ type: 'ResponseBody' });
-  helper.set(ctr, mvcMeta);
+  helper.set(ctr.constructor, mvcMeta);
 };
 
 class ResponseBodyHandler implements ReturnValueHandler {

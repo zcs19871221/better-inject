@@ -1,19 +1,18 @@
 import ParamResolver, {
   ResolveParamArgs,
-  MethodAnnotationInfo,
+  ParamAnnotationInfo,
   ParamInfo,
-} from './param_resolver';
+} from './resolver';
 import { ServerResponse, IncomingMessage } from 'http';
 import ModelView from '../model_view';
 import WebRequest from '../webrequest';
 
-export default class ParamTypeResolver extends ParamResolver<
-  MethodAnnotationInfo
-> {
+interface TypePlaceholder extends ParamAnnotationInfo {
+  type: 'TypeAnnotation';
+}
+export default class ParamTypeResolver
+  implements ParamResolver<TypePlaceholder> {
   private targetType = [IncomingMessage, ServerResponse, ModelView, WebRequest];
-  constructor() {
-    super(null);
-  }
 
   Annotation() {
     throw new Error('不应该有注解');
@@ -42,5 +41,3 @@ export default class ParamTypeResolver extends ParamResolver<
     return this.targetType.includes(paramInfo.type);
   }
 }
-
-export const instance = new ParamTypeResolver();

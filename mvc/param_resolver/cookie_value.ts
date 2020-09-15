@@ -1,5 +1,7 @@
-import KeyValueParamResolver from './key_value';
-import { ResolveParamArgs } from './param_resolver';
+import KeyValueParamResolver, {
+  Annotation as AnnotationFactory,
+} from './key_value';
+import { ResolveParamArgs } from './resolver';
 
 export default class CookieValueResolver extends KeyValueParamResolver {
   constructor() {
@@ -10,5 +12,4 @@ export default class CookieValueResolver extends KeyValueParamResolver {
     return resolveParamArgs.webRequest.getRequestCookie();
   }
 }
-export const instance = new CookieValueResolver();
-export const CookieValue = instance.Annotation;
+export const Annotation = AnnotationFactory('CookieValue');

@@ -1,14 +1,16 @@
 import MethodAnnotation from './method_annotation';
-import { ModelAttribute as ParamAnnotation } from '../param_resolver';
+import ParamAnnotation from './param_annotation';
+import Resolver from './param_resolver';
 
-const ModelAttribute = (key: string = '') => (
+const Annotation = (modelKey: string = '', isRequired: boolean = true) => (
   ctr: any,
   method: string,
   index?: number,
 ) => {
   if (index === undefined) {
-    return MethodAnnotation(key)(ctr, method);
+    return MethodAnnotation(modelKey)(ctr, method);
   }
-  return ParamAnnotation(key, true)(ctr, method, index);
+  return ParamAnnotation(modelKey, isRequired)(ctr, method, index);
 };
-export default ModelAttribute;
+export default Resolver;
+export { Annotation };

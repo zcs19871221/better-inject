@@ -9,12 +9,12 @@ export default class Dispatch {
   private context: Context;
   constructor(context: Context) {
     this.context = context;
-    this.mapping = new RequestMapping();
     this.context.regist({
       type: 'single',
       beanClass: RequestMapping,
       id: RequestMapping.beanId,
     });
+    this.mapping = this.context.getBean(RequestMapping.beanId)
   }
 
   doDispatch(request: IncomingMessage, response: ServerResponse) {

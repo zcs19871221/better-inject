@@ -1,5 +1,7 @@
-import KeyValueParamResolver from './key_value';
-import { ResolveParamArgs } from './param_resolver';
+import KeyValueParamResolver, {
+  Annotation as AnnotationFactory,
+} from './key_value';
+import { ResolveParamArgs } from './resolver';
 
 export default class RequestParamResolver extends KeyValueParamResolver {
   constructor() {
@@ -12,4 +14,4 @@ export default class RequestParamResolver extends KeyValueParamResolver {
 }
 
 export const instance = new RequestParamResolver();
-export const RequestParam = instance.Annotation;
+export const Annotation = AnnotationFactory('RequestParam');

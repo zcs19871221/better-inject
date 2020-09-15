@@ -1,33 +1,35 @@
 import ParamResolver, {
   ResolveParamArgs,
-  KeyValueType,
-  KeyValueAnnotaionInfo,
+  // KeyValueType,
+  // KeyValueAnnotaionInfo,
   ParamAnnotationInfo,
+  AnnotationFactory,
   ParamInfo,
-} from './param_resolver';
+} from './resolver';
 
-export default abstract class KeyValue extends ParamResolver<
-  KeyValueAnnotaionInfo
-> {
+enum KeyValueEnum {
+  CookieValue,
+  PathVariable,
+  RequestHeader,
+  RequestParam,
+}
+
+type KeyValueType = keyof typeof KeyValueEnum;
+interface KeyValueAnnotaionInfo extends ParamAnnotationInfo {
+  type: KeyValueType;
+  key: string;
+  isRequired: boolean;
+}
+
+export default abstract class KeyValue
+  implements ParamResolver<KeyValueAnnotaionInfo> {
   private type: KeyValueType;
   constructor(type: KeyValueType) {
-    super([String, Map, Object]);
     this.type = type;
   }
 
   isSupport(paramInfo: ParamInfo) {
     return paramInfo.annotations.some(e => e.type === this.type);
-  }
-
-  Annotation(key: string = '', isRequired = true) {
-    return (ctr: any, methodName: string, index: number) => {
-      const info = {
-        type: this.type,
-        isRequired,
-        key,
-      };
-      return this.AnnotationFactory(ctr, methodName, index, info);
-    };
   }
 
   private guard(
@@ -63,3 +65,22 @@ export default abstract class KeyValue extends ParamResolver<
     resolveParamArgs: ResolveParamArgs,
   ): Map<string, string | string[]>;
 }
+
+export const Annotation = (type: KeyValueType) => (
+  key: string = '',
+  isRequired = true,
+) => {
+  return (ctr: any, methodName: string, index: number) => {
+    const info = {
+      type,
+      isRequired,
+      key,
+    };
+    return AnnotationFactory<KeyValueAnnotaionInfo>([String, Map, Object])(
+      ctr,
+      methodName,
+      index,
+      info,
+    );
+  };
+};

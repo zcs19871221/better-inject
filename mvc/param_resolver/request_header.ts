@@ -1,5 +1,7 @@
-import KeyValueParamResolver from './key_value';
-import { ResolveParamArgs } from './param_resolver';
+import KeyValueParamResolver, {
+  Annotation as AnnotationFactory,
+} from './key_value';
+import { ResolveParamArgs } from './resolver';
 
 export default class RequestHeaderResolver extends KeyValueParamResolver {
   constructor() {
@@ -11,4 +13,4 @@ export default class RequestHeaderResolver extends KeyValueParamResolver {
   }
 }
 export const instance = new RequestHeaderResolver();
-export const RequestHeader = instance.Annotation;
+export const Annotation = AnnotationFactory('RequestHeader');

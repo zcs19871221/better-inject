@@ -1,23 +1,16 @@
 import ParamResolver, {
   ResolveParamArgs,
-  MethodAnnotationInfo,
+  // MethodAnnotationInfo,
   ParamInfo,
   ParamAnnotationInfo,
-} from './param_resolver';
+} from './resolver';
+import AnnotationFactory from './annotation_factory';
 
-export default class MethodParamResolver extends ParamResolver<
-  MethodAnnotationInfo
-> {
-  constructor() {
-    super([String, Object]);
-  }
-
-  Annotation(ctr: any, methodName: string, index: number) {
-    return this.AnnotationFactory(ctr, methodName, index, {
-      type: 'Method',
-    });
-  }
-
+interface MethodAnnotationInfo extends ParamAnnotationInfo {
+  type: 'Method';
+}
+export default class MethodParamResolver
+  implements ParamResolver<MethodAnnotationInfo> {
   isMethod(
     annotationInfo: ParamAnnotationInfo,
   ): annotationInfo is MethodAnnotationInfo {
@@ -39,5 +32,13 @@ export default class MethodParamResolver extends ParamResolver<
     return paramInfo.annotations.some(e => e.type === 'Method');
   }
 }
-export const instance = new MethodParamResolver();
-export const Method = instance.Annotation;
+
+export const Annotation = (ctr: any, methodName: string, index: number) =>
+  AnnotationFactory<MethodAnnotationInfo>([String, Object])(
+    ctr,
+    methodName,
+    index,
+    {
+      type: 'Method',
+    },
+  );

@@ -1,27 +1,20 @@
 import iconvLite from 'iconv-lite';
 import ParamResolver, {
   ResolveParamArgs,
-  RequestBodyAnnotationInfo,
   ParamAnnotationInfo,
   ParamInfo,
-} from './param_resolver';
+} from './resolver';
 import { parse } from '../query_string';
+import AnnotationFactory from './annotation_factory';
 
-export default class RequestBodyResolver extends ParamResolver<
-  RequestBodyAnnotationInfo
-> {
-  constructor() {
-    super([Buffer, Object, String]);
-  }
+interface RequestBodyAnnotationInfo extends ParamAnnotationInfo {
+  type: 'RequestBody';
+}
 
+export default class RequestBodyResolver
+  implements ParamResolver<RequestBodyAnnotationInfo> {
   isSupport(paramInfo: ParamInfo) {
     return paramInfo.annotations.some(e => e.type === 'RequestBody');
-  }
-
-  Annotation(ctr: any, methodName: string, index: number) {
-    return this.AnnotationFactory(ctr, methodName, index, {
-      type: 'RequestBody',
-    });
   }
 
   guard(
@@ -87,5 +80,12 @@ export default class RequestBodyResolver extends ParamResolver<
     return body;
   }
 }
-export const instance = new RequestBodyResolver();
-export const RequestBody = instance.Annotation;
+export const Method = (ctr: any, methodName: string, index: number) =>
+  AnnotationFactory<RequestBodyAnnotationInfo>([Buffer, Object, String])(
+    ctr,
+    methodName,
+    index,
+    {
+      type: 'RequestBody',
+    },
+  );

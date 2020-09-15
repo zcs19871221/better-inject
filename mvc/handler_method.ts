@@ -1,12 +1,10 @@
 import { IncomingMessage, ServerResponse } from 'http';
 import { MethodMeta, MvcMeta, ModelIniterInfo, ParamInfo } from '.';
 import ModelView from './model_view';
-import helper from './annotation/helper';
-import DataBinder from './data_binder';
+import helper from './meta_helper';
+import { DataBinder } from './data_binder';
 import BeanFactory from 'factory';
-import ParamResolver, {
-  ParamAnnotationInfo,
-} from './param_resolver/param_resolver';
+import ParamResolver, { ParamAnnotationInfo } from './param_resolver/resolver';
 import { paramResolvers } from './param_resolver';
 import ReturnValueHandler from './return_value_handler/return_value_handler';
 import { returnValueHandlers } from './return_value_handler';

@@ -1,10 +1,10 @@
 import { isClass, classToId } from '../../annotation/class_utils';
-import helper from '../annotation/helper';
+import helper from '../meta_helper';
 
 const ModelAttribute = (key: string) => {
   key = key.trim();
   return (ctr: any, methodName: string) => {
-    const mvcMeta = helper.getIfNotExisisInit(ctr, true);
+    const mvcMeta = helper.getIfNotExisisInit(ctr.constructor);
     const returnType = helper.getMethodReturnType(ctr, methodName);
     if (returnType === undefined && key) {
       throw new Error('modelAttribute设置key了必须设置返回值');
@@ -18,7 +18,7 @@ const ModelAttribute = (key: string) => {
       modelKey: key,
       beanClass: ctr,
     });
-    helper.set(ctr, mvcMeta);
+    helper.set(ctr.constructor, mvcMeta);
   };
 };
 

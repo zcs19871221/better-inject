@@ -1,32 +1,12 @@
 import ParamResolver, {
   ResolveParamArgs,
-  ModelAttributeAnnotationInfo,
   ParamInfo,
   ParamAnnotationInfo,
-} from './param_resolver';
-import helper from '../annotation/helper';
+} from '../param_resolver/resolver';
+import ModelAttributeAnnotationInfo from './info';
 
-export default class ModelAttributeResolver extends ParamResolver<
-  ModelAttributeAnnotationInfo
-> {
-  constructor() {
-    super(null);
-  }
-
-  Annotation(modelKey: string = '', isRequired = true) {
-    return (ctr: any, methodName: string, index: number) => {
-      const returnType = helper.getMethodParamTypes(ctr, methodName)[index];
-      if (!modelKey && returnType !== Map) {
-        throw new Error('modelAttribute不设置key时，类型必须为Map');
-      }
-      return this.AnnotationFactory(ctr, methodName, index, {
-        modelKey,
-        type: 'ModelAttribute',
-        isRequired,
-      });
-    };
-  }
-
+export default class ModelAttributeResolver
+  implements ParamResolver<ModelAttributeAnnotationInfo> {
   guard(
     annotationInfo: ParamAnnotationInfo,
   ): annotationInfo is ModelAttributeAnnotationInfo {
@@ -60,5 +40,3 @@ export default class ModelAttributeResolver extends ParamResolver<
     return paramInfo.annotations.some(e => e.type === 'Method');
   }
 }
-export const instance = new ModelAttributeResolver();
-export const ModelAttribute = instance.Annotation;
