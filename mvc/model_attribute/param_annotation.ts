@@ -1,5 +1,5 @@
 import AnnotationFactory from '../param_resolver/annotation_factory';
-import ModelAttributeAnnotationInfo from './info';
+import ModelAttributeAnnotationInfo from './annotationinfo';
 
 const Annotation = (modelKey: string = '', isRequired = true) => {
   return (ctr: any, methodName: string, index: number) => {

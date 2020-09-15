@@ -1,4 +1,4 @@
-import helper from '../meta_helper';
+import helper from '../annotation/meta_helper';
 import { Resource } from '../../annotation/inject';
 
 const Controller = (ctr: any) => {

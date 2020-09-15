@@ -1,13 +1,16 @@
 import { IncomingMessage, ServerResponse } from 'http';
-import { MethodMeta, MvcMeta, ModelIniterInfo, ParamInfo } from '.';
+import { MethodMeta, MvcMeta, ModelMetaInfo, ParamInfo } from '.';
 import ModelView from './model_view';
-import helper from './meta_helper';
+import helper from './annotation/meta_helper';
 import { DataBinder } from './data_binder';
 import BeanFactory from 'factory';
-import ParamResolver, { ParamAnnotationInfo } from './param_resolver/resolver';
-import { paramResolvers } from './param_resolver';
-import ReturnValueHandler from './return_value_handler/return_value_handler';
-import { returnValueHandlers } from './return_value_handler';
+import paramResolvers, {
+  ParamResolver,
+  ParamAnnotationInfo,
+} from './param_resolver';
+import returnValueHandlers, {
+  ReturnValueHandler,
+} from './return_value_handler';
 import WebRequest from './webrequest';
 
 type HandlerMethodArgs = Pick<MvcMeta, 'initBinder' | 'modelIniter'> &
@@ -73,7 +76,7 @@ export default class HandlerMethod {
 
   private initModel(
     webRequest: WebRequest,
-    modelInfos: ModelIniterInfo[],
+    modelInfos: ModelMetaInfo[],
     dataBinder: DataBinder,
   ) {
     const model: ModelView = new ModelView();

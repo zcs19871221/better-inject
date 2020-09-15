@@ -1,6 +1,6 @@
 import ModelView from '../model_view';
 import WebRequest from '../webrequest';
-import helper from '../meta_helper';
+import helper from '../annotation/meta_helper';
 
 enum ParamAnnotationEnum {
   CookieValue,

@@ -1,11 +1,12 @@
 import { ResponseBody, responseBodyHandler } from './response_body';
 import { returnModelViewTypeHandler } from './return_modelview_type_handler';
 import { returnStringTypeHandler } from './return_string_type_handler';
-import returnValueHandler from './return_value_handler';
+import ReturnValueHandler from './return_value_handler';
 
-const returnValueHandlers: returnValueHandler[] = [
+const returnValueHandlers: ReturnValueHandler[] = [
   responseBodyHandler,
   returnModelViewTypeHandler,
   returnStringTypeHandler,
 ];
-export { ResponseBody, returnValueHandlers };
+export default returnValueHandlers;
+export { ResponseBody, ReturnValueHandler };

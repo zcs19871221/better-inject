@@ -1,5 +1,6 @@
 import { isClass, classToId } from '../../annotation/class_utils';
-import helper from '../meta_helper';
+import helper from '../annotation/meta_helper';
+import ModelMetaInfo from './metainfo';
 
 const ModelAttribute = (key: string) => {
   key = key.trim();
@@ -13,11 +14,12 @@ const ModelAttribute = (key: string) => {
       key = classToId(returnType);
     }
     helper.getOrInitMethodData(mvcMeta, methodName, ctr);
-    mvcMeta.modelIniter.push({
+    const info: ModelMetaInfo = {
       methodName,
       modelKey: key,
       beanClass: ctr,
-    });
+    };
+    mvcMeta.modelIniter.push(info);
     helper.set(ctr.constructor, mvcMeta);
   };
 };

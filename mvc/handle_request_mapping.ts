@@ -1,7 +1,7 @@
 import { IncomingMessage } from 'http';
 import HandlerMethod from './handler_method';
 import RequestMappingInfo from './request_mapping_info';
-import helper from './meta_helper';
+import helper from './annotation/meta_helper';
 import BeanFactory from '../factory';
 
 export default class RequestMapping {

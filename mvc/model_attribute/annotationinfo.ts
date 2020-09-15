@@ -1,4 +1,4 @@
-import { ParamAnnotationInfo } from '../param_resolver/resolver';
+import { ParamAnnotationInfo } from '../param_resolver';
 export default interface ModelAttributeAnnotationInfo
   extends ParamAnnotationInfo {
   type: 'ModelAttribute';

@@ -1,9 +1,10 @@
-import ParamResolver, {
+import {
+  ParamResolver,
   ResolveParamArgs,
   ParamInfo,
   ParamAnnotationInfo,
-} from '../param_resolver/resolver';
-import ModelAttributeAnnotationInfo from './info';
+} from '../param_resolver';
+import ModelAttributeAnnotationInfo from './annotationinfo';
 
 export default class ModelAttributeResolver
   implements ParamResolver<ModelAttributeAnnotationInfo> {

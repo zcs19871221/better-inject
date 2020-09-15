@@ -1,7 +1,7 @@
 import RequestMappingInfo, {
   RequestMappingInfoArgs,
 } from './request_mapping_info';
-import helper from './meta_helper';
+import helper from './annotation/meta_helper';
 import ModelView from './model_view';
 import { ServerResponse } from 'http';
 

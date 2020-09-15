@@ -1,12 +1,22 @@
-import CookieValueResolver from './cookie_value';
-import MethodResolver from './method';
-import PathVariableResolver from './path_variable';
-import RequestBodyResolver from './request_body';
-import RequestHeaderResolver from './request_header';
-import RequestParamResolver from './request_param';
+import CookieValueResolver, { Annotation as CookieValue } from './cookie_value';
+import MethodResolver, { Annotation as Method } from './method';
+import PathVariableResolver, {
+  Annotation as PathVariable,
+} from './path_variable';
+import RequestBodyResolver, { Annotation as RequestBody } from './request_body';
+import RequestHeaderResolver, {
+  Annotation as RequestHeader,
+} from './request_header';
+import RequestParamResolver, {
+  Annotation as RequestParam,
+} from './request_param';
 import ParamTypeResolver from './resolve_by_type';
 import ModelAttributeResolver from '../model_attribute';
-import ParamResolver, { ParamAnnotationInfo } from './resolver';
+import ParamResolver, {
+  ParamAnnotationInfo,
+  ParamInfo,
+  ResolveParamArgs,
+} from './resolver';
 
 const paramResolvers: ParamResolver<ParamAnnotationInfo>[] = [
   new RequestBodyResolver(),
@@ -18,5 +28,19 @@ const paramResolvers: ParamResolver<ParamAnnotationInfo>[] = [
   new RequestHeaderResolver(),
   new ParamTypeResolver(),
 ];
-
-export { paramResolvers };
+const Annotation = {
+  CookieValue,
+  PathVariable,
+  RequestHeader,
+  RequestParam,
+  RequestBody,
+  Method,
+};
+export default paramResolvers;
+export {
+  Annotation,
+  ParamResolver,
+  ParamAnnotationInfo,
+  ParamInfo,
+  ResolveParamArgs,
+};

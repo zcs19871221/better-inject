@@ -1,5 +1,5 @@
-import MetaHelper from '../annotation/metaHelper';
-import { MvcMeta, MethodMeta } from '.';
+import MetaHelper from '../../annotation/metaHelper';
+import { MvcMeta, MethodMeta } from '..';
 
 class MvcHelper extends MetaHelper<MvcMeta> {
   constructor() {

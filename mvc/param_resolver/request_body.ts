@@ -80,7 +80,7 @@ export default class RequestBodyResolver
     return body;
   }
 }
-export const Method = (ctr: any, methodName: string, index: number) =>
+export const Annotation = (ctr: any, methodName: string, index: number) =>
   AnnotationFactory<RequestBodyAnnotationInfo>([Buffer, Object, String])(
     ctr,
     methodName,
