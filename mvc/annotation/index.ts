@@ -1,4 +1,5 @@
 import Controller from '../controller';
+import RequestMapping from '../request_mapping';
 import { Initbinder } from '../data_binder';
 import { Annotation as ModelAttribute } from '../model_attribute';
 import { Annotation } from '../param_resolver';
@@ -23,5 +24,5 @@ export {
   RequestBody,
   Method,
   ResponseBody,
+  RequestMapping,
 };
-export * from '../return_value_handler';

@@ -1,12 +1,10 @@
 import ParamResolver, {
   ResolveParamArgs,
-  // KeyValueType,
-  // KeyValueAnnotaionInfo,
   ParamAnnotationInfo,
-  AnnotationFactory,
   ParamInfo,
 } from './resolver';
-
+import AnnotationFactory from './annotation_factory';
+import helper from '../annotation/meta_helper';
 enum KeyValueEnum {
   CookieValue,
   PathVariable,
@@ -71,16 +69,23 @@ export const Annotation = (type: KeyValueType) => (
   isRequired = true,
 ) => {
   return (ctr: any, methodName: string, index: number) => {
-    const info = {
-      type,
-      isRequired,
-      key,
-    };
+    let targetKey = key;
+    const param = helper.getMethodParam(ctr, methodName)[index];
+    if (param.type === Map && key !== '') {
+      throw new Error(type + '注解:Map类型不能传具体key');
+    }
+    if (param.type === String && key === '') {
+      targetKey = param.name;
+    }
     return AnnotationFactory<KeyValueAnnotaionInfo>([String, Map, Object])(
       ctr,
       methodName,
       index,
-      info,
+      {
+        type,
+        isRequired,
+        key: targetKey,
+      },
     );
   };
 };

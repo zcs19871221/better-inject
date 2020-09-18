@@ -27,9 +27,7 @@ it('getMatchingCondition with path variable name', () => {
   const req: any = { url: '/text' };
   const matched = <Condition>d.getMatchingCondition(req);
   expect(matched.getContent().map(pattern => pattern.getContent())).toEqual([
-    '/text',
-    '/a/{sub}',
-    '/{name}',
+    '/{base}',
   ]);
 });
 

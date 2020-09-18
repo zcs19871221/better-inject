@@ -14,9 +14,9 @@ export default function AnnotationFactory<T extends ParamAnnotationInfo>(
           '类型',
       );
     }
-    const mvcMeta = helper.getIfNotExisisInit(ctr.constructor);
+    const mvcMeta = helper.getIfNotExisisInit(ctr);
     const methodMeta = helper.getOrInitMethodData(mvcMeta, methodName, ctr);
     methodMeta.paramInfos[index].annotations.push(annotationInfo);
-    helper.set(ctr.constructor, mvcMeta);
+    helper.set(ctr, mvcMeta);
   };
 }

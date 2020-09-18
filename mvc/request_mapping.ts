@@ -5,7 +5,7 @@ import helper from './annotation/meta_helper';
 import ModelView from './model_view';
 import { ServerResponse } from 'http';
 
-const RequestMapping = (args: Omit<RequestMappingInfoArgs, 'type'>) => (
+const RequestMapping = (args: Omit<RequestMappingInfoArgs, 'type'> = {}) => (
   ctr: any,
   methodName?: string,
 ) => {
