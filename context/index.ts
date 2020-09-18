@@ -1,4 +1,3 @@
-import 'reflect-metadata';
 import BeanFactory, { POINT_CUT, ASPECT_CONFIG } from '../factory';
 import BeanDefinition, { BeanDefinitionConfig } from '../definition';
 import LocateParser from '../locateparser';
