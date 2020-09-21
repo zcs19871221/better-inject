@@ -1,6 +1,6 @@
 // @ ts-nocheck
 import {
-  // Initbinder,
+  Initbinder,
   // ModelAttribute,
   CookieValue,
   PathVariable,
@@ -15,31 +15,24 @@ import {
 // import { helper as iocHelper } from '../../annotation/inject';
 import mvcHelper from './meta_helper';
 
-// it('Controller Annotation', () => {
-//   @Annotation.Controller
-//   class Target {
-//     @Annotation.RequestMapping()
-//     dataFormate() {}
-//   }
-//   expect(iocHelper.get(Target)).toEqual({
-//     type: 'single',
-//     parent: '',
-//     exposeProxy: false,
-//     id: 'target',
-//     beanClass: Target,
-//     autoInjectConstuct: {},
-//     constructParams: {},
-//     isController: true,
-//   });
-// });
+it('Initbinder', () => {
+  class Target {
+    @Initbinder
+    dataFormate() {}
+  }
+  expect(iocHelper.get(Target)).toEqual({
+    type: 'single',
+    parent: '',
+    exposeProxy: false,
+    id: 'target',
+    beanClass: Target,
+    autoInjectConstuct: {},
+    constructParams: {},
+    isController: true,
+  });
+});
 
 it('Param Annotation', () => {
-  const errorWrapper = () => 
-  expect(() => ({
-    class Target {
-      one() {}
-    }
-  }))
   class Target {
     cookieValue(@CookieValue() _jessionid: string): string {
       return '';
@@ -170,4 +163,23 @@ it('Param Annotation', () => {
     modelIniter: [],
     initBinder: [],
   });
+});
+
+it('param check', () => {
+  function Empty(_a: any, _b: any, _c: any) {}
+  class Target {
+    @Empty
+    errorMethod(_a: Map<any, any>) {}
+    @Empty
+    requestBodyErrorType(_a: number, _b: Buffer, _c: string, _d: object) {}
+    @Empty
+    MethodCheck(_a: number, _b: Buffer, _c: string, _d: object) {}
+  }
+  expect(() => CookieValue('id')(Target, 'errormethod', 0)).toThrow();
+  expect(() => RequestBody(Target, 'requestBodyErrorType', 0)).toThrow();
+  expect(() => RequestBody(Target, 'requestBodyErrorType', 1)).not.toThrow();
+  expect(() => RequestBody(Target, 'requestBodyErrorType', 2)).not.toThrow();
+  expect(() => RequestBody(Target, 'requestBodyErrorType', 3)).not.toThrow();
+  expect(() => Method(Target, 'MethodCheck', 0)).toThrow();
+  expect(() => Method(Target, 'MethodCheck', 2)).not.toThrow();
 });
