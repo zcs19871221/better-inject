@@ -32,7 +32,7 @@ function handleClass(ctr: any, info: RequestMappingInfo) {
 }
 
 function handleMethod(ctr: any, methodName: string, info: RequestMappingInfo) {
-  const mvcMeta = helper.getIfNotExisisInit(ctr.constructor);
+  const mvcMeta = helper.getIfNotExisisInit(ctr);
   const methodMeta = helper.getOrInitMethodData(mvcMeta, methodName, ctr);
   methodMeta.mappingInfo = info;
   const returnType = helper.getMethodReturnType(ctr, methodName);
@@ -51,7 +51,7 @@ function handleMethod(ctr: any, methodName: string, info: RequestMappingInfo) {
       '返回值只支持String ModelView void或者ResponseBody注解后的Buffer Object类型',
     );
   }
-  helper.set(ctr.constructor, mvcMeta);
+  helper.set(ctr, mvcMeta);
 }
 
 export default RequestMapping;

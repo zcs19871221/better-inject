@@ -11,11 +11,11 @@ const ResponseBody = (ctr: any, methodName: string) => {
       'ResponseBody注解的函数返回类型必须设置成string Buffer 或 普通对象之一',
     );
   }
-  const mvcMeta = helper.getIfNotExisisInit(ctr.constructor);
+  const mvcMeta = helper.getIfNotExisisInit(ctr);
   const methodMeta = helper.getOrInitMethodData(mvcMeta, methodName, ctr);
   methodMeta.returnInfo.type = returnType;
   methodMeta.returnInfo.annotations.push({ type: 'ResponseBody' });
-  helper.set(ctr.constructor, mvcMeta);
+  helper.set(ctr, mvcMeta);
 };
 
 class ResponseBodyHandler implements ReturnValueHandler {

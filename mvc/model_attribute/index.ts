@@ -5,12 +5,12 @@ import Resolver from './param_resolver';
 const Annotation = (modelKey: string = '', isRequired: boolean = true) => (
   ctr: any,
   method: string,
-  index?: number,
-) => {
+  index?: any,
+): void => {
   if (index === undefined) {
     return MethodAnnotation(modelKey)(ctr, method);
   }
-  return ParamAnnotation(modelKey, isRequired)(ctr, method, index);
+  return ParamAnnotation(modelKey, isRequired)(ctr, method, Number(index));
 };
 export default Resolver;
 export { Annotation };

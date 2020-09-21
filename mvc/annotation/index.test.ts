@@ -1,7 +1,7 @@
 // @ ts-nocheck
 import {
   Initbinder,
-  // ModelAttribute,
+  ModelAttribute,
   CookieValue,
   PathVariable,
   RequestHeader,
@@ -14,23 +14,6 @@ import {
 } from '.';
 // import { helper as iocHelper } from '../../annotation/inject';
 import mvcHelper from './meta_helper';
-
-it('Initbinder', () => {
-  class Target {
-    @Initbinder
-    dataFormate() {}
-  }
-  expect(iocHelper.get(Target)).toEqual({
-    type: 'single',
-    parent: '',
-    exposeProxy: false,
-    id: 'target',
-    beanClass: Target,
-    autoInjectConstuct: {},
-    constructParams: {},
-    isController: true,
-  });
-});
 
 it('Param Annotation', () => {
   class Target {
@@ -182,4 +165,71 @@ it('param check', () => {
   expect(() => RequestBody(Target, 'requestBodyErrorType', 3)).not.toThrow();
   expect(() => Method(Target, 'MethodCheck', 0)).toThrow();
   expect(() => Method(Target, 'MethodCheck', 2)).not.toThrow();
+});
+
+it('Initbinder', () => {
+  class Target {
+    @Initbinder
+    dataFormate() {}
+  }
+  expect(mvcHelper.get(Target)).toEqual({
+    methods: {},
+    initBinder: [
+      {
+        methodName: 'dataFormate',
+        beanClass: Target,
+      },
+    ],
+    modelIniter: [],
+  });
+  class Target2 {
+    @Initbinder
+    dataFormate(@Method _method: string) {}
+  }
+  expect(mvcHelper.get(Target2)).toEqual({
+    methods: {
+      dataFormate: {
+        returnInfo: {
+          type: undefined,
+          annotations: [],
+        },
+        paramInfos: [
+          {
+            type: String,
+            name: '_method',
+            annotations: [
+              {
+                type: 'Method',
+              },
+            ],
+          },
+        ],
+      },
+    },
+    initBinder: [
+      {
+        methodName: 'dataFormate',
+        beanClass: Target2,
+      },
+    ],
+    modelIniter: [],
+  });
+});
+
+it('ModelAttribute', () => {
+  class Target {
+    @ModelAttribute('abcd', true)
+    dataFormate() {}
+  }
+  expect(mvcHelper.get(Target)).toEqual({
+    methods: {},
+    initBinder: [],
+    modelIniter: [
+      {
+        methodName: 'dataFormate',
+        modelKey: 'abcd',
+        beanClass: Target,
+      },
+    ],
+  });
 });

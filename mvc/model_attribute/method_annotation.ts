@@ -5,7 +5,7 @@ import ModelMetaInfo from './metainfo';
 const ModelAttribute = (key: string) => {
   key = key.trim();
   return (ctr: any, methodName: string) => {
-    const mvcMeta = helper.getIfNotExisisInit(ctr.constructor);
+    const mvcMeta = helper.getIfNotExisisInit(ctr);
     const returnType = helper.getMethodReturnType(ctr, methodName);
     if (returnType === undefined && key) {
       throw new Error('modelAttribute设置key了必须设置返回值');
@@ -20,7 +20,7 @@ const ModelAttribute = (key: string) => {
       beanClass: ctr,
     };
     mvcMeta.modelIniter.push(info);
-    helper.set(ctr.constructor, mvcMeta);
+    helper.set(ctr, mvcMeta);
   };
 };
 
