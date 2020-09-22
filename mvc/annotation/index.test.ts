@@ -1,4 +1,3 @@
-// @ ts-nocheck
 import {
   Initbinder,
   ModelAttribute,
@@ -8,12 +7,15 @@ import {
   RequestParam,
   RequestBody,
   Method,
-  // ResponseBody,
+  ResponseBody,
   // Controller,
-  // RequestMapping,
+  RequestMapping,
 } from '.';
 // import { helper as iocHelper } from '../../annotation/inject';
 import mvcHelper from './meta_helper';
+import RequestMappingInfo from '../request_mapping_info';
+import ModelView from '../model_view';
+import { ServerResponse } from 'http';
 
 it('Param Annotation', () => {
   class Target {
@@ -26,7 +28,10 @@ it('Param Annotation', () => {
     requestHeader(@RequestHeader('accept') _oneKey: String): number {
       return 1;
     }
-    requestParam(@RequestParam() _id: String): void {}
+    @ResponseBody
+    requestParam(@RequestParam() _id: String): Buffer {
+      return new Buffer('sdffs');
+    }
     requestBody(@RequestBody _name: Buffer): void {}
     method(@Method _method: any): void {}
   }
@@ -91,8 +96,12 @@ it('Param Annotation', () => {
       },
       requestParam: {
         returnInfo: {
-          type: undefined,
-          annotations: [],
+          type: Buffer,
+          annotations: [
+            {
+              type: 'ResponseBody',
+            },
+          ],
         },
         paramInfos: [
           {
@@ -145,26 +154,8 @@ it('Param Annotation', () => {
     },
     modelIniter: [],
     initBinder: [],
+    requestMappingMethods: [],
   });
-});
-
-it('param check', () => {
-  function Empty(_a: any, _b: any, _c: any) {}
-  class Target {
-    @Empty
-    errorMethod(_a: Map<any, any>) {}
-    @Empty
-    requestBodyErrorType(_a: number, _b: Buffer, _c: string, _d: object) {}
-    @Empty
-    MethodCheck(_a: number, _b: Buffer, _c: string, _d: object) {}
-  }
-  expect(() => CookieValue('id')(Target, 'errormethod', 0)).toThrow();
-  expect(() => RequestBody(Target, 'requestBodyErrorType', 0)).toThrow();
-  expect(() => RequestBody(Target, 'requestBodyErrorType', 1)).not.toThrow();
-  expect(() => RequestBody(Target, 'requestBodyErrorType', 2)).not.toThrow();
-  expect(() => RequestBody(Target, 'requestBodyErrorType', 3)).not.toThrow();
-  expect(() => Method(Target, 'MethodCheck', 0)).toThrow();
-  expect(() => Method(Target, 'MethodCheck', 2)).not.toThrow();
 });
 
 it('Initbinder', () => {
@@ -181,6 +172,7 @@ it('Initbinder', () => {
       },
     ],
     modelIniter: [],
+    requestMappingMethods: [],
   });
   class Target2 {
     @Initbinder
@@ -213,13 +205,26 @@ it('Initbinder', () => {
       },
     ],
     modelIniter: [],
+    requestMappingMethods: [],
   });
 });
 
-it('ModelAttribute', () => {
+it('ModelAttribute with Method', () => {
   class Target {
-    @ModelAttribute('abcd', true)
-    dataFormate() {}
+    @ModelAttribute('abcd')
+    dataFormate(): string {
+      return '';
+    }
+
+    @ModelAttribute()
+    model2(): Target {
+      return this;
+    }
+
+    @ModelAttribute()
+    model3() {
+      return this;
+    }
   }
   expect(mvcHelper.get(Target)).toEqual({
     methods: {},
@@ -230,6 +235,146 @@ it('ModelAttribute', () => {
         modelKey: 'abcd',
         beanClass: Target,
       },
+      {
+        methodName: 'model2',
+        modelKey: 'target',
+        beanClass: Target,
+      },
+      {
+        methodName: 'model3',
+        modelKey: '',
+        beanClass: Target,
+      },
     ],
+    requestMappingMethods: [],
   });
+});
+
+it('response type check', () => {
+  function Empty(_a: any, _b: any, _c: any) {}
+  class Target {
+    @Empty
+    errorType(_a: Map<any, any>): string[] {
+      return [];
+    }
+  }
+  expect(() => ResponseBody(Target, 'errorType')).toThrow();
+});
+
+it('RequestMapping method', () => {
+  class Target {
+    @RequestMapping()
+    mapping(_a: Map<any, any>): string {
+      return 'person.pug';
+    }
+  }
+  const meta = mvcHelper.get(Target);
+  const info = meta?.methods.mapping.mappingInfo;
+  delete meta?.methods.mapping.mappingInfo;
+  expect(info).toEqual(new RequestMappingInfo({ type: 'init' }));
+  expect(meta).toEqual({
+    methods: {
+      mapping: {
+        returnInfo: {
+          type: String,
+          annotations: [],
+        },
+        paramInfos: [
+          {
+            type: Map,
+            name: '_a',
+            annotations: [],
+          },
+        ],
+      },
+    },
+    initBinder: [],
+    modelIniter: [],
+    requestMappingMethods: [],
+  });
+});
+
+it('RequestMapping class', () => {
+  class Target {
+    mapping(@CookieValue() _a: string): string {
+      return 'person.pug';
+    }
+  }
+  expect(() => RequestMapping()(Target)).toThrow('没有方法定义RequestMapping');
+  @RequestMapping({ path: '/user' })
+  class Target2 {
+    @RequestMapping({ path: '/get' })
+    mapping(@CookieValue() _a: string): string {
+      return 'person.pug';
+    }
+  }
+  const meta = mvcHelper.get(Target2);
+  const info = meta?.methods.mapping.mappingInfo;
+  delete meta?.methods.mapping.mappingInfo;
+  expect(info).toEqual(
+    new RequestMappingInfo({ type: 'init', path: '/user/get' }),
+  );
+  expect(meta).toEqual({
+    methods: {
+      mapping: {
+        returnInfo: {
+          type: String,
+          annotations: [],
+        },
+        paramInfos: [
+          {
+            type: String,
+            name: '_a',
+            annotations: [
+              {
+                type: 'CookieValue',
+                isRequired: true,
+                key: '_a',
+              },
+            ],
+          },
+        ],
+      },
+    },
+    initBinder: [],
+    modelIniter: [],
+    requestMappingMethods: [],
+  });
+});
+
+it('RequestMapping check', () => {
+  function Empty(_a: any, _b: any, _c: any) {}
+
+  class Target {
+    @Empty
+    mapping(_a: Map<any, any>): string {
+      return 'person.pug';
+    }
+    @Empty
+    mapping1(_a: ModelView): ModelView {
+      return _a;
+    }
+    @ResponseBody
+    mapping2(_a: ServerResponse): Buffer {
+      return new Buffer('ss');
+    }
+    @ResponseBody
+    mapping3(_a: ServerResponse): string {
+      return '{name:"zcs"}';
+    }
+    @ResponseBody
+    mapping4(_a: ServerResponse): object {
+      return { name: 'zcs' };
+    }
+    mapping5(): void {}
+    mapping6(_a: ServerResponse): number {
+      return 1;
+    }
+  }
+  expect(() => RequestMapping()(Target, 'mapping')).not.toThrow();
+  expect(() => RequestMapping()(Target, 'mapping1')).not.toThrow();
+  expect(() => RequestMapping()(Target, 'mapping2')).not.toThrow();
+  expect(() => RequestMapping()(Target, 'mapping3')).not.toThrow();
+  expect(() => RequestMapping()(Target, 'mapping4')).not.toThrow();
+  expect(() => RequestMapping()(Target, 'mapping5')).toThrow();
 });

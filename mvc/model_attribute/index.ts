@@ -7,10 +7,10 @@ const Annotation = (modelKey: string = '', isRequired: boolean = true) => (
   method: string,
   index?: any,
 ): void => {
-  if (index === undefined) {
-    return MethodAnnotation(modelKey)(ctr, method);
+  if (Number.isInteger(index)) {
+    return ParamAnnotation(modelKey, isRequired, ctr, method, Number(index));
   }
-  return ParamAnnotation(modelKey, isRequired)(ctr, method, Number(index));
+  return MethodAnnotation(modelKey, ctr, method);
 };
 export default Resolver;
 export { Annotation };

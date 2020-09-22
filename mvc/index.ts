@@ -14,6 +14,7 @@ interface MvcMeta {
   methods: { [method: string]: MethodMeta };
   modelIniter: ModelMetaInfo[];
   initBinder: BinderInfo[];
+  requestMappingMethods: string[];
 }
 
 export { MethodMeta, MvcMeta, ModelMetaInfo, ParamInfo };

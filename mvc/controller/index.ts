@@ -1,11 +1,14 @@
 import helper from '../annotation/meta_helper';
 import { Resource } from '../../annotation/inject';
+import { filterAndCheckMapping } from '../request_mapping';
 
 const Controller = (ctr: any) => {
   const mvcMeta = helper.get(ctr);
-  if (!mvcMeta || Object.keys(mvcMeta.methods).length === 0) {
-    throw new Error('必须在方法上注解@RequestMapping作为相应函数');
+  if (mvcMeta === undefined) {
+    throw new Error('controller必须用requestmapping注解');
   }
+  filterAndCheckMapping(mvcMeta);
+  helper.set(ctr, mvcMeta);
   Resource({ type: 'single', isController: true })(ctr);
 };
 

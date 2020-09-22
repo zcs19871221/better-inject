@@ -11,6 +11,7 @@ class MvcHelper extends MetaHelper<MvcMeta> {
       methods: {},
       modelIniter: [],
       initBinder: [],
+      requestMappingMethods: [],
     };
   }
 

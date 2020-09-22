@@ -77,15 +77,10 @@ export const Annotation = (type: KeyValueType) => (
     if (param.type === String && key === '') {
       targetKey = param.name;
     }
-    return AnnotationFactory<KeyValueAnnotaionInfo>([String, Map, Object])(
-      ctr,
-      methodName,
-      index,
-      {
-        type,
-        isRequired,
-        key: targetKey,
-      },
-    );
+    return AnnotationFactory<KeyValueAnnotaionInfo>(ctr, methodName, index, {
+      type,
+      isRequired,
+      key: targetKey,
+    });
   };
 };

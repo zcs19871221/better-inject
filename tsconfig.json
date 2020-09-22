@@ -16,5 +16,5 @@
     "declaration": true,
     "baseUrl": "./"
   },
-  "exclude": ["dist"]
+  "exclude": ["dist", "*.test.ts"]
 }

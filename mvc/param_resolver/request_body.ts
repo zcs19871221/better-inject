@@ -81,11 +81,6 @@ export default class RequestBodyResolver
   }
 }
 export const Annotation = (ctr: any, methodName: string, index: number) =>
-  AnnotationFactory<RequestBodyAnnotationInfo>([Buffer, Object, String])(
-    ctr,
-    methodName,
-    index,
-    {
-      type: 'RequestBody',
-    },
-  );
+  AnnotationFactory<RequestBodyAnnotationInfo>(ctr, methodName, index, {
+    type: 'RequestBody',
+  });

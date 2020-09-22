@@ -1,9 +1,10 @@
+import { ServerResponse } from 'http';
 import RequestMappingInfo, {
   RequestMappingInfoArgs,
 } from './request_mapping_info';
 import helper from './annotation/meta_helper';
 import ModelView from './model_view';
-import { ServerResponse } from 'http';
+import { MvcMeta } from '.';
 
 const RequestMapping = (args: Omit<RequestMappingInfoArgs, 'type'> = {}) => (
   ctr: any,
@@ -16,12 +17,23 @@ const RequestMapping = (args: Omit<RequestMappingInfoArgs, 'type'> = {}) => (
     handleClass(ctr, info);
   }
 };
-
-function handleClass(ctr: any, info: RequestMappingInfo) {
-  const mvcMeta = helper.getIfNotExisisInit(ctr);
+const filterAndCheckMapping = (mvcMeta: MvcMeta) => {
+  mvcMeta.methods = Object.entries(mvcMeta.methods).reduce(
+    (acc: MvcMeta['methods'], cur) => {
+      if (cur[1].mappingInfo !== undefined) {
+        acc[cur[0]] = cur[1];
+      }
+      return acc;
+    },
+    {},
+  );
   if (Object.keys(mvcMeta.methods).length === 0) {
     throw new Error('没有方法定义RequestMapping');
   }
+};
+function handleClass(ctr: any, info: RequestMappingInfo) {
+  const mvcMeta = helper.getIfNotExisisInit(ctr);
+  filterAndCheckMapping(mvcMeta);
   Object.values(mvcMeta.methods).forEach(data => {
     if (!data.mappingInfo) {
       throw new Error('data.mappingInfo');
@@ -44,14 +56,15 @@ function handleMethod(ctr: any, methodName: string, info: RequestMappingInfo) {
   }
   methodMeta.returnInfo.type = returnType;
   if (
-    ![String, ModelView, undefined].includes(returnType) ||
+    ![String, ModelView, undefined].includes(returnType) &&
     !methodMeta.returnInfo.annotations.find(e => e.type === 'ResponseBody')
   ) {
     throw new Error(
-      '返回值只支持String ModelView void或者ResponseBody注解后的Buffer Object类型',
+      '返回值只支持String ModelView void或者ResponseBody注解后的Buffer string Object类型',
     );
   }
   helper.set(ctr, mvcMeta);
 }
 
 export default RequestMapping;
+export { filterAndCheckMapping };
