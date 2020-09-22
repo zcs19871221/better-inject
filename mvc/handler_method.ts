@@ -49,7 +49,7 @@ export default class HandlerMethod {
     return this.handleReturnValue(model, webRequest, returnValue);
   }
 
-  handleReturnValue(
+  private handleReturnValue(
     model: ModelView,
     webRequest: WebRequest,
     returnValue: any,
