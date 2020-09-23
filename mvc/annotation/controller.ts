@@ -1,6 +1,6 @@
-import helper from '../annotation/meta_helper';
+import helper from './meta_helper';
 import { Resource } from '../../annotation/inject';
-import { filterAndCheckMapping } from '../request_mapping';
+import { filterAndCheckMapping } from './request_mapping';
 
 const Controller = (ctr: any) => {
   const mvcMeta = helper.get(ctr);

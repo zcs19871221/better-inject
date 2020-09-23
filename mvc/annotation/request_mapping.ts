@@ -1,10 +1,10 @@
 import { ServerResponse } from 'http';
 import RequestMappingInfo, {
   RequestMappingInfoArgs,
-} from './request_mapping_info';
-import helper from './annotation/meta_helper';
-import ModelView from './model_view';
-import { MvcMeta } from '.';
+} from '../request_mapping_info';
+import helper from './meta_helper';
+import ModelView from '../model_view';
+import { MvcMeta } from '..';
 
 const RequestMapping = (args: Omit<RequestMappingInfoArgs, 'type'> = {}) => (
   ctr: any,

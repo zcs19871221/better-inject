@@ -34,6 +34,12 @@ export default class MethodParamResolver
 }
 
 export const Annotation = (ctr: any, methodName: string, index: number) =>
-  AnnotationFactory<MethodAnnotationInfo>(ctr, methodName, index, {
-    type: 'Method',
-  });
+  AnnotationFactory<MethodAnnotationInfo>(
+    ctr,
+    methodName,
+    index,
+    {
+      type: 'Method',
+    },
+    [String],
+  );

@@ -34,11 +34,11 @@ export default class HandlerMethod {
     return this.args.beanMethod;
   }
 
-  handle(req: IncomingMessage, res: ServerResponse): any {
+  async handle(req: IncomingMessage, res: ServerResponse): Promise<any> {
     const webRequest = new WebRequest(req, res);
     const dataBinder = new DataBinder(this.args.initBinder, this.factory);
     const model = this.initModel(webRequest, this.args.modelIniter, dataBinder);
-    const returnValue = this.invokeMethod({
+    const returnValue = await this.invokeMethod({
       webRequest,
       model,
       dataBinder,
@@ -46,14 +46,14 @@ export default class HandlerMethod {
       bean: this.args.bean,
       beanMethod: this.args.beanMethod,
     });
-    return this.handleReturnValue(model, webRequest, returnValue);
+    return await this.handleReturnValue(model, webRequest, returnValue);
   }
 
-  private handleReturnValue(
+  private async handleReturnValue(
     model: ModelView,
     webRequest: WebRequest,
     returnValue: any,
-  ): ModelView {
+  ): Promise<ModelView> {
     if (
       !this.returnValueHandlers.some(e => e.isSupport(this.args.returnInfo))
     ) {
@@ -61,7 +61,7 @@ export default class HandlerMethod {
     }
     for (const returnValueHandler of this.returnValueHandlers) {
       if (returnValueHandler.isSupport(this.args.returnInfo)) {
-        returnValueHandler.handleReturnValue({
+        await returnValueHandler.handleReturnValue({
           returnValue,
           returnInfo: this.args.returnInfo,
           webRequest,
@@ -137,6 +137,7 @@ export default class HandlerMethod {
           webRequest,
           model,
           param,
+          dataBinder,
         },
         annotationInfo,
       );

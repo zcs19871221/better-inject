@@ -1,5 +1,6 @@
 import ModelView from '../model_view';
 import WebRequest from '../webrequest';
+import { DataBinder } from '../data_binder';
 
 enum ParamAnnotationEnum {
   CookieValue,
@@ -32,6 +33,7 @@ interface ResolveParamArgs {
   param: Omit<ParamInfo, 'annotations'>;
   webRequest: WebRequest;
   model: ModelView;
+  dataBinder: DataBinder;
 }
 
 export { ParamAnnotationInfo, ResolveParamArgs, ParamInfo };

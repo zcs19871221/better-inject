@@ -20,6 +20,6 @@ interface ReturnValueHandlerArguments {
 }
 export { ReturnValueHandlerArguments, ReturnInfo };
 export default interface ReturnValueHandler {
-  handleReturnValue(input: ReturnValueHandlerArguments): any;
+  handleReturnValue(input: ReturnValueHandlerArguments): Promise<any>;
   isSupport(input: ReturnInfo): boolean;
 }

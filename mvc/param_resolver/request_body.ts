@@ -44,13 +44,23 @@ export default class RequestBodyResolver
         try {
           const { charset, mediaType } = input.webRequest.getContentType();
           const result: Buffer = Buffer.concat(buf, len);
-          if (input.param.type === String) {
-            return resolve(this.Buffer2String(result, charset));
-          }
           if (input.param.type === Buffer) {
             return resolve(result);
           }
-          return resolve(this.Buffer2Object(result, mediaType, charset));
+          const bodyStr = this.Buffer2String(result, charset);
+          if (input.param.type === String) {
+            return resolve(bodyStr);
+          }
+          if (
+            mediaType.includes('application/json') &&
+            input.param.type === Object
+          ) {
+            return JSON.parse(bodyStr);
+          }
+          if (mediaType.includes('application/x-www-form-urlencoded')) {
+            return parse(bodyStr);
+          }
+          return input.dataBinder.convert(bodyStr, input.param);
         } catch (error) {
           reject(error);
         }
@@ -63,21 +73,6 @@ export default class RequestBodyResolver
       return iconvLite.decode(result, charset);
     }
     return String(result);
-  }
-
-  private Buffer2Object(
-    result: Buffer,
-    mediaType: string,
-    charSet: string,
-  ): any {
-    const body = this.Buffer2String(result, charSet);
-    if (mediaType.includes('application/json')) {
-      return JSON.parse(body);
-    }
-    if (mediaType.includes('application/x-www-form-urlencoded')) {
-      return parse(body);
-    }
-    return body;
   }
 }
 export const Annotation = (ctr: any, methodName: string, index: number) =>

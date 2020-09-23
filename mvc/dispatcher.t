@@ -38,7 +38,7 @@ export default class Dispatch {
       this.processResult(modelView, request, response, exception);
     } catch (error) {
       response.end('error');
-    }
+    } 
   }
 
   private processResult(

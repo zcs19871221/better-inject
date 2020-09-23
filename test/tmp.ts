@@ -1,10 +1,30 @@
 import 'reflect-metadata';
-import { ModelAttribute } from '../mvc/annotation';
-// import { helper as iocHelper } from '../../annotation/inject';
-import mvcHelper from '../mvc/annotation/meta_helper';
-class Target {
-  @ModelAttribute('abcd', true)
-  dataFormate(_a: string): any {}
-}
-const x = mvcHelper.get(Target);
-console.log(x);
+import http from 'http';
+import Context from '../context';
+import RequestMapping from '../mvc/handle_request_mapping';
+
+const context = new Context({
+  scanFiles: 'test/mvc/handler.ts',
+});
+
+const bean = <RequestMapping>context.getBean('REQUEST_MAPPING');
+const handler = bean['mapping'][0][1];
+http
+  .createServer((req, res) => {
+    const returnValue = handler.handle(req, res);
+    console.log(returnValue);
+    return res.end('');
+  })
+  .listen(9222);
+const req = http.request(
+  'http://localhost:9222/user/zcs/get?time=1600855064822&level=001',
+  {
+    method: 'POST',
+    headers: {
+      cookie: 'jsessionid:1987;',
+      'content-type': 'application/json',
+      accept: '*/*',
+    },
+  },
+);
+req.end(JSON.stringify({ userId: 'a12fe', userName: 'runner_zcs' }));

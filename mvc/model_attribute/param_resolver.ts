@@ -28,16 +28,13 @@ export default class ModelAttributeResolver
   ) {
     const map = resolveParamArgs.model.getModel();
     const modelKey = annotationInfo.modelKey;
-    if (modelKey) {
-      if (annotationInfo.isRequired && !map.has(modelKey)) {
-        throw new Error('model' + modelKey + '不存在');
-      }
-      return map.get(modelKey);
+    if (annotationInfo.isRequired && !map.has(modelKey)) {
+      throw new Error('model' + modelKey + '不存在');
     }
-    return map;
+    return map.get(modelKey);
   }
 
   isSupport(paramInfo: ParamInfo) {
-    return paramInfo.annotations.some(e => e.type === 'Method');
+    return paramInfo.annotations.some(e => e.type === 'ModelAttribute');
   }
 }

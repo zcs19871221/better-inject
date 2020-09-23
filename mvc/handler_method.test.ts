@@ -1,36 +1,33 @@
-import HandlerMethod from './handler_method';
-import Factory from '../factory';
-import {
-  Controller,
-  Initbinder,
-  ModelAttribute,
-  CookieValue,
-  PathVariable,
-  RequestHeader,
-  RequestParam,
-  RequestBody,
-  Method,
-  ResponseBody,
-  RequestMapping,
-} from './annotation';
+import path from 'path';
+import http, { Server } from 'http';
+import Context from '../context';
+import RequestMapping from './handle_request_mapping';
 
-@Controller
-class userController {
-  @Initbinder
-  toDate() {}
+const servers: Server[] = [];
 
-  @ModelAttribute()
-  initModel() {}
+afterEach(() => {
+  servers.forEach(server => server.close());
+});
+it('handler', () => {
+  const context = new Context({
+    scanFiles: 'test/mvc/handler.ts',
+    root: path.join(__dirname, '../'),
+  });
 
-  @RequestMapping()
-  @ResponseBody
-  get(
-    @CookieValue() cookie: string,
-    @PathVariable() name: string,
-    @RequestParam() id: string,
-    @Method method: string,
-    @RequestHeader() header: Map<any, any>,
-    @RequestBody
-    body: Buffer,
-  ) {}
-}
+  const bean = <RequestMapping>context.getBean('REQUEST_MAPPING');
+  const handler = bean['mapping'][0][1];
+  const server = http
+    .createServer((req, res) => {
+      const returnValue = handler.handle(req, res);
+      expect((<any>context.getBean('usercontroller'))['args']).toEqual([]);
+      expect(returnValue).toEqual([]);
+      return res.end('');
+    })
+    .listen(9222);
+  servers.push(server);
+  const req = http.request('http://localhost:9222/', {
+    method: 'GET',
+    headers: {},
+  });
+  req.end('');
+});

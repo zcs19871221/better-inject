@@ -1,5 +1,6 @@
 import AnnotationFactory from '../param_resolver/annotation_factory';
 import ModelAttributeAnnotationInfo from './annotationinfo';
+import helper from '../annotation/meta_helper';
 
 const Annotation = (
   modelKey: string = '',
@@ -8,6 +9,10 @@ const Annotation = (
   methodName: string,
   index: number,
 ) => {
+  const param = helper.getMethodParam(ctr, methodName)[index];
+  if (!modelKey) {
+    modelKey = param.name;
+  }
   return AnnotationFactory<ModelAttributeAnnotationInfo>(
     ctr,
     methodName,

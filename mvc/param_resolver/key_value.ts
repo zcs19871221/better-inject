@@ -54,7 +54,27 @@ export default abstract class KeyValue
       if (annotationInfo.isRequired && !map.has(key)) {
         throw new Error(this.type + '的键' + key + '对应值不存在');
       }
-      return map.get(key);
+      const type = resolveParamArgs.param.type;
+      const value = map.get(key);
+      if (type === String) {
+        return String(value);
+      }
+      if (type === Boolean) {
+        return Boolean(value);
+      }
+      if (type === Number) {
+        return Number(value);
+      }
+      if (type === Array) {
+        if (Array.isArray(value)) {
+          return value;
+        }
+        return [value];
+      }
+      return resolveParamArgs.dataBinder.convert(
+        map.get(key),
+        resolveParamArgs.param,
+      );
     }
     return map;
   }
@@ -74,7 +94,7 @@ export const Annotation = (type: KeyValueType) => (
     if (param.type === Map && key !== '') {
       throw new Error(type + '注解:Map类型不能传具体key');
     }
-    if (param.type === String && key === '') {
+    if (key === '') {
       targetKey = param.name;
     }
     return AnnotationFactory<KeyValueAnnotaionInfo>(ctr, methodName, index, {

@@ -4,7 +4,7 @@ import BeanFactory from '../../factory';
 
 interface Binder {
   type: string;
-  name: string;
+  name?: string;
   editor: (data: any) => any;
 }
 export default class DataBinder {
@@ -16,11 +16,14 @@ export default class DataBinder {
     });
   }
 
-  addConveter(obj: Binder) {
-    this.converters.push(obj);
+  addConveter(
+    condition: { type: any; name?: string },
+    editor: (data: any) => any,
+  ) {
+    this.converters.push({ ...condition, editor });
   }
 
-  convert(value: any, param: ParamInfo) {
+  convert(value: any, param: Omit<ParamInfo, 'annotations'>) {
     const binder = this.converters.find(e => {
       return e.type === param.type && (!e.name || e.name === param.name);
     });
