@@ -13,7 +13,7 @@ enum KeyValueEnum {
 }
 
 type KeyValueType = keyof typeof KeyValueEnum;
-interface KeyValueAnnotaionInfo extends ParamAnnotationInfo {
+export interface KeyValueAnnotaionInfo extends ParamAnnotationInfo {
   type: KeyValueType;
   key: string;
   isRequired: boolean;
@@ -30,25 +30,11 @@ export default abstract class KeyValue
     return paramInfo.annotations.some(e => e.type === this.type);
   }
 
-  private guard(
-    annotationInfo: ParamAnnotationInfo,
-  ): annotationInfo is KeyValueAnnotaionInfo {
-    return annotationInfo.type === 'ModelAttribute';
-  }
+  abstract getAnnotationInfo(paramInfo: ParamInfo): KeyValueAnnotaionInfo;
 
-  getAnnotationInfo(paramInfo: ParamInfo): KeyValueAnnotaionInfo | null {
-    const t = paramInfo.annotations.filter(this.guard);
-    if (t.length === 0) {
-      return null;
-    }
-    return t[0];
-  }
-
-  resolve(
-    resolveParamArgs: ResolveParamArgs,
-    annotationInfo: KeyValueAnnotaionInfo,
-  ): any {
+  resolve(resolveParamArgs: ResolveParamArgs): any {
     const map = this.getMap(resolveParamArgs);
+    const annotationInfo = this.getAnnotationInfo(resolveParamArgs.param);
     const key = annotationInfo.key.trim();
     if (key) {
       if (annotationInfo.isRequired && !map.has(key)) {

@@ -24,13 +24,13 @@ interface ParamInfo {
 }
 
 interface ParamResolver<T extends ParamAnnotationInfo> {
-  resolve(resolveParamArgs: ResolveParamArgs, annotationInfo: T | null): any;
+  resolve(resolveParamArgs: ResolveParamArgs): any;
   isSupport(paramInfo: ParamInfo): boolean;
   getAnnotationInfo(paramInfo: ParamInfo): T | null;
 }
 
 interface ResolveParamArgs {
-  param: Omit<ParamInfo, 'annotations'>;
+  param: ParamInfo;
   webRequest: WebRequest;
   model: ModelView;
   dataBinder: DataBinder;

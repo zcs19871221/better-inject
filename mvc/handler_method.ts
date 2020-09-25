@@ -37,7 +37,11 @@ export default class HandlerMethod {
   async handle(req: IncomingMessage, res: ServerResponse): Promise<any> {
     const webRequest = new WebRequest(req, res);
     const dataBinder = new DataBinder(this.args.initBinder, this.factory);
-    const model = this.initModel(webRequest, this.args.modelIniter, dataBinder);
+    const model = await this.initModel(
+      webRequest,
+      this.args.modelIniter,
+      dataBinder,
+    );
     const returnValue = await this.invokeMethod({
       webRequest,
       model,
@@ -74,7 +78,7 @@ export default class HandlerMethod {
     return model;
   }
 
-  private initModel(
+  private async initModel(
     webRequest: WebRequest,
     modelInfos: ModelMetaInfo[],
     dataBinder: DataBinder,
@@ -82,14 +86,15 @@ export default class HandlerMethod {
     const model: ModelView = new ModelView();
     for (const { modelKey, methodName, beanClass } of modelInfos) {
       const metaData = helper.get(beanClass);
-      if (metaData && metaData.methods[methodName]) {
+      if (metaData) {
         const bean: any = this.factory.getBeanFromClass(beanClass);
-        const methodMeta = metaData.methods[methodName];
-        const returnValue = this.invokeMethod({
+        const returnValue = await this.invokeMethod({
           webRequest,
           model,
           dataBinder,
-          paramInfos: methodMeta.paramInfos,
+          paramInfos: metaData.methods[methodName]
+            ? metaData.methods[methodName].paramInfos
+            : [],
           bean,
           beanMethod: methodName,
         });
@@ -131,16 +136,12 @@ export default class HandlerMethod {
       if (!paramResolver) {
         throw new Error(param.type + param.name + '不匹配参数解析器');
       }
-      const annotationInfo = paramResolver.getAnnotationInfo(param);
-      const value = paramResolver.resolve(
-        {
-          webRequest,
-          model,
-          param,
-          dataBinder,
-        },
-        annotationInfo,
-      );
+      const value = paramResolver.resolve({
+        webRequest,
+        model,
+        param,
+        dataBinder,
+      });
       return dataBinder.convert(value, param);
     });
   }

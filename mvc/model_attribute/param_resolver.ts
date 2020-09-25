@@ -22,11 +22,12 @@ export default class ModelAttributeResolver
     return t[0];
   }
 
-  resolve(
-    resolveParamArgs: ResolveParamArgs,
-    annotationInfo: ModelAttributeAnnotationInfo,
-  ) {
+  resolve(resolveParamArgs: ResolveParamArgs) {
     const map = resolveParamArgs.model.getModel();
+    const annotationInfo = this.getAnnotationInfo(resolveParamArgs.param);
+    if (!annotationInfo) {
+      throw new Error('model attribute没有设置key');
+    }
     const modelKey = annotationInfo.modelKey;
     if (annotationInfo.isRequired && !map.has(modelKey)) {
       throw new Error('model' + modelKey + '不存在');
