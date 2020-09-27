@@ -22,7 +22,7 @@ export default class ModelAttributeResolver
     return t[0];
   }
 
-  resolve(resolveParamArgs: ResolveParamArgs) {
+  async resolve(resolveParamArgs: ResolveParamArgs) {
     const map = resolveParamArgs.model.getModel();
     const annotationInfo = this.getAnnotationInfo(resolveParamArgs.param);
     if (!annotationInfo) {

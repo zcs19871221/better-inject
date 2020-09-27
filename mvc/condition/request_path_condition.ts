@@ -37,7 +37,7 @@ export default class RequestPathCondition extends RequestCondition<
   doGetMatchingCondition(req: IncomingMessage) {
     const matched: PathPattern[] = [];
     this.getContent().forEach(each => {
-      const t = each.getMatchingCondition(String(req.url));
+      const t = each.getMatchingCondition(String(req.url).replace(/\?.*/, ''));
       if (t !== null) {
         matched.push(t);
       }

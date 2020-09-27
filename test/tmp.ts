@@ -27,4 +27,5 @@ const req = http.request(
     },
   },
 );
-req.end(JSON.stringify({ userId: 'a12fe', userName: 'runner_zcs' }));
+req.write(JSON.stringify({ userId: 'a12fe', userName: 'runner_zcs' }));
+req.end();

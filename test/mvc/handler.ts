@@ -72,7 +72,7 @@ export default class userController {
     @CookieValue('jsessionid') sessionCookie: string,
     @CookieValue() token: string,
     @PathVariable() allPath: Map<any, any>,
-    @PathVariable('opeartion') pathOperation: string,
+    @PathVariable('operation') pathOperation: string,
     @PathVariable() name: string,
     @RequestParam() allParams: Map<any, any>,
     @RequestParam('time') timeParam: string,

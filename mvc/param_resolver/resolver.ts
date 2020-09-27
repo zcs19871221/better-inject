@@ -24,7 +24,7 @@ interface ParamInfo {
 }
 
 interface ParamResolver<T extends ParamAnnotationInfo> {
-  resolve(resolveParamArgs: ResolveParamArgs): any;
+  resolve(resolveParamArgs: ResolveParamArgs): Promise<any>;
   isSupport(paramInfo: ParamInfo): boolean;
   getAnnotationInfo(paramInfo: ParamInfo): T | null;
 }

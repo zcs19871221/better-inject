@@ -22,7 +22,7 @@ export default class ParamTypeResolver
     return null;
   }
 
-  resolve(resolveParamArgs: ResolveParamArgs) {
+  async resolve(resolveParamArgs: ResolveParamArgs) {
     switch (resolveParamArgs.param.type) {
       case IncomingMessage:
         return resolveParamArgs.webRequest.getRequest();

@@ -32,7 +32,7 @@ export default abstract class KeyValue
 
   abstract getAnnotationInfo(paramInfo: ParamInfo): KeyValueAnnotaionInfo;
 
-  resolve(resolveParamArgs: ResolveParamArgs): any {
+  async resolve(resolveParamArgs: ResolveParamArgs) {
     const map = this.getMap(resolveParamArgs);
     const annotationInfo = this.getAnnotationInfo(resolveParamArgs.param);
     const key = annotationInfo.key.trim();
@@ -79,6 +79,9 @@ export const Annotation = (type: KeyValueType) => (
     const param = helper.getMethodParam(ctr, methodName)[index];
     if (param.type === Map && key !== '') {
       throw new Error(type + '注解:Map类型不能传具体key');
+    }
+    if (param.type !== Map && key === '') {
+      targetKey = param.name;
     }
     return AnnotationFactory<KeyValueAnnotaionInfo>(ctr, methodName, index, {
       type,

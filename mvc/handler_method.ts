@@ -121,28 +121,38 @@ export default class HandlerMethod {
     bean: any;
     beanMethod: any;
   }) {
-    const args = this.createArgs(webRequest, model, dataBinder, paramInfos);
+    const args = await this.createArgs(
+      webRequest,
+      model,
+      dataBinder,
+      paramInfos,
+    );
     return await Reflect.apply(Reflect.get(bean, beanMethod), bean, args);
   }
 
-  private createArgs(
+  private async createArgs(
     webRequest: WebRequest,
     model: ModelView,
     dataBinder: DataBinder,
     paramInfos: ParamInfo[],
-  ): any[] {
-    return paramInfos.map(param => {
-      const paramResolver = this.paramResolvers.find(e => e.isSupport(param));
-      if (!paramResolver) {
-        throw new Error(param.type + param.name + '不匹配参数解析器');
-      }
-      const value = paramResolver.resolve({
-        webRequest,
-        model,
-        param,
-        dataBinder,
-      });
-      return dataBinder.convert(value, param);
-    });
+  ): Promise<any[]> {
+    return Promise.all(
+      paramInfos.map(param => {
+        const paramResolver = this.paramResolvers.find(e => e.isSupport(param));
+        if (!paramResolver) {
+          throw new Error(param.type + param.name + '不匹配参数解析器');
+        }
+        return paramResolver
+          .resolve({
+            webRequest,
+            model,
+            param,
+            dataBinder,
+          })
+          .then((value: any) => {
+            return dataBinder.convert(value, param);
+          });
+      }),
+    );
   }
 }

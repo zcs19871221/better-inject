@@ -31,33 +31,32 @@ export default class RequestBodyResolver
     return t[0];
   }
 
-  resolve(input: ResolveParamArgs): Promise<any> {
-    return new Promise((resolve, reject) => {
-      const buf: Buffer[] = [];
-      let len: number = 0;
-      const req = input.webRequest.getRequest();
-      if (req.body) {
-        const { charset, mediaType } = input.webRequest.getContentType();
-        try {
-          return resolve(this.handleBody(input, req.body, charset, mediaType));
-        } catch (error) {
-          return reject(error);
-        }
-      }
-      req.on('data', (chunk: Buffer) => {
-        buf.push(chunk);
-        len += chunk.length;
-      });
-      req.on('end', () => {
-        try {
-          const { charset, mediaType } = input.webRequest.getContentType();
-          const body: Buffer = Buffer.concat(buf, len);
-          return resolve(this.handleBody(input, body, charset, mediaType));
-        } catch (error) {
-          reject(error);
-        }
-      });
-    });
+  async resolve(input: ResolveParamArgs): Promise<any> {
+    const req = input.webRequest.getRequest();
+    if (!req.body) {
+      req.body = () =>
+        new Promise((resolve, reject) => {
+          const buf: Buffer[] = [];
+          let len: number = 0;
+          const req = input.webRequest.getRequest();
+
+          req.on('data', (chunk: Buffer) => {
+            buf.push(chunk);
+            len += chunk.length;
+          });
+          req.on('end', () => {
+            try {
+              const body: Buffer = Buffer.concat(buf, len);
+              return resolve(body);
+            } catch (error) {
+              reject(error);
+            }
+          });
+        });
+    }
+    const body = await req.body();
+    const { charset, mediaType } = input.webRequest.getContentType();
+    return await this.handleBody(input, body, charset, mediaType);
   }
 
   private handleBody(
@@ -74,7 +73,11 @@ export default class RequestBodyResolver
       return bodyStr;
     }
     if (mediaType.includes('application/json') && input.param.type === Object) {
-      return JSON.parse(bodyStr);
+      try {
+        return JSON.parse(bodyStr);
+      } catch (error) {
+        return {};
+      }
     }
     if (mediaType.includes('application/x-www-form-urlencoded')) {
       return parse(bodyStr);
@@ -83,7 +86,7 @@ export default class RequestBodyResolver
   }
 
   private Buffer2String(result: Buffer, charset: string): string {
-    if (charset.toLowerCase() !== 'utf-8') {
+    if (charset && charset.toLowerCase() !== 'utf-8') {
       return iconvLite.decode(result, charset);
     }
     return String(result);

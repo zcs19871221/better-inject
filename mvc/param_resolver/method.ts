@@ -24,7 +24,7 @@ export default class MethodParamResolver
     return t[0];
   }
 
-  resolve(resolveParamArgs: ResolveParamArgs) {
+  async resolve(resolveParamArgs: ResolveParamArgs) {
     return resolveParamArgs.webRequest.getRequestMethod();
   }
 

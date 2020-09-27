@@ -50,7 +50,7 @@ export default class RequestMapping {
     }
     const [bestMppingInfo, handler] = matched[0];
     req.requestMappingInfo = bestMppingInfo;
-    req.params = parse(req.url);
+    req.params = parse(req.url?.replace(/[^?]+\?/, ''));
     return handler;
   }
 
