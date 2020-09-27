@@ -8,9 +8,9 @@ const context = new Context({
 });
 
 const bean = <RequestMapping>context.getBean('REQUEST_MAPPING');
-const handler = bean['mapping'][0][1];
 http
   .createServer((req, res) => {
+    const handler = bean.getHandler(req);
     const returnValue = handler.handle(req, res);
     console.log(returnValue);
     return res.end('');
@@ -21,7 +21,7 @@ const req = http.request(
   {
     method: 'POST',
     headers: {
-      cookie: 'jsessionid:1987;',
+      cookie: 'jsessionid=1987;token=9494',
       'content-type': 'application/json',
       accept: '*/*',
     },

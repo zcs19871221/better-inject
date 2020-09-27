@@ -36,6 +36,14 @@ export default class RequestBodyResolver
       const buf: Buffer[] = [];
       let len: number = 0;
       const req = input.webRequest.getRequest();
+      if (req.body) {
+        const { charset, mediaType } = input.webRequest.getContentType();
+        try {
+          return resolve(this.handleBody(input, req.body, charset, mediaType));
+        } catch (error) {
+          return reject(error);
+        }
+      }
       req.on('data', (chunk: Buffer) => {
         buf.push(chunk);
         len += chunk.length;
@@ -43,29 +51,35 @@ export default class RequestBodyResolver
       req.on('end', () => {
         try {
           const { charset, mediaType } = input.webRequest.getContentType();
-          const result: Buffer = Buffer.concat(buf, len);
-          if (input.param.type === Buffer) {
-            return resolve(result);
-          }
-          const bodyStr = this.Buffer2String(result, charset);
-          if (input.param.type === String) {
-            return resolve(bodyStr);
-          }
-          if (
-            mediaType.includes('application/json') &&
-            input.param.type === Object
-          ) {
-            return JSON.parse(bodyStr);
-          }
-          if (mediaType.includes('application/x-www-form-urlencoded')) {
-            return parse(bodyStr);
-          }
-          return input.dataBinder.convert(bodyStr, input.param);
+          const body: Buffer = Buffer.concat(buf, len);
+          return resolve(this.handleBody(input, body, charset, mediaType));
         } catch (error) {
           reject(error);
         }
       });
     });
+  }
+
+  private handleBody(
+    input: ResolveParamArgs,
+    body: Buffer,
+    charset: string,
+    mediaType: string,
+  ) {
+    if (input.param.type === Buffer) {
+      return body;
+    }
+    const bodyStr = this.Buffer2String(body, charset);
+    if (input.param.type === String) {
+      return bodyStr;
+    }
+    if (mediaType.includes('application/json') && input.param.type === Object) {
+      return JSON.parse(bodyStr);
+    }
+    if (mediaType.includes('application/x-www-form-urlencoded')) {
+      return parse(bodyStr);
+    }
+    return input.dataBinder.convert(bodyStr, input.param);
   }
 
   private Buffer2String(result: Buffer, charset: string): string {

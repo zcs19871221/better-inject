@@ -3,6 +3,7 @@ import HandlerMethod from './handler_method';
 import RequestMappingInfo from './request_mapping_info';
 import helper from './annotation/meta_helper';
 import BeanFactory from '../factory';
+import { parse } from './query_string';
 
 export default class RequestMapping {
   private mapping: [RequestMappingInfo, HandlerMethod][] = [];
@@ -49,6 +50,7 @@ export default class RequestMapping {
     }
     const [bestMppingInfo, handler] = matched[0];
     req.requestMappingInfo = bestMppingInfo;
+    req.params = parse(req.url);
     return handler;
   }
 

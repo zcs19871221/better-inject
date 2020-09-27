@@ -80,9 +80,6 @@ export const Annotation = (type: KeyValueType) => (
     if (param.type === Map && key !== '') {
       throw new Error(type + '注解:Map类型不能传具体key');
     }
-    if (key === '') {
-      targetKey = param.name;
-    }
     return AnnotationFactory<KeyValueAnnotaionInfo>(ctr, methodName, index, {
       type,
       isRequired,
