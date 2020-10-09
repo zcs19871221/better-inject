@@ -28,9 +28,8 @@ module.exports = {
   clearMocks: true,
   resetMocks: false,
   restoreMocks: false,
-  testMatch: ['**/__tests__/**/*.[jt]s?(x)', '<rootDir>/**/*.test.[jt]s?(x)'],
-  collectCoverageFrom: ['<rootDir>/**/*.[jt]s?(x)'],
-  modulePathIgnorePatterns: ['<rootDir>/dist/'],
+  testMatch: ['<rootDir>/dist/**/*.test.[jt]s?(x)'],
+  collectCoverageFrom: ['<rootDir>/dist/**/*.[jt]s?(x)'],
   coverageDirectory: '<rootDir>/test/coverage',
   coverageThreshold: {
     global: {
@@ -42,9 +41,6 @@ module.exports = {
   },
   errorOnDeprecated: true,
   testEnvironment: 'node',
-  transform: {
-    '^.+\\.(ts|tsx)$': 'ts-jest',
-  },
   ...alias,
   transformIgnorePatterns: ['[/\\\\]node_modules[/\\\\].+\\.(js|jsx|mjs)$'],
 };

@@ -1,7 +1,11 @@
 import { IncomingMessage, ServerResponse } from 'http';
-import { MethodMeta, MvcMeta, ModelMetaInfo, ParamInfo } from '.';
 import ModelView from './model_view';
-import helper from './annotation/meta_helper';
+import helper, {
+  MethodMeta,
+  MvcMeta,
+  ModelMetaInfo,
+  ParamInfo,
+} from './meta_helper';
 import { DataBinder } from './data_binder';
 import BeanFactory from 'factory';
 import paramResolvers, {
@@ -34,7 +38,7 @@ export default class HandlerMethod {
     return this.args.beanMethod;
   }
 
-  async handle(req: IncomingMessage, res: ServerResponse): Promise<any> {
+  async handle(req: IncomingMessage, res: ServerResponse): Promise<ModelView> {
     const webRequest = new WebRequest(req, res);
     const dataBinder = new DataBinder(this.args.initBinder, this.factory);
     const model = await this.initModel(

@@ -2,16 +2,13 @@ import path from 'path';
 import LocateParser from '.';
 
 it('getLocate', () => {
-  const parser = new LocateParser(
-    [
-      'definition/index.ts',
-      './locateparser/index.ts',
-      '../better-inject/package.json',
-      'package.json',
-      './package-lock.json',
-    ],
-    path.join(__dirname, '../'),
-  );
+  const parser = new LocateParser([
+    'definition/index.ts',
+    './locateparser/index.ts',
+    '../better-inject/package.json',
+    'package.json',
+    './package-lock.json',
+  ]);
   expect(parser.getLocates()).toEqual([
     path.join(process.cwd(), 'definition/index.ts'),
     path.join(process.cwd(), 'locateparser/index.ts'),
@@ -22,10 +19,11 @@ it('getLocate', () => {
 });
 
 it('getLocate with ** and *', () => {
-  const parser = new LocateParser(
-    ['test/**/*.js', 'test/**/target.ts', 'test/c/*'],
-    path.join(__dirname, '../'),
-  );
+  const parser = new LocateParser([
+    'test/**/*.js',
+    'test/**/target.ts',
+    'test/c/*',
+  ]);
   expect(parser.getLocates()).toEqual([
     path.join(process.cwd(), 'test/a/a.js'),
     path.join(process.cwd(), 'test/b/b.js'),
@@ -36,7 +34,7 @@ it('getLocate with ** and *', () => {
 });
 
 it('only *', () => {
-  const parser = new LocateParser('*.ts', path.join(__dirname, '../'));
+  const parser = new LocateParser('*.ts');
   expect(parser.getLocates().sort()).toEqual(
     [
       path.join(process.cwd(), 'index.ts'),
@@ -46,6 +44,6 @@ it('only *', () => {
 });
 
 it('require json', () => {
-  const parser = new LocateParser('package.json', path.join(__dirname, '../'));
+  const parser = new LocateParser('package.json');
   expect(parser.require()[0].name).toEqual('better-inject');
 });

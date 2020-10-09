@@ -1,7 +1,7 @@
 import { IncomingMessage } from 'http';
 import HandlerMethod from './handler_method';
 import RequestMappingInfo from './request_mapping_info';
-import helper from './annotation/meta_helper';
+import helper from './meta_helper';
 import BeanFactory from '../factory';
 import { parse } from './query_string';
 
@@ -63,7 +63,7 @@ export default class RequestMapping {
     Object.entries(methods).forEach(([beanMethod, methodMeta]) => {
       const info = methodMeta.mappingInfo;
       if (!info) {
-        throw new Error(beanMethod + '不存在info');
+        return;
       }
       const key = info.hashCode();
       if (this.infoKeySet.has(key)) {

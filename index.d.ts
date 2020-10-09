@@ -4,6 +4,7 @@ declare module 'http' {
   interface IncomingMessage {
     params: { [key: string]: string | string[] };
     requestMappingInfo: RequestMappingInfo;
-    body?: () => Promise<Buffer>;
+    body?: Promise<Buffer>;
+    bodyLength?: number;
   }
 }

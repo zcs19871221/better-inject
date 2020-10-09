@@ -10,6 +10,7 @@ const context = new Context({
 const bean = <RequestMapping>context.getBean('REQUEST_MAPPING');
 http
   .createServer((req, res) => {
+    console.log(bean['mapping']);
     const handler = bean.getHandler(req);
     const returnValue = handler.handle(req, res);
     console.log(returnValue);

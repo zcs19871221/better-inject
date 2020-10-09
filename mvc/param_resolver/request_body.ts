@@ -34,27 +34,22 @@ export default class RequestBodyResolver
   async resolve(input: ResolveParamArgs): Promise<any> {
     const req = input.webRequest.getRequest();
     if (!req.body) {
-      req.body = () =>
-        new Promise((resolve, reject) => {
-          const buf: Buffer[] = [];
-          let len: number = 0;
-          const req = input.webRequest.getRequest();
-
-          req.on('data', (chunk: Buffer) => {
-            buf.push(chunk);
-            len += chunk.length;
-          });
-          req.on('end', () => {
-            try {
-              const body: Buffer = Buffer.concat(buf, len);
-              return resolve(body);
-            } catch (error) {
-              reject(error);
-            }
-          });
+      req.body = new Promise(resolve => {
+        const buf: Buffer[] = [];
+        let len: number = 0;
+        const req = input.webRequest.getRequest();
+        req.on('data', (chunk: Buffer) => {
+          buf.push(chunk);
+          len += chunk.length;
         });
+        req.on('end', () => {
+          const body: Buffer = Buffer.concat(buf, len);
+          req.bodyLength = Buffer.byteLength(body);
+          return resolve(body);
+        });
+      });
     }
-    const body = await req.body();
+    const body = await req.body;
     const { charset, mediaType } = input.webRequest.getContentType();
     return await this.handleBody(input, body, charset, mediaType);
   }

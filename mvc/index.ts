@@ -1,20 +1,28 @@
-import RequestMappingInfo from './request_mapping_info';
-import { ReturnInfo } from './return_value_handler/return_value_handler';
-import { ParamInfo } from './param_resolver/resolver';
-import { BinderInfo } from './data_binder';
-import ModelMetaInfo from './model_attribute/metainfo';
+import Controller from './controller';
+import RequestMapping from './request_mapping';
+import { Initbinder } from './data_binder';
+import { Annotation as ModelAttribute } from './model_attribute';
+import { Annotation } from './param_resolver';
+import { ResponseBody } from './return_value_handler';
 
-interface MethodMeta {
-  mappingInfo?: RequestMappingInfo;
-  paramInfos: ParamInfo[];
-  returnInfo: ReturnInfo;
-}
-
-interface MvcMeta {
-  methods: { [method: string]: MethodMeta };
-  modelIniter: ModelMetaInfo[];
-  initBinder: BinderInfo[];
-  requestMappingMethods: string[];
-}
-
-export { MethodMeta, MvcMeta, ModelMetaInfo, ParamInfo };
+const {
+  CookieValue,
+  PathVariable,
+  RequestHeader,
+  RequestParam,
+  RequestBody,
+  Method,
+} = Annotation;
+export {
+  Controller,
+  Initbinder,
+  ModelAttribute,
+  CookieValue,
+  PathVariable,
+  RequestHeader,
+  RequestParam,
+  RequestBody,
+  Method,
+  ResponseBody,
+  RequestMapping,
+};

@@ -1,4 +1,3 @@
-import path from 'path';
 import Context from '.';
 import Service from '../test/service';
 import Loginfo from '../test/loginfo';
@@ -6,7 +5,7 @@ import Loginfo from '../test/loginfo';
 it('aop single', () => {
   const context = new Context({
     configFiles: 'test/aop_config.ts',
-    root: path.join(__dirname, '../'),
+    scanFiles: 'test/loginfo.ts',
   });
   const logger: any[] = [];
   const logInfo = <Loginfo>context.getBean('logInfo');
@@ -29,7 +28,6 @@ it('aop single', () => {
 it('aop single throw', () => {
   const context = new Context({
     configFiles: 'test/aop_config.ts',
-    root: path.join(__dirname, '../'),
   });
   const logger: any[] = [];
   const logInfo = <Loginfo>context.getBean('logInfo');
@@ -49,7 +47,6 @@ it('aop single throw', () => {
 it('aop double', () => {
   const context = new Context({
     configFiles: 'test/aop_config.ts',
-    root: path.join(__dirname, '../'),
   });
   const logger: any[] = [];
   const logInfo = <Loginfo>context.getBean('logInfo');
@@ -79,7 +76,6 @@ it('aop double', () => {
 it('aop double with order desc', () => {
   const context = new Context({
     configFiles: 'test/aop_config_order.ts',
-    root: path.join(__dirname, '../'),
   });
   const logger: any[] = [];
   const logInfo = <Loginfo>context.getBean('logInfo');
@@ -109,7 +105,6 @@ it('aop double with order desc', () => {
 it('aop double throw', () => {
   const context = new Context({
     configFiles: 'test/aop_config.ts',
-    root: path.join(__dirname, '../'),
   });
   const logger: any[] = [];
   const logInfo = <Loginfo>context.getBean('logInfo');

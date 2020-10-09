@@ -1,4 +1,4 @@
-import helper from '../annotation/meta_helper';
+import helper from '../meta_helper';
 import { ParamAnnotationInfo } from './resolver';
 
 export default function AnnotationFactory<T extends ParamAnnotationInfo>(

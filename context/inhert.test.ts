@@ -1,10 +1,8 @@
-import path from 'path';
 import Context from '.';
 
 it('context with inherit', () => {
   const context = new Context({
     configFiles: 'test/inerit/config.ts',
-    root: path.join(__dirname, '../'),
   });
   expect(<any>(<any>context.getBean('sub1')).getAll()).toBe('张三男burger');
   expect(<any>(<any>context.getBean('sub2')).getAll()).toBe('张三男coke cola');

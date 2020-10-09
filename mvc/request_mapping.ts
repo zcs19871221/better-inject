@@ -1,10 +1,9 @@
 import { ServerResponse } from 'http';
 import RequestMappingInfo, {
   RequestMappingInfoArgs,
-} from '../request_mapping_info';
-import helper from './meta_helper';
-import ModelView from '../model_view';
-import { MvcMeta } from '..';
+} from './request_mapping_info';
+import helper, { MvcMeta } from './meta_helper';
+import ModelView from './model_view';
 
 const RequestMapping = (args: Omit<RequestMappingInfoArgs, 'type'> = {}) => (
   ctr: any,
@@ -17,28 +16,18 @@ const RequestMapping = (args: Omit<RequestMappingInfoArgs, 'type'> = {}) => (
     handleClass(ctr, info);
   }
 };
-const filterAndCheckMapping = (mvcMeta: MvcMeta) => {
-  mvcMeta.methods = Object.entries(mvcMeta.methods).reduce(
-    (acc: MvcMeta['methods'], cur) => {
-      if (cur[1].mappingInfo !== undefined) {
-        acc[cur[0]] = cur[1];
-      }
-      return acc;
-    },
-    {},
-  );
-  if (Object.keys(mvcMeta.methods).length === 0) {
+const checkingController = (mvcMeta: MvcMeta) => {
+  if (Object.values(mvcMeta.methods).every(e => e.mappingInfo === undefined)) {
     throw new Error('没有方法定义RequestMapping');
   }
 };
 function handleClass(ctr: any, info: RequestMappingInfo) {
   const mvcMeta = helper.getIfNotExisisInit(ctr);
-  filterAndCheckMapping(mvcMeta);
+  checkingController(mvcMeta);
   Object.values(mvcMeta.methods).forEach(data => {
-    if (!data.mappingInfo) {
-      throw new Error('data.mappingInfo');
+    if (data.mappingInfo) {
+      data.mappingInfo = info.combine(data.mappingInfo);
     }
-    data.mappingInfo = info.combine(data.mappingInfo);
   });
   helper.set(ctr, mvcMeta);
 }
@@ -67,4 +56,4 @@ function handleMethod(ctr: any, methodName: string, info: RequestMappingInfo) {
 }
 
 export default RequestMapping;
-export { filterAndCheckMapping };
+export { checkingController };
