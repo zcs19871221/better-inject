@@ -4,7 +4,7 @@ import ParamResolver, {
   ParamInfo,
 } from './resolver';
 import AnnotationFactory from './annotation_factory';
-import helper from '../annotation/meta_helper';
+import helper from '../meta_helper';
 enum KeyValueEnum {
   CookieValue,
   PathVariable,

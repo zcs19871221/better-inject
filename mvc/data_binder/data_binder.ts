@@ -1,4 +1,4 @@
-import { ParamInfo } from '..';
+import { ParamInfo } from '../meta_helper';
 import { BinderInfo } from '.';
 import BeanFactory from '../../factory';
 

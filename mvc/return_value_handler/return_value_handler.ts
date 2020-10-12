@@ -1,5 +1,5 @@
 import ModelView from '../model_view';
-import { ParamInfo } from '..';
+import { ParamInfo } from '../meta_helper';
 import WebRequest from '../webrequest';
 
 interface ResponseBodyAnnotationInfo {

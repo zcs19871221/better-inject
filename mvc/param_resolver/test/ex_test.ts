@@ -1,6 +1,7 @@
 import {
   Controller,
   RequestMapping,
+  ModelAttribute,
   CookieValue,
   PathVariable,
   RequestHeader,
@@ -8,16 +9,24 @@ import {
   RequestBody,
   Method,
 } from '../..';
+import { ServerResponse, IncomingMessage } from 'http';
+import ModelView from '../../model_view';
+import WebRequest from '../../webrequest';
 
 @Controller
-@RequestMapping({ path: '/' })
+@RequestMapping({ path: '/{base}' })
 export default class paramResolverController {
   public args: any = {};
+
+  @ModelAttribute('name')
+  initName(): string {
+    return 'zcs';
+  }
 
   @RequestMapping({ path: '/cookie' })
   getCookie(
     @CookieValue() allCookie: Map<any, any>,
-    @CookieValue('jsessionid') sessionid: Map<any, any>,
+    @CookieValue('jsessionid') sessionid: string,
   ): string {
     this.args.cookie = {
       allCookie,
@@ -74,7 +83,7 @@ export default class paramResolverController {
 
   @RequestMapping({ path: '/requestMethod' })
   getRequestMethod(@Method method: string): string {
-    this.args.method = method;
+    this.args.requestMethod = method;
     return '';
   }
 
@@ -98,6 +107,32 @@ export default class paramResolverController {
   })
   getRequestBodyUrlEncoded(@RequestBody body: Object): string {
     this.args.bodyEncoded = body;
+    return '';
+  }
+
+  @RequestMapping({
+    path: '/requestBodyGbk',
+  })
+  getRequestBodyAndCharSetDecode(@RequestBody body: string): string {
+    this.args.decodeGbk = body;
+    return '';
+  }
+
+  @RequestMapping({
+    path: '/typeParam',
+  })
+  typeParam(
+    req: IncomingMessage,
+    res: ServerResponse,
+    wr: WebRequest,
+    modelView: ModelView,
+  ): string {
+    this.args.typeParam = {
+      req,
+      res,
+      wr,
+      modelView,
+    };
     return '';
   }
 }

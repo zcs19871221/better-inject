@@ -1,5 +1,5 @@
 import { isClass, classToId } from '../../annotation/class_utils';
-import helper from '../annotation/meta_helper';
+import helper from '../meta_helper';
 import ModelMetaInfo from './metainfo';
 
 const ModelAttribute = (key: string, ctr: any, methodName: string) => {
@@ -7,7 +7,7 @@ const ModelAttribute = (key: string, ctr: any, methodName: string) => {
   const mvcMeta = helper.getIfNotExisisInit(ctr);
   const returnType = helper.getMethodReturnType(ctr, methodName);
   if (returnType === undefined && key) {
-    throw new Error('modelAttribute设置key了必须有返回值');
+    throw new Error('modelAttribute设置key了返回值类型不能是void');
   }
   if (!key && isClass(returnType)) {
     key = classToId(returnType);

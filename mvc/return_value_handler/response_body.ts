@@ -2,7 +2,7 @@ import ReturnValueHandler, {
   ReturnValueHandlerArguments,
   ReturnInfo,
 } from './return_value_handler';
-import helper from '../annotation/meta_helper';
+import helper from '../meta_helper';
 
 const ResponseBody = (ctr: any, methodName: string) => {
   const returnType = helper.getMethodReturnType(ctr, methodName);

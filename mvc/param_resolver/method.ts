@@ -1,9 +1,9 @@
 import ParamResolver, {
   ResolveParamArgs,
-  // MethodAnnotationInfo,
   ParamInfo,
   ParamAnnotationInfo,
 } from './resolver';
+import helper from '../meta_helper';
 import AnnotationFactory from './annotation_factory';
 
 interface MethodAnnotationInfo extends ParamAnnotationInfo {
@@ -33,13 +33,12 @@ export default class MethodParamResolver
   }
 }
 
-export const Annotation = (ctr: any, methodName: string, index: number) =>
-  AnnotationFactory<MethodAnnotationInfo>(
-    ctr,
-    methodName,
-    index,
-    {
-      type: 'Method',
-    },
-    [String],
-  );
+export const Annotation = (ctr: any, methodName: string, index: number) => {
+  const param = helper.getMethodParam(ctr, methodName)[index];
+  if (param.type !== String) {
+    throw new Error('Method注解目标类型必须是string');
+  }
+  return AnnotationFactory<MethodAnnotationInfo>(ctr, methodName, index, {
+    type: 'Method',
+  });
+};
