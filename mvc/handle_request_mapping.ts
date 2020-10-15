@@ -32,7 +32,9 @@ export default class RequestMapping {
       });
     }
     if (matched.length === 0) {
-      throw new Error('请求条件：' + req.url + req.method + '没有匹配拦截器');
+      throw new Error(
+        '请求条件：' + req.method + ' ' + req.url + '没有匹配拦截器',
+      );
     }
     matched.sort((a, b) => {
       return a[0].compareTo(b[0], req);

@@ -38,8 +38,7 @@ export default class HandlerMethod {
     return this.args.beanMethod;
   }
 
-  async handle(req: IncomingMessage, res: ServerResponse): Promise<ModelView> {
-    const webRequest = new WebRequest(req, res);
+  async handle(webRequest: WebRequest): Promise<ModelView | null> {
     const dataBinder = new DataBinder(this.args.initBinder, this.factory);
     const model = await this.initModel(
       webRequest,
@@ -61,7 +60,7 @@ export default class HandlerMethod {
     model: ModelView,
     webRequest: WebRequest,
     returnValue: any,
-  ): Promise<ModelView> {
+  ): Promise<ModelView | null> {
     if (
       !this.returnValueHandlers.some(e => e.isSupport(this.args.returnInfo))
     ) {
@@ -76,8 +75,10 @@ export default class HandlerMethod {
           model,
           paramInfos: this.args.paramInfos,
         });
-        break;
       }
+    }
+    if (webRequest.isRequestHandled()) {
+      return null;
     }
     return model;
   }
@@ -146,16 +147,12 @@ export default class HandlerMethod {
         if (!paramResolver) {
           throw new Error(param.type + param.name + '不匹配参数解析器');
         }
-        return paramResolver
-          .resolve({
-            webRequest,
-            model,
-            param,
-            dataBinder,
-          })
-          .then((value: any) => {
-            return dataBinder.convert(value, param);
-          });
+        return paramResolver.resolve({
+          webRequest,
+          model,
+          param,
+          dataBinder,
+        });
       }),
     );
   }

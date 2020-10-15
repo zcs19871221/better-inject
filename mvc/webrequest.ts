@@ -9,7 +9,7 @@ export default class WebRequest {
     this.res = res;
   }
 
-  canResponse(): boolean {
+  isRequestHandled(): boolean {
     return this.res.writableEnded;
   }
 
@@ -21,21 +21,17 @@ export default class WebRequest {
       this.res.on('finish', () => {
         resolve();
       });
-      this.setDefaultContentType();
+      if (this.canSetHeader() && !this.res.hasHeader('content-type')) {
+        this.setHeader({
+          'content-type': String(this.req.headers['content-type']),
+        });
+      }
       if (typeof value === 'string' || Buffer.isBuffer(value)) {
         this.setDefaultContentLength(value);
         return this.res.end(value);
       }
       value.pipe(this.res);
     });
-  }
-
-  private setDefaultContentType() {
-    if (this.canSetHeader() && !this.res.hasHeader('content-type')) {
-      this.setHeader({
-        'content-type': String(this.req.headers['content-type']),
-      });
-    }
   }
 
   private parseContentType(contentType: string) {
@@ -147,7 +143,11 @@ export default class WebRequest {
     return new Map(Object.entries(this.req.params));
   }
 
-  getContentType(): { mediaType: string; charset: string; boundary: string } {
+  getContentType(): {
+    mediaType: string;
+    charset: string;
+    boundary: string;
+  } {
     return this.parseContentType(this.getRequestHeader('content-type'));
   }
 

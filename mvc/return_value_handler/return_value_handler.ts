@@ -5,7 +5,19 @@ import WebRequest from '../webrequest';
 interface ResponseBodyAnnotationInfo {
   type: 'ResponseBody';
 }
-type ReturnAnnotationInfo = ResponseBodyAnnotationInfo;
+interface ResponseHeaderAnnotationInfo {
+  type: 'ResponseHeader';
+  key: string;
+  value: string;
+}
+interface ResponseStatusAnnotationInfo {
+  type: 'ResponseStatus';
+  status: number;
+}
+type ReturnAnnotationInfo =
+  | ResponseBodyAnnotationInfo
+  | ResponseStatusAnnotationInfo
+  | ResponseHeaderAnnotationInfo;
 interface ReturnInfo {
   type: any;
   annotations: ReturnAnnotationInfo[];
@@ -18,7 +30,13 @@ interface ReturnValueHandlerArguments {
   model: ModelView;
   paramInfos: ParamInfo[];
 }
-export { ReturnValueHandlerArguments, ReturnInfo };
+export {
+  ReturnValueHandlerArguments,
+  ReturnInfo,
+  ResponseHeaderAnnotationInfo,
+  ResponseStatusAnnotationInfo,
+  ReturnAnnotationInfo,
+};
 export default interface ReturnValueHandler {
   handleReturnValue(input: ReturnValueHandlerArguments): Promise<any>;
   isSupport(input: ReturnInfo): boolean;

@@ -116,6 +116,15 @@ it('varaible', () => {
   expect(varaible.get('work')).toBe('Program');
 });
 
+it('varaible ** and last ', () => {
+  const obj = new Condition('/it/**/{key}.*');
+  const matched = <Condition>(
+    obj.getMatchingCondition('/it/doProgramharder/x/y/docid.html')
+  );
+  const varaible = matched.getVariableMap();
+  expect(varaible.get('key')).toBe('docid');
+});
+
 it('combine normal', () => {
   let class1 = new Condition('/abcd');
   let method1 = new Condition('efgh');

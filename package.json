@@ -44,6 +44,7 @@
     "typescript": "^3.9.7"
   },
   "dependencies": {
+    "@types/pug": "^2.0.4",
     "reflect-metadata": "^0.1.13"
   }
 }
