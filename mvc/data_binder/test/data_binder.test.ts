@@ -3,6 +3,7 @@ import Request from 'better-request';
 import http from 'http';
 import Context from '../../../context';
 import RequestMapping from '../../handle_request_mapping';
+import WebRequest from '../../webrequest';
 import { User } from './ex_test';
 
 const context = new Context({
@@ -18,7 +19,7 @@ beforeAll(() => {
     .createServer(async (req, res) => {
       const handler = bean.getHandler(req);
       try {
-        await handler.handle(req, res);
+        await handler.handle(new WebRequest(req, res));
         return res.end('');
       } catch (error) {
         return res.end(error.message);

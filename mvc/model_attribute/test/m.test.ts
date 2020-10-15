@@ -5,6 +5,7 @@ import RequestMapping from '../../handle_request_mapping';
 import { Server } from 'http';
 import Request from 'better-request';
 import User from './user';
+import WebRequest from '../../webrequest';
 
 const context = new Context({
   scanFiles: 'mvc/model_attribute/test/model_attribute_test.ts',
@@ -16,7 +17,7 @@ beforeAll(() => {
   server = http
     .createServer(async (req, res) => {
       const handler = bean.getHandler(req);
-      await handler.handle(req, res);
+      await handler.handle(new WebRequest(req, res));
       return res.end('');
     })
     .listen(9222);

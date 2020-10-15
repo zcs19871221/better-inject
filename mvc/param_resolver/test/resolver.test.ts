@@ -22,7 +22,7 @@ beforeAll(() => {
     .createServer(async (req, res) => {
       const handler = bean.getHandler(req);
       try {
-        await handler.handle(req, res);
+        await handler.handle(new WebRequest(req, res));
         return res.end('');
       } catch (error) {
         return res.end(error.message);

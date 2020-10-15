@@ -3,6 +3,7 @@ import RequestMapping from './handle_request_mapping';
 import ModelView from './model_view';
 import WebRequest from './webrequest';
 import Context from '../';
+import HandlerMethod from './handler_method';
 
 export default class Dispatch {
   private mapping: RequestMapping;
@@ -18,36 +19,26 @@ export default class Dispatch {
   }
 
   async doDispatch(request: IncomingMessage, response: ServerResponse) {
-    let exception: Error | null = null;
     let modelView: ModelView | null = null;
+    let handler: null | HandlerMethod = null;
     const webRequest = new WebRequest(request, response);
     try {
-      const handler = this.mapping.getHandler(request);
+      handler = this.mapping.getHandler(request);
       modelView = await handler.handle(webRequest);
     } catch (error) {
-      exception = error;
+      modelView = await this.processExcetion(error, webRequest, handler);
     }
     if (modelView === null) {
       return;
     }
-    this.processResult(modelView, webRequest, exception);
+    this.render(modelView, webRequest);
   }
 
-  private processResult(
-    mv: ModelView,
+  private async processExcetion(
+    error: Error,
     webRequest: WebRequest,
-    error: Error | null,
-  ) {
-    if (error) {
-      mv = new ModelView();
-      mv.setModel('stack', error.stack);
-      mv.setModel('message', error.message);
-      mv.setView('error');
-      return;
-    }
+    handler: HandlerMethod | null,
+  ): ModelView {}
 
-    this.render(mv, request, response, error);
-  }
-
-  private render() {}
+  private render(modelView: ModelView, webRequest: WebRequest) {}
 }

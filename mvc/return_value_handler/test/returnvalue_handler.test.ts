@@ -3,6 +3,7 @@ import Request from 'better-request';
 import http from 'http';
 import Context from '../../../context';
 import RequestMapping from '../../handle_request_mapping';
+import Webrequest from '../../webrequest';
 
 const context = new Context({
   scanFiles: 'mvc/return_value_handler/test/*_ex.ts',
@@ -18,7 +19,7 @@ beforeAll(() => {
     .createServer(async (req, res) => {
       const handler = bean.getHandler(req);
       try {
-        await handler.handle(req, res);
+        await handler.handle(new Webrequest(req, res));
         return res.end('');
       } catch (error) {
         return res.end(error.message);
