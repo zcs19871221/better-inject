@@ -10,12 +10,16 @@ interface MethodMeta {
   paramInfos: ParamInfo[];
   returnInfo: ReturnInfo;
 }
-
+interface ExecptionHandlerInfo {
+  exceptionType: Error;
+  methodName: string;
+  beanClass: any;
+}
 interface MvcMeta {
   methods: { [method: string]: MethodMeta };
   modelIniter: ModelMetaInfo[];
   initBinder: BinderInfo[];
-  requestMappingMethods: string[];
+  execptionHandlerInfo: ExecptionHandlerInfo[];
 }
 
 class MvcHelper extends MetaHelper<MvcMeta> {
@@ -28,7 +32,7 @@ class MvcHelper extends MetaHelper<MvcMeta> {
       methods: {},
       modelIniter: [],
       initBinder: [],
-      requestMappingMethods: [],
+      execptionHandlerInfo: [],
     };
   }
 
@@ -56,4 +60,4 @@ class MvcHelper extends MetaHelper<MvcMeta> {
 const helper = new MvcHelper();
 
 export default helper;
-export { MethodMeta, MvcMeta, ModelMetaInfo, ParamInfo };
+export { MethodMeta, MvcMeta, ModelMetaInfo, ParamInfo, ExecptionHandlerInfo };

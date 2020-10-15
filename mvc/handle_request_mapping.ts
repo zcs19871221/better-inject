@@ -61,7 +61,7 @@ export default class RequestMapping {
     if (!mvcMeta) {
       return;
     }
-    const { methods, modelIniter, initBinder } = mvcMeta;
+    const { methods, modelIniter, initBinder, execptionHandlerInfo } = mvcMeta;
     Object.entries(methods).forEach(([beanMethod, methodMeta]) => {
       const info = methodMeta.mappingInfo;
       if (!info) {
@@ -77,6 +77,7 @@ export default class RequestMapping {
         initBinder,
         beanMethod,
         bean,
+        execptionHandlerInfo,
       };
       delete value.mappingInfo;
       const matcher: [RequestMappingInfo, HandlerMethod] = [

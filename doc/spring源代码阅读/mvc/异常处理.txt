@@ -1,0 +1,3 @@
+1. 任何处理时候抛出的错误会导致500错误。如果这个错误类被ResponseStatus注释则按照注释的code返回对应code
+2. 可以通过@ExceptionHandler注释方法来处理当前controller的错误或者在controllerAdvice中定义处理全局错误。
+  可以处理三种1. 通过@ResponseStatus设置状态码 2. 返回新的字符串定位到错误显示页面 3. 返回全新的modelView
