@@ -1,4 +1,5 @@
 import { IncomingMessage, ServerResponse } from 'http';
+import pug from 'pug';
 import RequestMapping from './handle_request_mapping';
 import ModelView from './model_view';
 import WebRequest from './webrequest';
@@ -31,14 +32,30 @@ export default class Dispatch {
     if (modelView === null) {
       return;
     }
-    this.render(modelView, webRequest);
+    await this.render(modelView, webRequest);
   }
 
   private async processExcetion(
     error: Error,
     webRequest: WebRequest,
     handler: HandlerMethod | null,
-  ): ModelView {}
+  ): Promise<ModelView> {
+    if (handler) {
+      const mv = await handler.handleException(error, webRequest);
+      if (mv) {
+        return mv;
+      }
+    }
+    const mv = new ModelView();
+    mv.setModel('stack', error.stack);
+    mv.setModel('message', error.message);
+    mv.setView('error');
+    return mv;
+  }
 
-  private render(modelView: ModelView, webRequest: WebRequest) {}
+  private async render(modelView: ModelView, webRequest: WebRequest) {
+    await webRequest.response(
+      pug.renderFile(modelView.getView(), modelView.getModel()),
+    );
+  }
 }

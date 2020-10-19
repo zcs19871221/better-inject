@@ -11,9 +11,9 @@ interface MethodMeta {
   returnInfo: ReturnInfo;
 }
 interface ExecptionHandlerInfo {
-  exceptionType: Error;
   methodName: string;
   beanClass: any;
+  errorMsgMatcher: RegExp;
 }
 interface MvcMeta {
   methods: { [method: string]: MethodMeta };
