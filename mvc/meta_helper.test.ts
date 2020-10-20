@@ -5,7 +5,7 @@ it('initMetaData', () => {
     methods: {},
     modelIniter: [],
     initBinder: [],
-    requestMappingMethods: [],
+    execptionHandlerInfo: [],
   });
 });
 

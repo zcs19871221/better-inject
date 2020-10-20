@@ -5,6 +5,7 @@ const Annotation = (errorMsgMatcher: RegExp) => (
   methodName: string,
 ) => {
   const mvcMeta = helper.getIfNotExisisInit(ctr);
+  helper.getOrInitMethodData(mvcMeta, methodName, ctr);
   mvcMeta.execptionHandlerInfo.push({
     methodName,
     beanClass: ctr.constructor,

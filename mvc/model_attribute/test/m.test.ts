@@ -32,6 +32,7 @@ it('model_attribute', async () => {
       method: 'GET',
       header: {
         id: 'a1',
+        custom: 'er',
       },
     },
     null,
@@ -39,6 +40,6 @@ it('model_attribute', async () => {
   expect((<any>context.getBean('usercontroller')).args).toEqual({
     age: 13,
     user: new User('a1', '张成思', 'zcs'),
-    genderModel: '男',
+    genderModel: '男er',
   });
 });

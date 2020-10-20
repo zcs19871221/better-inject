@@ -7,6 +7,7 @@ import {
   PathVariable,
 } from '../..';
 import User from './user';
+import { IncomingMessage } from 'http';
 
 @Controller
 @RequestMapping({ path: '/{base}' })
@@ -14,8 +15,8 @@ export default class userController {
   public args: any;
 
   @ModelAttribute('gender')
-  initModelGender(): string {
-    return '男';
+  initModelGender(req: IncomingMessage): string {
+    return '男' + req.headers.custom;
   }
 
   @ModelAttribute()

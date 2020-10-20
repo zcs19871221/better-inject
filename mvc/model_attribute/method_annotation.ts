@@ -5,6 +5,7 @@ import ModelMetaInfo from './metainfo';
 const ModelAttribute = (key: string, ctr: any, methodName: string) => {
   key = key.trim();
   const mvcMeta = helper.getIfNotExisisInit(ctr);
+  helper.getOrInitMethodData(mvcMeta, methodName, ctr);
   const returnType = helper.getMethodReturnType(ctr, methodName);
   if (returnType === undefined && key) {
     throw new Error('modelAttribute设置key了返回值类型不能是void');

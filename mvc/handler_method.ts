@@ -159,6 +159,9 @@ export default class HandlerMethod {
     paramInfos: ParamInfo[],
     exception?: Error,
   ): Promise<any[]> {
+    if (exception) {
+      console.log('sssssssssssssssssssssss');
+    }
     return Promise.all(
       paramInfos.map(param => {
         if (param.type === Error && exception) {
