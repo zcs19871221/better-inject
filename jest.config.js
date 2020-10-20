@@ -30,6 +30,7 @@ module.exports = {
   restoreMocks: false,
   testMatch: ['<rootDir>/dist/**/*.test.[jt]s?(x)'],
   collectCoverageFrom: ['<rootDir>/dist/**/*.[jt]s?(x)'],
+  coveragePathIgnorePatterns: ['<rootDir>/dist/test'],
   coverageDirectory: '<rootDir>/test/coverage',
   coverageThreshold: {
     global: {

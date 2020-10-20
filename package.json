@@ -27,6 +27,7 @@
     "compile": "tsc",
     "clear": "jest --clearCache",
     "test": "tsc -p tsconfig.test.json --sourceMap false && jest",
+    "report": "node ./bin/clean.js && tsc -p tsconfig.test.json --sourceMap false && jest --coverage",
     "jest": "jest --watch",
     "watch": "tsc --watch",
     "build": "npm test && node ./bin/clean.js && npm run compile",

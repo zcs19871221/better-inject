@@ -2,3 +2,4 @@
 /static/*.log
 /dist
 /log
+/disttest
