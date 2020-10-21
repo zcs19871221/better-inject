@@ -16,10 +16,10 @@ export default class Context {
   private configParser: LocateParser;
   private scanParser: LocateParser;
   private debug: Boolean;
-
+  private root: string;
   constructor({
     configFiles = [],
-    root,
+    root = process.cwd(),
     scanFiles = [],
     debug = false,
     buildDir = 'dist',
@@ -31,6 +31,7 @@ export default class Context {
     buildDir?: string;
   }) {
     this.debug = debug;
+    this.root = root;
     this.configParser = new LocateParser(configFiles, root, buildDir, debug);
     this.scanParser = new LocateParser(scanFiles, root, buildDir, debug);
     this.configParser.requireDefault().forEach(configModule => {
@@ -57,6 +58,10 @@ export default class Context {
     this.beanFactory.doRegistBean();
     this.beanFactory.doRegistAspect();
     this.beanFactory.doRegistMvc();
+  }
+
+  getRoot() {
+    return this.root;
   }
 
   private static targetMapProxy: Map<any, any> = new Map();

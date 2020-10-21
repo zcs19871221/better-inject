@@ -4,6 +4,8 @@ import { Readable } from 'stream';
 export default class WebRequest {
   private req: IncomingMessage;
   private res: ServerResponse;
+  private statusCode: number = 200;
+  private resHeader: { [key: string]: string | number } = {};
   constructor(req: IncomingMessage, res: ServerResponse) {
     this.req = req;
     this.res = res;
@@ -21,13 +23,15 @@ export default class WebRequest {
       this.res.on('finish', () => {
         resolve();
       });
+      this.writeHeader(this.resHeader);
+      this.res.statusCode = this.statusCode;
       if (this.canSetHeader() && !this.res.hasHeader('content-type')) {
         this.setHeader({
           'content-type': String(this.req.headers['content-type']),
         });
       }
       if (typeof value === 'string' || Buffer.isBuffer(value)) {
-        this.setDefaultContentLength(value);
+        this.setContentLength(value);
         return this.res.end(value);
       }
       value.pipe(this.res);
@@ -71,12 +75,17 @@ export default class WebRequest {
       res += '; charset=' + charset;
     }
     if (boundary) {
-      res += '; boundary]' + boundary;
+      res += '; boundary=' + boundary;
     }
     return res;
   }
 
-  setResponseContentType({
+  clear() {
+    this.statusCode = 200;
+    this.resHeader = {};
+  }
+
+  setContentType({
     mediaType = '',
     charset = '',
     boundary = '',
@@ -90,7 +99,7 @@ export default class WebRequest {
       return mediaType;
     }
     const parsedContentType = this.parseContentType(String(contentType));
-    return this.stringContentType({
+    this.resHeader['content-type'] = this.stringContentType({
       ...parsedContentType,
       ...(mediaType && { mediaType }),
       ...(charset && { charset }),
@@ -98,8 +107,8 @@ export default class WebRequest {
     });
   }
 
-  private setDefaultContentLength(body: string | Buffer) {
-    if (this.canSetHeader() && !this.res.hasHeader('content-type')) {
+  private setContentLength(body: string | Buffer) {
+    if (this.canSetHeader() && !this.res.hasHeader('content-length')) {
       this.setHeader({
         'content-length': String(Buffer.byteLength(body)),
       });
@@ -115,13 +124,17 @@ export default class WebRequest {
   }
 
   setHeader(header: { [key: string]: string | number }) {
+    this.resHeader = header;
+  }
+
+  private writeHeader(header: { [key: string]: string | number }) {
     Object.entries(header).forEach(([key, value]) => {
       this.res.setHeader(key, value);
     });
   }
 
   setStatusCode(statusCode: number) {
-    this.res.statusCode = statusCode;
+    this.statusCode = statusCode;
   }
 
   getResponse() {

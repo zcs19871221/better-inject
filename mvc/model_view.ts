@@ -1,9 +1,13 @@
 export default class ModelView {
-  private view: any;
+  private view: string = '';
   private model: Map<string, any> = new Map();
 
   getView() {
     return this.view;
+  }
+
+  hasView() {
+    return this.view.trim() !== '';
   }
 
   setView(viewPath: string) {
@@ -16,6 +20,13 @@ export default class ModelView {
 
   getModel(): Map<string, any> {
     return this.model;
+  }
+
+  getModelObject(): object {
+    return Object.entries(this.model).reduce((acc: any, cur) => {
+      acc[cur[0]] = cur[1];
+      return acc;
+    }, {});
   }
 
   combine(modelView: ModelView) {

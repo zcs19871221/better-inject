@@ -9,6 +9,8 @@ import {
   ResponseHeader,
   ResponseStatus,
 } from './return_value_handler';
+import WebRequest from './webrequest';
+import ModelView from './model_view';
 
 const {
   CookieValue,
@@ -34,4 +36,6 @@ export {
   DataBinder,
   ResponseHeader,
   ResponseStatus,
+  WebRequest,
+  ModelView,
 };

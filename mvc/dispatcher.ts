@@ -1,21 +1,23 @@
 import { IncomingMessage, ServerResponse } from 'http';
+import path from 'path';
 import pug from 'pug';
+import { readFile } from 'better-fs';
 import RequestMapping from './handle_request_mapping';
 import ModelView from './model_view';
 import WebRequest from './webrequest';
 import Context from '../';
 import HandlerMethod from './handler_method';
 
+interface ErrorHandler {
+  isSupport: (message: string) => boolean;
+  handle: (webrequest: WebRequest) => void;
+}
+
 export default class Dispatch {
   private mapping: RequestMapping;
   private context: Context;
   constructor(context: Context) {
     this.context = context;
-    this.context.regist({
-      type: 'single',
-      beanClass: RequestMapping,
-      id: RequestMapping.beanId,
-    });
     this.mapping = <RequestMapping>this.context.getBean(RequestMapping.beanId);
   }
 
@@ -40,6 +42,8 @@ export default class Dispatch {
     webRequest: WebRequest,
     handler: HandlerMethod | null,
   ): Promise<ModelView> {
+    webRequest.clear();
+    webRequest.setStatusCode(500);
     if (handler) {
       const mv = await handler.handleException(error, webRequest);
       if (mv) {
@@ -49,13 +53,19 @@ export default class Dispatch {
     const mv = new ModelView();
     mv.setModel('stack', error.stack);
     mv.setModel('message', error.message);
-    mv.setView('error');
     return mv;
   }
 
   private async render(modelView: ModelView, webRequest: WebRequest) {
-    await webRequest.response(
-      pug.renderFile(modelView.getView(), modelView.getModel()),
-    );
+    let template = '';
+    if (modelView.hasView()) {
+      template = await readFile(
+        path.join(this.context.getRoot(), modelView.getView()),
+        'utf-8',
+      );
+    } else {
+      template = `p #{message}\np #{stack}`;
+    }
+    await webRequest.response(pug.render(template, modelView.getModelObject()));
   }
 }
