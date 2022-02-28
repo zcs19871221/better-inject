@@ -3,7 +3,7 @@ import path from 'path';
 import Context, { Server } from '../';
 
 const context = new Context({
-  scanFiles: ['manga/controller.ts', 'manga/nick.ts'],
+  scanFiles: ['manga/controller.ts'],
 });
 
 const port = 8000;

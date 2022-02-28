@@ -16,7 +16,6 @@ import path from 'path';
 import * as fs from 'better-fs';
 
 import { Manga, MangaPreview, ReadPoint } from './manga';
-import Nick from './nick';
 
 const imgPath = (mangaName: string, volumeName: string, imgName: string) =>
   `/img/${mangaName}/${volumeName}/${imgName}`;
@@ -27,8 +26,6 @@ const imgPathRoute = imgPath('{mangaName}', '{volumeName}', '{imgName}');
 @RequestMapping()
 export default class Mg {
   private staticBase: string = 'F:/watch-manga/build';
-
-  constructor(@Inject('nick') private readonly nick: Nick) {}
 
   @RequestMapping({
     path: '/mangas',
@@ -69,46 +66,6 @@ export default class Mg {
   }
 
   @RequestMapping({
-    path: '/nicks',
-  })
-  @ResponseBody
-  @ResponseHeader('content-type', 'application/json')
-  @ResponseHeader('Access-Control-Allow-Origin', '*')
-  @ResponseHeader('Access-Control-Allow-Headers', '*')
-  @ResponseHeader('Access-Control-Allow-Methods', '*')
-  async getNicks(): Promise<MangaPreview[]> {
-    const nicks = JSON.parse(
-      await fs.readFile(Nick.baseLocate, 'utf-8'),
-    ) as MangaPreview[];
-    const mangas = JSON.parse(
-      await fs.readFile(Manga.mangasJson, 'utf-8'),
-    ) as MangaPreview[];
-    return nicks.map(e => {
-      const t = mangas.find(ee => e.name === ee.name);
-      return {
-        ...e,
-        cover: t ? imgPath(t.name, 'cover', t.cover) : '',
-        hasDownload: t ? true : false,
-      };
-    });
-  }
-
-  @RequestMapping({
-    path: '/nickCover/{id}',
-  })
-  @ResponseBody
-  @ResponseHeader('cache-control', `public, max-age=${String(30 * 60 * 60)}`)
-  @ResponseHeader('Access-Control-Allow-Origin', '*')
-  @ResponseHeader('Access-Control-Allow-Headers', '*')
-  @ResponseHeader('Access-Control-Allow-Methods', '*')
-  async getNickCover(
-    @PathVariable() id: string,
-    request: WebRequest,
-  ): Promise<Buffer> {
-    return await this.nick.getCover(id, request);
-  }
-
-  @RequestMapping({
     path: '/download',
   })
   @ResponseBody
@@ -125,7 +82,8 @@ export default class Mg {
       if (method === 'OPTIONS') {
         return null;
       }
-      await this.nick.download(name, url, true);
+      console.log(name, url);
+      // await this.nick.download(name, url, true);
       return {
         status: 'success',
       };
