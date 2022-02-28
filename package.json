@@ -1,0 +1,59 @@
+{
+  "name": "better-inject",
+  "version": "1.3.3",
+  "description": "node typescript depend inject",
+  "keywords": [
+    "dependency",
+    "ioc",
+    "aop",
+    "Aspect Oriented Programming",
+    "spring",
+    "injection",
+    "service",
+    "container",
+    "inversion-of-control",
+    "node",
+    "typescript"
+  ],
+  "main": "index.js",
+  "author": "zcs",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zcs19871221/better-inject"
+  },
+  "license": "ISC",
+  "scripts": {
+    "analyze": "node --inspect=0.0.0.0:9229 dist/index.js",
+    "compile": "tsc",
+    "clear": "jest --clearCache",
+    "test": "tsc -p tsconfig.test.json --sourceMap false && jest",
+    "report": "node ./bin/clean.js && tsc -p tsconfig.test.json --sourceMap false && jest --coverage",
+    "manga": "npm run compile && node ./dist/manga/server.js",
+    "jest": "jest --watch",
+    "watch": "tsc --watch",
+    "build": "npm test && node ./bin/clean.js && npm run compile",
+    "preversion": "npm run build",
+    "postversion": "node ./bin/copy.js && node ./bin/deltest.js && cd dist && npm publish"
+  },
+  "devDependencies": {
+    "@types/cheerio": "^0.22.30",
+    "@types/jest": "^26.0.10",
+    "@types/lz-string": "^1.3.34",
+    "@types/node": "^13.13.15",
+    "better-fs": "^11.0.4",
+    "better-request": "^3.0.1",
+    "jest": "^26.4.0",
+    "prettier": "^1.19.1",
+    "ts-jest": "^26.2.0",
+    "typescript": "^4.5.4"
+  },
+  "dependencies": {
+    "@types/pug": "^2.0.4",
+    "axios": "^0.24.0",
+    "better-utils": "^3.0.11",
+    "cheerio": "^1.0.0-rc.10",
+    "lz-string": "^1.4.4",
+    "pug": "^3.0.0",
+    "reflect-metadata": "^0.1.13"
+  }
+}

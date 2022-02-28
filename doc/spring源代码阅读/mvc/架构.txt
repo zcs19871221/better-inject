@@ -1,0 +1,109 @@
+# 初始化
+
+-RequestMappingInfo 类，对 RequestMapping 注解封装。里面包含注解配置的所有信息。一个 RequestMapping 注解对应一个 RequestMappingInfo 实例。且唯一（就是所有配置项加在一起不重复）
+-HandlerMethod 类，是对 Controller 的处理请求方法的封装。里面包含了该方法所属的 bean 对象、该方法对应的 method 对象、该方法的参数等。
+
+AbstractHandlerMethodMapping.initHandlerMethods 获取 context 所有 bean
+RequestMappingHandlerMapping.isHandler 筛选 bean，根据类是否有 controller 或 requestMapping 注解
+detectHandlerMethods 遍历并筛选所有符合条件的 class 的 method，根据注解生成 RequestMappingInfo - 用于匹配请求，结合类和方法生成 HandlerMethod - 用于请求的处理器
+RequestMappingHandlerMapping.getMappingForMethod 生成方法和类的 RequestMapping 实例，合并
+
+    register
+      createHandlerMethod 生成handelrMethod对象，包含：bean，beanClass，method，method对应的注解参数list，responseStatus和responsereason
+      validateMethodMapping 验证mapping是否有重复的bean
+      mappingLookup：RequestMappingInfo -> HandlerMethod
+      urlLookup：直接设置的url -> RequestMappingInfo
+
+1. 筛选所有 bean 的 class，看 class 层装饰器是否有 controller 或 requestMapping 注解
+2. 对每个 class 的方法进行筛选是否含有 RequestMapping 注解
+3. 如果有注解，根据 method 注解，生成一个 RequestMappingInfo 对象，并和所属类的 RequestMappingInfo 合并
+4. 根据类和 method 生成 handlerMethod 实例，和 requestMappingInfo 一起注册成 map，key 是 requestMappingInfo，值是 handlerMethod，（不能重复。重复的意思是，两个 requestMappingInfo 的各种条件是一样的 url 一致，method 一致，请求参数，请求头，consume，produces，custom 就是说相同配置的 requestMappingInfo 只能映射一个 handlerMethod.）。
+
+# doDispatch
+
+DispatcherServlet.doDispatch
+checkMultipart - 查找是否文件上传
+getHandler 返回 HandlerExecutionChain 包含 HandlerMethod 和拦截器查找 urlLookup(url 直接映射)，如果没找到，遍历 mappingLookup 查找匹配的 info。然后对 info 排序，返回最符合的一个 handlerMethod 实例 排序规则 value>params>headers>consumes>produces>methods>custom
+AbstractHandlerMapping.getHandler
+  AbstractHandlerMethodMapping.getHandlerInternal
+  lookupHandlerMethod 查找 urlLookup(url 直接映射)，执行 RequestMappingInfo.getMatchingCondition 进行匹配。否则查找所有 info 执行上边方法进行匹配
+    RequestMappingInfo.getMatchingCondition
+    handleMatch 把匹配到的信息存放到request上
+
+getHandlerAdapter 返回 RequestMappingHandlerAdapter
+HandlerExecutionChain.applyPreHandle 执行前置拦截器，如果失败，停止后面代码
+AbstractHandlerMethodAdapter.handle
+  RequestMappingHandlerAdapter.handleInternal
+  invokeHandlerMethod https://juejin.im/post/6844904201265348621
+
+1. 标识 controller bean
+2. 根据注解，生成条件 -> 实际执行 bean 的映射。
+
+3. 请求到来，查找映射，找到最匹配的 bean。查找拦截器，将拦截器和 bean 放到一起生成新对象。
+4. 处理参数（参数解析器，遍历，isSupport then resolve 根据类型和注解）HandlerMethodArgumentResolver
+5. 处理返回值（返回值解析器，根据类型和注解）
+6. 返回值非空，查找视图，将 model 和视图结合渲染。
+
+## PathPatternsRequestCondition
+
+通过 ant 匹配 url,,逻辑或
+
+1. getMatchingCondition 获取所有满足条件的 PathPattern,排序,然后创建一个新 PathPatternsRequestCondition 返回
+2. getContent 获取 this.patterns
+3. combine:a b a 内部 pattenrs 循环嵌套 b,each a combine b.嵌套规则,如果有一个空,返回另一个.如果/\*和/hotel => /hotel `/\*.html + /book => /book.html`
+4. 内容 compareTo:比较 this.patterns
+   PathPattern.java 中的如下代码排序后,按照字典排序
+   /\*\*
+   - Comparator that sorts patterns by specificity as follows:
+   - <ol>
+   - <li>Null instances are last.
+   - <li>Catch-all patterns are last.
+   - <li>If both patterns are catch-all, consider the length (longer wins).
+   - <li>Compare wildcard and captured variable count (lower wins).
+   - <li>Consider length (longer wins)
+   - </ol>
+      */
+     规则如下,不存在在最后,其次是以*结束,如果都是以*结束,长的优先级高一些,然后比较分数,分数越低优先级越高,变量匹配 * 1 + *数量 * 100,如果分数相等再考虑长度,长度长的优先级高.
+5. 对象 compareTo,遍历两个对象中的两个 patterns 列表进行比较,从优先级最高的开始比较(因为已经是排好序的),如果不相等返回优先级高的所属 PathPatternsRequestCondition,如果遍历到一个列表结束,另一个列表没结束,那么列表长的优先级高,因为更具体
+
+## RequestMethodsRequestCondition
+
+匹配请求方法,逻辑或
+
+1. getMatchingCondition 匹配 options 或 head 和 get,匹配对应的 method,然后 new 一个新的,如果是空,返回 this
+2. 对象 compareTo:比较内容的 methodlist ,拥有 method 越多的,优先级越高.
+3. combine:内部的 method 组合成一个新 set,new 一个对象
+
+## ParamsRequestCondition
+
+匹配请求参数,会从请求 url 和请求 body 中搜索,是否满足条件,逻辑与
+
+1. combine:如果有一个空,返回非空.否则把两个内部表达式合并成一个新 set,返回 new 的新对象
+2. compareTo:比较两者的表达式数量,数量多的优先级高.如果相等,非否定的具有特定 value 的表达式数量高的优先级高.
+3. getMatchingCondition:如果有没匹配的条件,返回 null.都匹配了,返回 this
+
+## HeadersRequestCondition
+
+匹配请求参数,会从请求 header 中搜索,是否满足条件,逻辑与,表达式中不匹配 content-type 和 accept,因为这两个有专门的条件
+下面操作和请求参数条件一模一样
+
+1. combine:如果有一个空,返回非空.否则把两个内部表达式合并成一个新 set,返回 new 的新对象
+2. compareTo:比较两者的表达式数量,数量多的优先级高.如果相等,非否定的具有特定 value 的表达式数量高的优先级高.
+3. getMatchingCondition:如果有没匹配的条件,返回 null.都匹配了,返回 this
+
+## ConsumesRequestCondition
+匹配请求header的cotennt-type字段,逻辑或
+
+0. 创建对象的时候,会把content进行sort.
+1. getMatchingCondition:如果没有设置条件条件,返回this; 否则,以命中的contenttype创建新的对象返回.匹配规则,先匹配mainType,然后匹配subType,都匹配上算匹配.
+2. 内容 compareTo: 第一个type中,如果一个有*,那么有*的优先级低.如果第二个type中,有*的优先级低.剩下的都一样
+3. 对象间compareTo:空的优先级低,如果都不为空,比较内容的第一个作为返回值.
+4. combine:如果有空的,返回非空.否则,方法级别的直接覆盖类级别的.
+
+## ProducesRequestCondition
+
+匹配请求header的accept字段.逻辑或
+0. 创建对象时候,会把content进行sort.
+1. getMatchingCondition:获取匹配的所有内容条件,以这些条件new 新对象返回.过滤规则:type/subType. */concret */*
+2. 内容 compareTo:把request的accpet取出来,按照q排好序,依次从当前accept和otheraccpet内容列表中获取index位置,越靠前,优先级越高.如果index位置一致,比较this和other的mimeType表达式优先级.基于MimeType.compare和上面内容comapreTo一致.
+3. combine:和上面规则一致
