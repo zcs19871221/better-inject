@@ -21,6 +21,8 @@ export interface VolumeSuffix {
 export interface MangaPreview {
   name: string;
   cover: string;
+  readed?: boolean;
+  isCollect?: boolean;
   volumes: [string, number, VolumeSuffix][];
 }
 
@@ -121,6 +123,7 @@ export abstract class Manga extends Tool {
     const mangaPreview: MangaPreview = {
       name: mangaName,
       cover,
+      readed: false,
       volumes: volumes.map(e => {
         const map: { [suffix: string]: number[] } = {};
         let biggestNum = -Infinity;

@@ -46,6 +46,12 @@ export default abstract class KeyValue
         return decodeURI(String(value));
       }
       if (type === Boolean) {
+        if (value === 'true') {
+          return true;
+        }
+        if (value === 'false') {
+          return false;
+        }
         return Boolean(value);
       }
       if (type === Number) {

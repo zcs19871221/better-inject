@@ -8,7 +8,6 @@ import {
   ResponseHeader,
   RequestBody,
   Method,
-  Inject,
   // RequestHeader,
 } from '..';
 
@@ -60,8 +59,58 @@ export default class Mg {
     await fs.removeSync(path.join(Manga.imgBaseDir, mangaName));
     await fs.writeFile(
       Manga.mangasJson,
-      JSON.stringify(mangas.filter(e => e.name != mangaName)),
+      JSON.stringify(
+        mangas.filter(e => e.name != mangaName),
+        null,
+        2,
+      ),
     );
+    return 'success';
+  }
+
+  @RequestMapping({
+    path: '/markread/{mangaName}',
+  })
+  @ResponseBody
+  @ResponseHeader('content-type', 'application/json')
+  @ResponseHeader('Access-Control-Allow-Origin', '*')
+  @ResponseHeader('Access-Control-Allow-Headers', '*')
+  @ResponseHeader('Access-Control-Allow-Methods', '*')
+  async markReadManga(
+    @PathVariable() mangaName: string,
+    @RequestParam() readedStatus: boolean,
+  ): Promise<string> {
+    const mangas = JSON.parse(
+      await fs.readFile(Manga.mangasJson, 'utf-8'),
+    ) as MangaPreview[];
+    const t = mangas.find(e => e.name === mangaName);
+    if (t) {
+      t.readed = readedStatus;
+    }
+    await fs.writeFile(Manga.mangasJson, JSON.stringify(mangas, null, 2));
+    return 'success';
+  }
+
+  @RequestMapping({
+    path: '/collect/{mangaName}',
+  })
+  @ResponseBody
+  @ResponseHeader('content-type', 'application/json')
+  @ResponseHeader('Access-Control-Allow-Origin', '*')
+  @ResponseHeader('Access-Control-Allow-Headers', '*')
+  @ResponseHeader('Access-Control-Allow-Methods', '*')
+  async setIsCollect(
+    @PathVariable() mangaName: string,
+    @RequestParam() isCollect: boolean,
+  ): Promise<string> {
+    const mangas = JSON.parse(
+      await fs.readFile(Manga.mangasJson, 'utf-8'),
+    ) as MangaPreview[];
+    const t = mangas.find(e => e.name === mangaName);
+    if (t) {
+      t.isCollect = isCollect;
+    }
+    await fs.writeFile(Manga.mangasJson, JSON.stringify(mangas, null, 2));
     return 'success';
   }
 
@@ -75,15 +124,15 @@ export default class Mg {
   @ResponseHeader('Access-Control-Allow-Methods', '*')
   async download(
     @RequestParam() name: string,
-    @RequestParam() url: string,
+    @RequestParam() id: string,
     @Method method: string,
   ): Promise<{ status: 'success' | 'fail'; error?: any } | null> {
     try {
       if (method === 'OPTIONS') {
         return null;
       }
-      console.log(name, url);
-      // await this.nick.download(name, url, true);
+      console.log(name, id);
+      // await this.nick.download(name, id, true);
       return {
         status: 'success',
       };

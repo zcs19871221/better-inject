@@ -7,7 +7,7 @@ import { WebRequest } from 'mvc';
 
 export class Tool {
   private readonly agent =
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.110 Safari/537.36';
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.51 Safari/537.36';
 
   constructor(
     protected readonly root: string,
@@ -108,20 +108,24 @@ export class Tool {
     maxSockets: 100,
   });
 
+  private getReferer(_url: string) {
+    // if (!url.startsWith(this.root)) {
+    //   const u = new URL(url);
+    //   return `${u.protocol}//${u.host}`;
+    // }
+    return this.root;
+  }
+
   protected async get(url: string, header?: any, handler?: any[]) {
     try {
-      let referer = this.root;
-      if (!url.startsWith(this.root)) {
-        const u = new URL(url);
-        referer = `${u.protocol}//${u.host}`;
-      }
+      const referer = this.getReferer(url);
       return await Request.fetch(
         {
           url,
           method: 'GET',
           header: {
             'user-agent': this.agent,
-            referer,
+            ...(referer && { referer }),
             ...(header && { ...header }),
           },
           errorRetryInterval: 5000,
@@ -145,11 +149,7 @@ export class Tool {
     response?: WebRequest,
   ) {
     try {
-      let referer = this.root;
-      if (!url.startsWith(this.root)) {
-        const u = new URL(url);
-        referer = `${u.protocol}//${u.host}`;
-      }
+      const referer = this.getReferer(url);
       const request = new Request({
         url,
         method: 'GET',
