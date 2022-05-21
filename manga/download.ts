@@ -3,9 +3,9 @@
 // const m = new Laimanhua(1000);
 import { Maofly } from './maofly';
 
-const m = new Maofly();
+const m = new Maofly(50);
 
-m.download('齐木楠雄的灾难', 'https://www.maofly.com/manga/13662.html').catch(
+m.download('GIGANT', 'https://www.maofly.com/manga/41088.html').catch(
   (er: any) => {
     console.error(er);
   },

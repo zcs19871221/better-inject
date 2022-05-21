@@ -41,7 +41,9 @@ export class Laimanhua extends Manga {
     return `cover.${Manga.extractSuffixFromUrl(src)}`;
   }
 
-  protected async getVolumesInfo(mangaPageUrl: string): Promise<VolumeInfo[]> {
+  protected async getVolumesInfo(
+    mangaPageUrl: string,
+  ): Promise<[VolumeInfo[], boolean]> {
     let html = await this.get(mangaPageUrl, {}, []);
     html = iconv.decode(html, 'GBK');
     const $ = cheerio.load(html);
@@ -114,7 +116,10 @@ export class Laimanhua extends Manga {
       throw new Error(`${mangaPageUrl} 单行本和话解析错误`);
     }
 
-    return links.map(e => ({ url: e.href, name: e.name })).concat(extra);
+    return [
+      links.map(e => ({ url: e.href, name: e.name })).concat(extra),
+      true,
+    ];
   }
 
   protected async getVolumeImg(volumePageUrl: string): Promise<string[]> {

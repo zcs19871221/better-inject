@@ -49,24 +49,20 @@ export abstract class Manga extends Tool {
 
   public abstract search(): Promise<string>;
 
-  public async download(
-    mangaName: string,
-    mangaPageUrl: string,
-    isFinish: boolean = true,
-  ) {
+  public async download(mangaName: string, mangaPageUrl: string) {
     const { downloadingJson, mangaDir } = this.prepare(mangaName);
     let volumes: Volume[] = [];
+    let isFinish = true;
     const recordDownloaded = () => {
       if (volumes.length > 0) {
         fs.writeFileSync(downloadingJson, JSON.stringify(volumes, null, 2));
       }
     };
     try {
-      volumes = await this.collectVolumes(
+      [volumes, isFinish] = await this.collectVolumes(
         downloadingJson,
         mangaName,
         mangaPageUrl,
-        isFinish,
       );
 
       process.on('SIGINT', () => {
@@ -163,52 +159,38 @@ export abstract class Manga extends Tool {
     downloadingJson: string,
     mangaName: string,
     mangaPageUrl: string,
-    isFinish: boolean,
-  ) {
-    this.debug(`解析 ${mangaName} 网址及名称,开始解析..`);
-    const volumesInfo = await this.getVolumesInfo(mangaPageUrl, mangaName);
-    this.debug(`解析完 ${mangaName}  网址及名称`);
-
+  ): Promise<[Volume[], boolean]> {
     let volumes: Volume[] = [];
-    let preParsedVolumes: Volume[] = [];
     if (fs.existsSync(downloadingJson)) {
       this.debug(`存在 ${mangaName} 图片地址, 读取 ${downloadingJson}`);
-      preParsedVolumes = JSON.parse(
+      volumes = JSON.parse(
         fs.readFileSync(downloadingJson, 'utf-8'),
       ) as Volume[];
     }
-    if (preParsedVolumes.length === 0 && volumes.length === 0) {
-      this.debug(`下载 ${mangaName} 图片地址`);
-      volumes = await this.getVolumesImgUrls(mangaName, volumesInfo);
-    }
-    if (isFinish) {
-      if (preParsedVolumes.length > 0) {
-        volumes = preParsedVolumes;
-      } else {
-        fs.writeFileSync(downloadingJson, JSON.stringify(volumes, null, 2));
-        this.debug(`图片地址信息保存至 ${downloadingJson}`);
-      }
-      return volumes;
-    }
-    if (preParsedVolumes.length > 0) {
-      volumes.forEach(({ imgs, url }) => {
-        const downloadedVolume = preParsedVolumes.find(e => e.url === url);
-        if (downloadedVolume) {
-          imgs.forEach(img => {
-            if (
-              downloadedVolume.imgs.find(
-                exitsImg => exitsImg[0] === img[0] && exitsImg[1],
-              )
-            ) {
-              img[1] = true;
-            }
-          });
-        }
-      });
-      this.debug(`解析之前下载记录并更新这次下载内容`);
-    }
 
-    return volumes;
+    this.debug(`解析 ${mangaName} 网址及名称,开始解析..`);
+    let [volumesInfo, isFinish] = await this.getVolumesInfo(
+      mangaPageUrl,
+      mangaName,
+    );
+    volumesInfo = volumesInfo.filter(
+      e => !volumes.find(ee => ee.url === e.url),
+    );
+
+    this.debug(`解析完 ${mangaName}  网址及名称`);
+
+    if (volumesInfo.length > 0) {
+      this.debug(`下载 ${mangaName} 图片地址`);
+      const increasedVolumes = await this.getVolumesImgUrls(
+        mangaName,
+        volumesInfo,
+      );
+      volumes.push(...increasedVolumes);
+    }
+    fs.writeFileSync(downloadingJson, JSON.stringify(volumes, null, 2));
+    this.debug(`图片地址信息保存至 ${downloadingJson}`);
+
+    return [volumes, isFinish];
   }
 
   static extractSuffixFromUrl(url: string) {
@@ -257,7 +239,7 @@ export abstract class Manga extends Tool {
   protected abstract getVolumesInfo(
     mangaPageUrl: string,
     mangaName: string,
-  ): Promise<VolumeInfo[]>;
+  ): Promise<[VolumeInfo[], boolean]>;
 
   private async downloadImgs(
     imgs: { url: string; locate: string }[],

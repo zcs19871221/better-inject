@@ -159,6 +159,7 @@ export class Tool {
         },
         agent: url.startsWith('https') ? this.httpsAgent : this.httpAgent,
         responseHandlers: ['status', 'redirect'],
+        // timeout: 40 * 1000,
         errorRetryInterval: 1000,
         errorRetry: 3,
       });
