@@ -1,74 +1,75 @@
-import path from 'path';
+import * as fs from 'better-fs';
 import * as cheerio from 'cheerio';
 import * as lz from 'lz-string';
-import { Manga, VolumeInfo } from './manga';
+import { MangaDownloader, MangaUnitReturn } from './manga';
 
-export class Maofly extends Manga {
-  constructor(maxThread: number = 800, loglevel: 'debug' | 'log' = 'debug') {
-    super('https://www.maofly.com', maxThread, loglevel);
-  }
-
+export class Maofly extends MangaDownloader {
   async search(): Promise<string> {
     return '';
   }
 
-  protected async collectMangaCover(name: string, url: string) {
-    const html = await this.get(url);
-    const $ = cheerio.load(html);
-    const src = $('.comic-cover img').attr('src');
-    if (src === undefined) {
-      console.error('没找到封面 ' + name);
-      return '';
-    }
-    const cover = path.join(
-      Manga.imgBaseDir,
-      name,
-      `cover.${Manga.extractSuffixFromUrl(src)}`,
-    );
-    await this.fetchThenSaveImg(src, cover);
-    return `cover.${Manga.extractSuffixFromUrl(src)}`;
-  }
-
-  protected async getVolumesInfo(
-    mangaPageUrl: string,
-    _mangaName: string,
-  ): Promise<[VolumeInfo[], boolean]> {
-    const html = await this.get(mangaPageUrl);
+  protected async collectMangaUnit(): Promise<MangaUnitReturn> {
+    const html = await this.fetchDirs(this.mangaEntryUrl);
     const $ = cheerio.load(html);
 
-    const volumeInfos: VolumeInfo[] = [];
+    const result: MangaUnitReturn = {
+      volumes: [],
+      chapters: [],
+    };
 
-    const handle = (tab: any) => {
+    const handle = (tab: any, type: 'volumes' | 'chapters') => {
       $('.fixed-a-es', tab).each((__i, anchor) => {
         const url = $(anchor).attr('href');
-        const name = $(anchor).text();
         if (!url) {
           throw new Error($(anchor).text() + ' 解析href失败');
         }
-        volumeInfos.unshift({
-          url,
-          name,
-        });
+        result[type].unshift(url);
       });
     };
-    const isFinish = $('.comic-pub-state').text() === '已完结';
+    const isOver = $('.comic-pub-state').text() === '已完结';
 
     $('#comic-book-list .tab-pane').each((_i, tab) => {
       const header = $('h2', tab);
       if (header) {
-        if (header.text() === '单行本' && isFinish) {
-          handle(tab);
+        if (header.text() === '单行本') {
+          handle(tab, 'volumes');
         }
-        if (header.text() === '单话' && !isFinish) {
-          handle(tab);
+        if (header.text() === '单话') {
+          handle(tab, 'chapters');
         }
       }
     });
-    return [volumeInfos, isFinish];
+    result.isOver = isOver;
+
+    const src = $('.comic-cover img').attr('src');
+    if (src) {
+      fs.writeFileSync(this.coverLocate, await this.fetchImgs(src));
+    }
+
+    return result;
   }
 
-  protected async getVolumeImg(volumePageUrl: string): Promise<string[]> {
-    const volumePageHtml = await this.get(volumePageUrl);
+  protected fetchDirs(url: string): Promise<Buffer> {
+    return this.fetch(url, {
+      header: {
+        referer: 'https://www.maofly.com',
+      },
+    });
+  }
+
+  public fetchImgs(url: string): Promise<Buffer> {
+    const u = new URL(url);
+    const referer = `${u.protocol}//${u.host}`;
+
+    return this.fetch(url, {
+      header: {
+        referer,
+      },
+    });
+  }
+
+  protected async collectImgUrls(volumePageUrl: string): Promise<string[]> {
+    const volumePageHtml = String(await this.fetchDirs(volumePageUrl));
     const $ = cheerio.load(volumePageHtml);
 
     const encodedImgUrls =

@@ -3,10 +3,11 @@
 // const m = new Laimanhua(1000);
 import { Maofly } from './maofly';
 
-const m = new Maofly(50);
+const m = new Maofly({
+  name: '电锯人',
+  mangaEntryUrl: 'https://www.maofly.com/manga/33914.html',
+});
 
-m.download('GIGANT', 'https://www.maofly.com/manga/41088.html').catch(
-  (er: any) => {
-    console.error(er);
-  },
-);
+m.download().catch((er: any) => {
+  console.error(er);
+});

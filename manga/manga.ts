@@ -1,29 +1,39 @@
 import path from 'path';
+import Https from 'https';
+import Http from 'http';
 import * as fs from 'better-fs';
-import { Tool } from './tool';
+import sizeOf from 'image-size';
+import _ from 'lodash';
+import Request from 'better-request';
 
-export interface VolumeInfo {
+type MangaPage =
+  | {
+      imgUrl: string;
+    }
+  | {
+      imgUrl?: undefined;
+      width: number;
+      height: number;
+      suffix: string;
+    };
+type Unit =
+  | {
+      entryUrl: string;
+    }
+  | {
+      entryUrl?: undefined;
+      pages: MangaPage[];
+    };
+
+export interface Manga {
   name: string;
-  url: string;
-}
-export interface Volume extends VolumeInfo {
-  imgs: [string, boolean][];
-}
-
-export interface VolumeSuffix {
-  main: string;
-  other: {
-    suffix: string;
-    seqs: number[];
-  }[];
-}
-
-export interface MangaPreview {
-  name: string;
-  cover: string;
-  readed?: boolean;
-  isCollect?: boolean;
-  volumes: [string, number, VolumeSuffix][];
+  volumes: Unit[];
+  chapters: Unit[];
+  lastUpdate: number;
+  isOver: boolean;
+  fetchedAll: boolean;
+  hasBeenCollected: boolean;
+  hasBeenRead: boolean;
 }
 
 export interface ReadPoint {
@@ -32,276 +42,263 @@ export interface ReadPoint {
   pageSeq: number;
 }
 
-export abstract class Manga extends Tool {
+export interface MangaUnitReturn {
+  volumes: string[];
+  chapters: string[];
+  isOver?: boolean;
+}
+
+export abstract class MangaDownloader {
   static imgBaseDir: string = 'G:/漫画';
-  static mangasJson: string = path.join(Manga.imgBaseDir, '.mangas.json');
+
   static readPointName: string = '.readpoint.json';
+  static record: string = '.manga.json';
 
-  constructor(
-    protected readonly root: string,
-    maxThread: number = 20,
-    logLevel: 'debug' | 'log' = 'debug',
-    private readonly interval: number = 0,
-    private readonly downloadType: 'pipe' | 'buf' = 'pipe',
-  ) {
-    super(root, maxThread, logLevel);
-  }
-
-  public abstract search(): Promise<string>;
-
-  public async download(mangaName: string, mangaPageUrl: string) {
-    const { downloadingJson, mangaDir } = this.prepare(mangaName);
-    let volumes: Volume[] = [];
-    let isFinish = true;
-    const recordDownloaded = () => {
-      if (volumes.length > 0) {
-        fs.writeFileSync(downloadingJson, JSON.stringify(volumes, null, 2));
-      }
-    };
-    try {
-      [volumes, isFinish] = await this.collectVolumes(
-        downloadingJson,
-        mangaName,
-        mangaPageUrl,
-      );
-
-      process.on('SIGINT', () => {
-        recordDownloaded();
-        this.log('已记录下载进度');
-        process.exit();
-      });
-      const mangaImgUrls = this.filterWillDownloadImgs(volumes, mangaDir);
-      const hasFail = await this.downloadImgs(
-        mangaImgUrls,
-        mangaDir,
-        volumes,
-        recordDownloaded,
-      );
-
-      if (!hasFail) {
-        const cover = await this.collectMangaCover(
+  static getRecord(mangaName: string): Manga {
+    return JSON.parse(
+      fs.readFileSync(
+        path.join(
+          MangaDownloader.imgBaseDir,
           mangaName,
-          mangaPageUrl,
-          mangaImgUrls[0].locate,
-        );
-        this.updateMangaJson(mangaName, cover, volumes);
-        if (isFinish) {
-          fs.removeSync(downloadingJson);
-          this.debug(`删除下载记录 ${downloadingJson}`);
-        }
-        this.log(`成功下载 ${mangaName}`);
-      } else {
-        this.log('有下载失败图片！再次执行以补完未成功图片!');
-      }
-    } catch (error) {
-      recordDownloaded();
-      console.error((error as Error).message);
-    }
+          MangaDownloader.record,
+        ),
+        'utf-8',
+      ),
+    );
   }
 
-  protected abstract collectMangaCover(
-    name: string,
-    url: string,
-    firstPic: string,
-  ): Promise<string>;
-
-  private updateMangaJson(mangaName: string, cover: string, volumes: Volume[]) {
-    this.debug(`写入 ${mangaName} 记录到 ${Manga.mangasJson}`);
-    let mangaJson: MangaPreview[] = [];
-    if (fs.existsSync(Manga.mangasJson)) {
-      mangaJson = JSON.parse(
-        fs.readFileSync(Manga.mangasJson, 'utf-8'),
-      ) as MangaPreview[];
-      this.log(`创建 ${Manga.mangasJson}`);
-    } else {
-      this.log(`更新 ${Manga.mangasJson}`);
-    }
-    const mangaPreview: MangaPreview = {
-      name: mangaName,
-      cover,
-      readed: false,
-      volumes: volumes.map(e => {
-        const map: { [suffix: string]: number[] } = {};
-        let biggestNum = -Infinity;
-        let biggest = '';
-        e.imgs.forEach((e, imgIndex) => {
-          const suffix = Manga.extractSuffixFromUrl(e[0]);
-          map[suffix] = map[suffix] || [];
-          map[suffix].push(imgIndex + 1);
-          if (biggestNum < map[suffix].length) {
-            biggestNum = map[suffix].length;
-            biggest = suffix;
-          }
-        });
-        const other = Object.entries(map)
-          .filter(e => e[0] !== biggest)
-          .map(e => ({
-            suffix: e[0],
-            seqs: e[1],
-          }));
-        const suffix: VolumeSuffix = {
-          main: biggest,
-          other,
-        };
-        return [e.name, e.imgs.length, suffix];
-      }),
-    };
-    const oldIndex = mangaJson.findIndex(e => e.name === mangaName);
-    if (oldIndex > -1) {
-      mangaJson[oldIndex] = mangaPreview;
-    } else {
-      mangaJson.push(mangaPreview);
-    }
-    fs.writeFileSync(Manga.mangasJson, JSON.stringify(mangaJson, null, 2));
-  }
-
-  private async collectVolumes(
-    downloadingJson: string,
-    mangaName: string,
-    mangaPageUrl: string,
-  ): Promise<[Volume[], boolean]> {
-    let volumes: Volume[] = [];
-    if (fs.existsSync(downloadingJson)) {
-      this.debug(`存在 ${mangaName} 图片地址, 读取 ${downloadingJson}`);
-      volumes = JSON.parse(
-        fs.readFileSync(downloadingJson, 'utf-8'),
-      ) as Volume[];
-    }
-
-    this.debug(`解析 ${mangaName} 网址及名称,开始解析..`);
-    let [volumesInfo, isFinish] = await this.getVolumesInfo(
-      mangaPageUrl,
-      mangaName,
-    );
-    volumesInfo = volumesInfo.filter(
-      e => !volumes.find(ee => ee.url === e.url),
-    );
-
-    this.debug(`解析完 ${mangaName}  网址及名称`);
-
-    if (volumesInfo.length > 0) {
-      this.debug(`下载 ${mangaName} 图片地址`);
-      const increasedVolumes = await this.getVolumesImgUrls(
-        mangaName,
-        volumesInfo,
+  static getAllRecord(): Manga[] {
+    return fs.readdirSync(path.join(MangaDownloader.imgBaseDir)).map(name => {
+      return JSON.parse(
+        fs.readFileSync(path.join(MangaDownloader.imgBaseDir, name), 'utf-8'),
       );
-      volumes.push(...increasedVolumes);
-    }
-    fs.writeFileSync(downloadingJson, JSON.stringify(volumes, null, 2));
-    this.debug(`图片地址信息保存至 ${downloadingJson}`);
+    });
+  }
 
-    return [volumes, isFinish];
+  static writeRecord(mangaName: string, record: Manga) {
+    return fs.writeFileSync(
+      path.join(MangaDownloader.imgBaseDir, mangaName, MangaDownloader.record),
+      JSON.stringify(record),
+    );
+  }
+
+  protected dir: string;
+  protected name: string;
+  private recordLocate: string;
+  private record: Manga;
+  protected mangaEntryUrl: string;
+  private isDebug: boolean;
+  protected coverLocate: string;
+
+  private types = ['volumes', 'chapters'] as const;
+
+  constructor({
+    name,
+    mangaEntryUrl,
+    isOver = false,
+    isDebug = true,
+  }: {
+    name: string;
+    mangaEntryUrl: string;
+    isOver?: boolean;
+    isDebug?: boolean;
+  }) {
+    this.dir = path.join(MangaDownloader.imgBaseDir, name);
+    fs.ensureMkdirSync(this.dir);
+    this.types.forEach(type => fs.ensureMkdir(path.join(this.dir, type)));
+
+    this.recordLocate = path.join(this.dir, MangaDownloader.record);
+    if (fs.existsSync(this.recordLocate)) {
+      this.record = JSON.parse(fs.readFileSync(this.recordLocate, 'utf-8'));
+    } else {
+      this.record = {
+        lastUpdate: Date.now(),
+        volumes: [],
+        chapters: [],
+        name,
+        isOver,
+        fetchedAll: false,
+        hasBeenCollected: false,
+        hasBeenRead: false,
+      };
+      this.save();
+    }
+    this.mangaEntryUrl = mangaEntryUrl;
+    this.isDebug = isDebug;
+    this.name = name;
+    this.coverLocate = path.join(this.dir, 'cover.jpg');
+  }
+
+  public async download() {
+    try {
+      this.log('开始下载：' + this.name);
+      if (this.record.fetchedAll && this.record.isOver) {
+        this.debug('无需更新退出');
+        return;
+      }
+
+      if (
+        (this.record.volumes.length === 0 &&
+          this.record.chapters.length === 0) ||
+        (this.record.isOver === false &&
+          Date.now() - this.record.lastUpdate >= 7 * 24 * 60 * 60 * 1000)
+      ) {
+        this.debug('获取单行本和章回信息');
+        const mangaUnits = await this.collectMangaUnit();
+        this.types.forEach(type => {
+          mangaUnits[type].forEach((entryUrl, index) => {
+            if (this.record[type][index] === undefined) {
+              this.record[type][index] = {
+                entryUrl,
+              };
+            }
+          });
+        });
+        this.save();
+        this.debug('保存单行本和章回信息');
+      }
+
+      await this.update('chapters');
+      await this.update('volumes');
+      this.record.fetchedAll = true;
+      if (!fs.existsSync(this.coverLocate)) {
+        const locate = this.types
+          .map(e => path.join(this.dir, e, '1.jpg'))
+          .find(e => fs.existsSync(e));
+        if (locate) {
+          fs.copyFileSync(locate, this.coverLocate);
+        }
+      }
+      this.save();
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  protected save() {
+    this.record.lastUpdate = Date.now();
+    fs.writeFileSync(this.recordLocate, JSON.stringify(this.record));
+  }
+
+  private async update(type: 'volumes' | 'chapters') {
+    let pageSeq = 0;
+    for (let index = 0, len = this.record[type].length; index < len; index++) {
+      let volume = this.record[type][index];
+      if (volume.entryUrl !== undefined) {
+        this.debug(
+          type === 'volumes' ? '获取单行本图片地址' : '获取章回图片地址',
+        );
+        const imgs = await this.collectImgUrls(volume.entryUrl);
+        this.debug('图片地址获取成功');
+        this.debug(imgs.join(','));
+        const pages: MangaPage[] = imgs.map(url => ({
+          imgUrl: url,
+        }));
+        this.record[type][index] = { pages };
+        this.save();
+      }
+      volume = this.record[type][index];
+      if (volume.entryUrl === undefined) {
+        this.debug(
+          '开始下载第' +
+            (index + 1) +
+            (type === 'chapters' ? '章回' : '单行本') +
+            `全部 【${volume.pages.length}】 张图片`,
+        );
+
+        await Promise.all(
+          volume.pages.map(page => {
+            pageSeq += 1;
+            if (page.imgUrl !== undefined) {
+              this.debug('开始下载: ' + pageSeq + page.imgUrl);
+              let index = pageSeq;
+              return this.fetchImgs(page.imgUrl)
+                .then(buf => {
+                  const suffix = MangaDownloader.extractSuffixFromUrl(
+                    page.imgUrl,
+                  );
+                  const { width, height } = sizeOf(buf);
+                  this.debug('下载完成: ' + index);
+                  fs.writeFileSync(
+                    path.join(
+                      this.dir,
+                      type,
+                      String(index).padStart(4, '0') + '.' + suffix,
+                    ),
+                    buf,
+                  );
+                  this.save();
+                  return {
+                    width: width ?? 0,
+                    height: height ?? 0,
+                    suffix,
+                  };
+                })
+                .catch(_err => {
+                  console.error(page.imgUrl);
+                  return page;
+                });
+            }
+            return page;
+          }),
+        );
+
+        this.save();
+      }
+    }
+  }
+
+  protected log(...msg: any[]) {
+    console.log(...msg);
+  }
+
+  protected debug(...msg: any[]) {
+    if (this.isDebug) {
+      this.log(...msg);
+    }
+  }
+
+  private httpsAgent = new Https.Agent({
+    keepAlive: false,
+    maxSockets: 100,
+  });
+  private httpAgent = new Http.Agent({
+    keepAlive: false,
+    maxSockets: 100,
+  });
+
+  protected fetch(
+    url: string,
+    props: Omit<Parameters<typeof Request.fetch>[0], 'method' | 'url'> = {},
+  ): Promise<Buffer> {
+    const header = props.header;
+    delete props.header;
+    return Request.fetch(
+      {
+        url,
+        agent: url.startsWith('https') ? this.httpsAgent : this.httpAgent,
+        responseHandlers: props.responseHandlers ?? ['status', 'redirect'],
+        header: {
+          ...header,
+          agent:
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.51 Safari/537.36',
+        },
+        method: 'GET',
+        ...props,
+      },
+      null,
+    );
+  }
+
+  protected fetchImgs(url: string): Promise<Buffer> {
+    return this.fetch(url);
   }
 
   static extractSuffixFromUrl(url: string) {
     return url.match(/\.([^.?#]*)($|\?|#)/)?.[1] || 'jpg';
   }
 
-  private prepare(mangaName: string) {
-    this.log(`开始下载 ${mangaName} `);
-    const mangaDir = path.join(Manga.imgBaseDir, mangaName);
-    fs.ensureMkdirSync(mangaDir);
-    const downloadingJson = path.join(mangaDir, '.dowloding.json');
-    return { downloadingJson, mangaDir };
-  }
+  protected abstract collectMangaUnit(): Promise<MangaUnitReturn>;
 
-  private filterWillDownloadImgs(volumes: Volume[], mangaDir: string) {
-    const mangaImgs = volumes.reduce(
-      (acc: { url: string; locate: string }[], cur) => {
-        const imgDir = path.join(mangaDir, cur.name);
-
-        if (!fs.existsSync(imgDir)) {
-          fs.mkdirSync(imgDir);
-        }
-        acc.push(
-          ...cur.imgs
-            .map(([url, isDownloaded], index) => {
-              const suffix = Manga.extractSuffixFromUrl(url);
-              const locate = path.join(
-                imgDir,
-                `${String(index + 1).padStart(3, '0')}.${suffix}`,
-              );
-              return {
-                url,
-                locate,
-                isDownloaded,
-              };
-            })
-            .filter(e => e.isDownloaded === false),
-        );
-        return acc;
-      },
-      [],
-    );
-    return mangaImgs;
-  }
-
-  protected abstract getVolumesInfo(
-    mangaPageUrl: string,
-    mangaName: string,
-  ): Promise<[VolumeInfo[], boolean]>;
-
-  private async downloadImgs(
-    imgs: { url: string; locate: string }[],
-    mangaDir: string,
-    volumes: Volume[],
-    recordDownloaded: () => void,
-  ): Promise<boolean> {
-    // let downloaded = 0;
-    const flagDownloaded = (url: string) => {
-      for (const volume of volumes) {
-        const downloadedImg = volume.imgs.find(e => e[0] === url);
-        if (downloadedImg) {
-          downloadedImg[1] = true;
-          // downloaded++;
-          // if (downloaded % 50 === 0 || ) {
-          recordDownloaded();
-          // }
-        }
-      }
-    };
-    const { fail } = await this.runParallel({
-      interval: this.interval,
-      points: Array.from({ length: 9 }, (_a, _i) => (_i + 1) * 10),
-      tasks: imgs.map(({ url, locate }) => async (): Promise<void> => {
-        try {
-          await this.fetchThenSaveImg(url, locate, this.downloadType);
-          flagDownloaded(url);
-          return;
-        } catch (err) {
-          if (err instanceof Error) {
-            err.message =
-              `下载 ${mangaDir} - ${locate} - ${url} 失败` + err.message;
-          }
-          throw err;
-        }
-      }),
-      msg: `下载 ${mangaDir}`,
-    });
-    return fail > 0;
-  }
-
-  protected async getVolumesImgUrls(
-    mangaName: string,
-    volumesInfo: VolumeInfo[],
-  ): Promise<Volume[]> {
-    return (
-      await this.runParallel({
-        msg: `${mangaName} 图片地址解析`,
-        stopWhenError: true,
-        tasks: volumesInfo.map(e => {
-          return async () => {
-            const imgs = await this.getVolumeImg(e.url);
-            const t: [string, boolean][] = imgs.map(url => [url, false]);
-            return {
-              ...e,
-              imgs: t,
-            };
-          };
-        }),
-      })
-    ).result;
-  }
-
-  protected abstract getVolumeImg(volumePageUrl: string): Promise<string[]>;
+  protected abstract collectImgUrls(unitEntryUrl: string): Promise<string[]>;
 }

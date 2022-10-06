@@ -14,12 +14,7 @@ import {
 import path from 'path';
 import * as fs from 'better-fs';
 
-import { Manga, MangaPreview, ReadPoint } from './manga';
-
-const imgPath = (mangaName: string, volumeName: string, imgName: string) =>
-  `/img/${mangaName}/${volumeName}/${imgName}`;
-
-const imgPathRoute = imgPath('{mangaName}', '{volumeName}', '{imgName}');
+import { MangaDownloader, Manga, ReadPoint } from './manga';
 
 @Controller
 @RequestMapping()
@@ -34,14 +29,9 @@ export default class Mg {
   @ResponseHeader('Access-Control-Allow-Origin', '*')
   @ResponseHeader('Access-Control-Allow-Headers', '*')
   @ResponseHeader('Access-Control-Allow-Methods', '*')
-  async getMangas(): Promise<MangaPreview[]> {
-    const mangas = JSON.parse(
-      await fs.readFile(Manga.mangasJson, 'utf-8'),
-    ) as MangaPreview[];
-    return mangas.map(e => ({
-      ...e,
-      cover: imgPath(e.name, 'cover', e.cover),
-    }));
+  async getMangas(): Promise<Manga[]> {
+    const mangas = MangaDownloader.getAllRecord();
+    return mangas;
   }
 
   @RequestMapping({
@@ -53,18 +43,7 @@ export default class Mg {
   @ResponseHeader('Access-Control-Allow-Headers', '*')
   @ResponseHeader('Access-Control-Allow-Methods', '*')
   async delManga(@PathVariable() mangaName: string): Promise<string> {
-    const mangas = JSON.parse(
-      await fs.readFile(Manga.mangasJson, 'utf-8'),
-    ) as MangaPreview[];
-    await fs.removeSync(path.join(Manga.imgBaseDir, mangaName));
-    await fs.writeFile(
-      Manga.mangasJson,
-      JSON.stringify(
-        mangas.filter(e => e.name != mangaName),
-        null,
-        2,
-      ),
-    );
+    await fs.removeSync(path.join(MangaDownloader.imgBaseDir, mangaName));
     return 'success';
   }
 
@@ -80,14 +59,9 @@ export default class Mg {
     @PathVariable() mangaName: string,
     @RequestParam() readedStatus: boolean,
   ): Promise<string> {
-    const mangas = JSON.parse(
-      await fs.readFile(Manga.mangasJson, 'utf-8'),
-    ) as MangaPreview[];
-    const t = mangas.find(e => e.name === mangaName);
-    if (t) {
-      t.readed = readedStatus;
-    }
-    await fs.writeFile(Manga.mangasJson, JSON.stringify(mangas, null, 2));
+    const manga = MangaDownloader.getRecord(mangaName);
+    manga.hasBeenRead = readedStatus;
+    MangaDownloader.writeRecord(mangaName, manga);
     return 'success';
   }
 
@@ -103,14 +77,9 @@ export default class Mg {
     @PathVariable() mangaName: string,
     @RequestParam() isCollect: boolean,
   ): Promise<string> {
-    const mangas = JSON.parse(
-      await fs.readFile(Manga.mangasJson, 'utf-8'),
-    ) as MangaPreview[];
-    const t = mangas.find(e => e.name === mangaName);
-    if (t) {
-      t.isCollect = isCollect;
-    }
-    await fs.writeFile(Manga.mangasJson, JSON.stringify(mangas, null, 2));
+    const manga = MangaDownloader.getRecord(mangaName);
+    manga.hasBeenCollected = isCollect;
+    MangaDownloader.writeRecord(mangaName, manga);
     return 'success';
   }
 
@@ -154,7 +123,11 @@ export default class Mg {
   @ResponseHeader('Access-Control-Allow-Methods', '*')
   @ResponseBody
   async getReadpoint(@RequestParam() manga: string): Promise<object | null> {
-    const locate = path.join(Manga.imgBaseDir, manga, Manga.readPointName);
+    const locate = path.join(
+      MangaDownloader.imgBaseDir,
+      manga,
+      MangaDownloader.readPointName,
+    );
     if (await fs.isExist(locate)) {
       const file = await fs.readFile(locate, 'utf-8');
       try {
@@ -185,35 +158,28 @@ export default class Mg {
       return {};
     }
     const locate = path.join(
-      Manga.imgBaseDir,
+      MangaDownloader.imgBaseDir,
       body.mangaName,
-      Manga.readPointName,
+      MangaDownloader.readPointName,
     );
     fs.writeFileSync(locate, JSON.stringify(body));
     return {};
   }
 
   @RequestMapping({
-    path: imgPathRoute,
+    path: '/imgs/**/*',
   })
   @ResponseHeader('cache-control', `public, max-age=${String(2 * 60 * 60)}`)
   @ResponseBody
-  img(
-    @PathVariable() mangaName: string,
-    @PathVariable() volumeName: string,
-    @PathVariable() imgName: string,
-    request: WebRequest,
-  ): Buffer {
-    mangaName = decodeURI(mangaName);
-    volumeName = decodeURI(volumeName);
-    imgName = decodeURI(imgName);
+  img(request: WebRequest): Buffer {
     const imgLocate = path.join(
-      Manga.imgBaseDir,
-      mangaName,
-      ...(volumeName === 'cover' ? [imgName] : [volumeName, imgName]),
+      MangaDownloader.imgBaseDir,
+      path.join(request.getRequest().url ?? ''),
     );
     request.setContentType(
-      `image/${Manga.extractSuffixFromUrl(request.getRequest().url || '')}`,
+      `image/${MangaDownloader.extractSuffixFromUrl(
+        request.getRequest().url || '',
+      )}`,
     );
     return fs.readFileSync(imgLocate);
   }
