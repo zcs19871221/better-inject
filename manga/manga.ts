@@ -206,8 +206,9 @@ export abstract class MangaDownloader {
             `全部 【${volume.pages.length}】 张图片`,
         );
 
+        const originPages = volume.pages;
         await Promise.all(
-          volume.pages.map(page => {
+          volume.pages.map((page, i) => {
             pageSeq += 1;
             if (page.imgUrl !== undefined) {
               this.debug('开始下载: ' + pageSeq + page.imgUrl);
@@ -223,23 +224,21 @@ export abstract class MangaDownloader {
                     path.join(
                       this.dir,
                       type,
-                      String(index).padStart(4, '0') + '.' + suffix,
+                      String(index).padStart(5, '0') + '.' + suffix,
                     ),
                     buf,
                   );
-                  this.save();
-                  return {
+                  originPages[i] = {
                     width: width ?? 0,
                     height: height ?? 0,
                     suffix,
                   };
+                  this.save();
                 })
                 .catch(_err => {
                   console.error(page.imgUrl);
-                  return page;
                 });
             }
-            return page;
           }),
         );
 
