@@ -69,9 +69,7 @@ export abstract class MangaDownloader {
 
   static getAllRecord(): Manga[] {
     return fs.readdirSync(path.join(MangaDownloader.imgBaseDir)).map(name => {
-      return JSON.parse(
-        fs.readFileSync(path.join(MangaDownloader.imgBaseDir, name), 'utf-8'),
-      );
+      return MangaDownloader.getRecord(name);
     });
   }
 
@@ -190,7 +188,6 @@ export abstract class MangaDownloader {
         );
         const imgs = await this.collectImgUrls(volume.entryUrl);
         this.debug('图片地址获取成功');
-        this.debug(imgs.join(','));
         const pages: MangaPage[] = imgs.map(url => ({
           imgUrl: url,
         }));
@@ -211,7 +208,6 @@ export abstract class MangaDownloader {
           volume.pages.map((page, i) => {
             pageSeq += 1;
             if (page.imgUrl !== undefined) {
-              this.debug('开始下载: ' + pageSeq + page.imgUrl);
               let index = pageSeq;
               return this.fetchImgs(page.imgUrl)
                 .then(buf => {
@@ -219,7 +215,6 @@ export abstract class MangaDownloader {
                     page.imgUrl,
                   );
                   const { width, height } = sizeOf(buf);
-                  this.debug('下载完成: ' + index);
                   fs.writeFileSync(
                     path.join(
                       this.dir,
@@ -240,6 +235,13 @@ export abstract class MangaDownloader {
                 });
             }
           }),
+        );
+
+        this.debug(
+          '第' +
+            (index + 1) +
+            (type === 'chapters' ? '章回' : '单行本') +
+            `下载完成\n\n`,
         );
 
         this.save();

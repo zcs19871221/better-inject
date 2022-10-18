@@ -174,7 +174,7 @@ export default class Mg {
   img(request: WebRequest): Buffer {
     const imgLocate = path.join(
       MangaDownloader.imgBaseDir,
-      path.join(request.getRequest().url ?? ''),
+      path.join(request.getRequest().url?.replace('imgs', '') ?? ''),
     );
     request.setContentType(
       `image/${MangaDownloader.extractSuffixFromUrl(
