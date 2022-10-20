@@ -29,7 +29,10 @@ export default class Mg {
   @ResponseHeader('Access-Control-Allow-Origin', '*')
   @ResponseHeader('Access-Control-Allow-Headers', '*')
   @ResponseHeader('Access-Control-Allow-Methods', '*')
-  async getMangas(): Promise<Manga[]> {
+  async getMangas(@Method method: string): Promise<Manga[]> {
+    if (method !== 'GET') {
+      return [];
+    }
     const mangas = MangaDownloader.getAllRecord();
     return mangas;
   }

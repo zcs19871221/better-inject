@@ -1,6 +1,8 @@
 import * as fs from 'better-fs';
 import * as cheerio from 'cheerio';
 import * as lz from 'lz-string';
+import sizeOf from 'image-size';
+
 import { MangaDownloader, MangaUnitReturn } from './manga';
 
 export class Maofly extends MangaDownloader {
@@ -43,7 +45,12 @@ export class Maofly extends MangaDownloader {
 
     const src = $('.comic-cover img').attr('src');
     if (src) {
-      fs.writeFileSync(this.coverLocate, await this.fetchImgs(src));
+      const coverBuf = await this.fetchImgs(src);
+      const { width, height } = sizeOf(coverBuf);
+      fs.writeFileSync(this.coverLocate, coverBuf);
+      this.record.cover.width = width ?? 0;
+      this.record.cover.height = height ?? 0;
+      this.save();
     }
 
     return result;

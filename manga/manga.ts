@@ -1,6 +1,7 @@
 import path from 'path';
 import Https from 'https';
 import Http from 'http';
+import os from 'os';
 import * as fs from 'better-fs';
 import sizeOf from 'image-size';
 import _ from 'lodash';
@@ -34,12 +35,16 @@ export interface Manga {
   fetchedAll: boolean;
   hasBeenCollected: boolean;
   hasBeenRead: boolean;
+  cover: {
+    width: number;
+    height: number;
+  };
 }
 
 export interface ReadPoint {
   mangaName: string;
-  volumeName: string;
-  pageSeq: number;
+  volumes: number;
+  chapters: number;
 }
 
 export interface MangaUnitReturn {
@@ -49,7 +54,7 @@ export interface MangaUnitReturn {
 }
 
 export abstract class MangaDownloader {
-  static imgBaseDir: string = 'G:/漫画';
+  static imgBaseDir: string = path.join(os.homedir(), 'manga');
 
   static readPointName: string = '.readpoint.json';
   static record: string = '.manga.json';
@@ -68,9 +73,12 @@ export abstract class MangaDownloader {
   }
 
   static getAllRecord(): Manga[] {
-    return fs.readdirSync(path.join(MangaDownloader.imgBaseDir)).map(name => {
-      return MangaDownloader.getRecord(name);
-    });
+    return fs
+      .readdirSync(path.join(MangaDownloader.imgBaseDir))
+      .filter(x => !x.startsWith('.'))
+      .map(name => {
+        return MangaDownloader.getRecord(name);
+      });
   }
 
   static writeRecord(mangaName: string, record: Manga) {
@@ -83,7 +91,7 @@ export abstract class MangaDownloader {
   protected dir: string;
   protected name: string;
   private recordLocate: string;
-  private record: Manga;
+  protected record: Manga;
   protected mangaEntryUrl: string;
   private isDebug: boolean;
   protected coverLocate: string;
@@ -102,7 +110,9 @@ export abstract class MangaDownloader {
     isDebug?: boolean;
   }) {
     this.dir = path.join(MangaDownloader.imgBaseDir, name);
-    fs.ensureMkdirSync(this.dir);
+    if (!fs.existsSync(this.dir)) {
+      fs.mkdirSync(this.dir);
+    }
     this.types.forEach(type => fs.ensureMkdir(path.join(this.dir, type)));
 
     this.recordLocate = path.join(this.dir, MangaDownloader.record);
@@ -118,6 +128,10 @@ export abstract class MangaDownloader {
         fetchedAll: false,
         hasBeenCollected: false,
         hasBeenRead: false,
+        cover: {
+          width: 0,
+          height: 0,
+        },
       };
       this.save();
     }
