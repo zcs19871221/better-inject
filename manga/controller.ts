@@ -122,21 +122,25 @@ export default class Mg {
   @ResponseHeader('Access-Control-Allow-Headers', '*')
   @ResponseHeader('Access-Control-Allow-Methods', '*')
   @ResponseBody
-  async getReadpoint(@RequestParam() manga: string): Promise<object | null> {
+  async getReadpoint(@RequestParam() manga: string): Promise<ReadPoint> {
     const locate = path.join(
       MangaDownloader.imgBaseDir,
       manga,
       MangaDownloader.readPointName,
     );
-    if (await fs.isExist(locate)) {
+
+    try {
       const file = await fs.readFile(locate, 'utf-8');
-      try {
-        return JSON.parse(file);
-      } catch (e) {
-        console.error(locate, file);
-      }
+      return JSON.parse(file);
+    } catch (e) {
+      const initReadPoint: ReadPoint = {
+        mangaName: manga,
+        chapters: 1,
+        volumes: 1,
+      };
+      fs.writeFileSync(locate, JSON.stringify(initReadPoint));
+      return initReadPoint;
     }
-    return null;
   }
 
   @RequestMapping({
@@ -174,7 +178,7 @@ export default class Mg {
   img(request: WebRequest): Buffer {
     const imgLocate = path.join(
       MangaDownloader.imgBaseDir,
-      path.join(request.getRequest().url?.replace('imgs', '') ?? ''),
+      path.join(decodeURI(request.getRequest().url?.replace('imgs', '') ?? '')),
     );
     request.setContentType(
       `image/${MangaDownloader.extractSuffixFromUrl(
