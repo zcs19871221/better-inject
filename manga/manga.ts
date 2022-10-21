@@ -282,6 +282,7 @@ export abstract class MangaDownloader {
     keepAlive: false,
     maxSockets: 50,
   });
+
   private httpAgent = new Http.Agent({
     keepAlive: false,
     maxSockets: 50,

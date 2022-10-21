@@ -4,8 +4,8 @@
 import { Maofly } from './maofly';
 
 const m = new Maofly({
-  name: '炎拳',
-  mangaEntryUrl: 'https://www.maofly.com/manga/31203.html',
+  name: '剑豪生死斗',
+  mangaEntryUrl: 'https://www.maofly.com/manga/23757.html',
 });
 
 m.download().catch((er: any) => {
