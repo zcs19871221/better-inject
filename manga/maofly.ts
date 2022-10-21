@@ -65,8 +65,7 @@ export class Maofly extends MangaDownloader {
   }
 
   public fetchImgs(url: string): Promise<Buffer> {
-    const u = new URL(url);
-    const referer = `${u.protocol}//${u.host}`;
+    const referer = `https://www.maofly.com/`;
 
     return this.fetch(url, {
       header: {
