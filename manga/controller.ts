@@ -19,7 +19,7 @@ import { MangaDownloader, Manga, ReadPoint } from './manga';
 @Controller
 @RequestMapping()
 export default class Mg {
-  private staticBase: string = 'F:/watch-manga/build';
+  private staticBase: string = '/Users/cszhang/Projects/watch-manga/build';
 
   @RequestMapping({
     path: '/mangas',
@@ -138,8 +138,8 @@ export default class Mg {
     } catch (e) {
       const initReadPoint: ReadPoint = {
         mangaName: manga,
-        chapters: 1,
-        volumes: 1,
+        chapters: { index: 0, ratio: 1 },
+        volumes: { index: 0, ratio: 1 },
       };
       fs.writeFileSync(locate, JSON.stringify(initReadPoint));
       return initReadPoint;

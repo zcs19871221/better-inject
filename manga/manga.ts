@@ -43,8 +43,8 @@ export interface Manga {
 
 export interface ReadPoint {
   mangaName: string;
-  volumes: number;
-  chapters: number;
+  volumes: { index: number; ratio: number };
+  chapters: { index: number; ratio: number };
 }
 
 export interface MangaUnitReturn {
@@ -113,7 +113,12 @@ export abstract class MangaDownloader {
     if (!fs.existsSync(this.dir)) {
       fs.mkdirSync(this.dir);
     }
-    this.types.forEach(type => fs.ensureMkdir(path.join(this.dir, type)));
+    this.types.forEach(type => {
+      const dir = path.join(this.dir, type);
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir);
+      }
+    });
 
     this.recordLocate = path.join(this.dir, MangaDownloader.record);
     if (fs.existsSync(this.recordLocate)) {
