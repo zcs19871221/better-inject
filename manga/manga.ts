@@ -280,11 +280,11 @@ export abstract class MangaDownloader {
 
   private httpsAgent = new Https.Agent({
     keepAlive: false,
-    maxSockets: 100,
+    maxSockets: 50,
   });
   private httpAgent = new Http.Agent({
     keepAlive: false,
-    maxSockets: 100,
+    maxSockets: 50,
   });
 
   protected fetch(
